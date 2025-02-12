@@ -36,7 +36,7 @@ jobs:
         run: mv target/*.jar target/app.jar  # Rename the JAR
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Viettravel application
           path: target/app.jar  # Upload the renamed JAR
