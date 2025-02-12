@@ -9,6 +9,12 @@ on:
         required: true
         default: "release/v1.0"
 
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: self-hosted
