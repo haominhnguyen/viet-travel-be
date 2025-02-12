@@ -11,11 +11,35 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    env:
+      BUILD_FOLDER: /home/ubuntu/actions-runner-be/backend-build-agent/viet-travel-be/viet-travel-be/target/
+      FILE_NAME: tourism-0.0.1-SNAPSHOT.jar
+      NEW_FILE_NAME: app.jar
+      RUN_PATH: /home/viettravel-be
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch }}  # Checkout selected branch
+
+      - name: Set Up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build package with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Rename JAR File simple
+        run: mv target/*.jar target/app.jar  # Rename the JAR
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Viettravel application
+          path: target/app.jar  # Upload the renamed JAR
 
       - name: Deploy Application
         run: |
