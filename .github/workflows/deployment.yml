@@ -9,11 +9,9 @@ on:
         default: "release/v1.0"
 
 jobs:
-  deploy:
+  build:
     runs-on: self-hosted
     env:
-      BUILD_FOLDER: /home/ubuntu/actions-runner-be/backend-build-agent/viet-travel-be/viet-travel-be/target/
-      FILE_NAME: tourism-0.0.1-SNAPSHOT.jar
       NEW_FILE_NAME: app.jar
       RUN_PATH: /home/viettravel-be
     steps:
@@ -33,15 +31,36 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Rename JAR File simple
-        run: mv target/*.jar target/app.jar  # Rename the JAR
+        run: mv target/*.jar target/$NEW_FILE_NAME
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Viettravel application
-          path: target/app.jar  # Upload the renamed JAR
+          name: Viettravel
+          path: target/$NEW_FILE_NAME
 
-      - name: Deploy Application
-        run: |
-          echo "Deploying branch: ${{ github.event.inputs.branch }}"
-          # Add your deployment commands here (e.g., SSH, Docker, AWS)
+  deploy:
+      runs-on: self-hosted
+      env:
+        RUN_PATH: /home/viettravel-be
+        JAR_NAME: app.jar
+        APP_PATH: /home/viettravel-be/app.jar
+        APP_SERVICE: gha-be
+      needs: build
+      steps:
+        - name: Download Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: Viettravel
+            path: /tmp
+  
+        - name: Move JAR to $RUN_PATH
+          run: |
+            sudo mkdir -p $RUN_PATH
+            sudo mv /tmp/$JAR_NAME APP_PATH
+            sudo chmod +x $APP_PATH
+  
+        - name: Restart Application
+          run: |
+            echo "START RELOAD APPLICATION!!!"
+            sudo systemctl restart $APP_SERVICE
