@@ -25,7 +25,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}  # Checkout selected branch
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Set Up JDK 17
         uses: actions/setup-java@v3
@@ -37,37 +37,37 @@ jobs:
       - name: Build package with Maven
         run: mvn clean package -DskipTests
 
-      - name: Rename JAR File simple
-        run: mv target/*.jar target/$NEW_FILE_NAME
+      - name: Rename JAR File
+        run: mv target/*.jar target/${{ env.NEW_FILE_NAME }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Viettravel
-          path: target/$NEW_FILE_NAME
+          path: target/${{ env.NEW_FILE_NAME }}
 
   deploy:
-      runs-on: self-hosted
-      env:
-        RUN_PATH: /home/viettravel-be
-        JAR_NAME: app.jar
-        APP_PATH: /home/viettravel-be/app.jar
-        APP_SERVICE: gha-be
-      needs: build
-      steps:
-        - name: Download Artifact
-          uses: actions/download-artifact@v3
-          with:
-            name: Viettravel
-            path: /tmp
+    runs-on: self-hosted
+    env:
+      RUN_PATH: /home/viettravel-be
+      JAR_NAME: app.jar
+      APP_PATH: /home/viettravel-be/app.jar
+      APP_SERVICE: gha-be
+    needs: build
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: Viettravel
+          path: /tmp
   
-        - name: Move JAR to $RUN_PATH
-          run: |
-            sudo mkdir -p $RUN_PATH
-            sudo mv /tmp/$JAR_NAME APP_PATH
-            sudo chmod +x $APP_PATH
+      - name: Move JAR to RUN_PATH
+        run: |
+          sudo mkdir -p ${{ env.RUN_PATH }}
+          sudo mv /tmp/${{ env.JAR_NAME }} ${{ env.APP_PATH }}
+          sudo chmod +x ${{ env.APP_PATH }}
   
-        - name: Restart Application
-          run: |
-            echo "START RELOAD APPLICATION!!!"
-            sudo systemctl restart $APP_SERVICE
+      - name: Restart Application
+        run: |
+          echo "START RELOAD APPLICATION!!!"
+          sudo systemctl restart ${{ env.APP_SERVICE }}
