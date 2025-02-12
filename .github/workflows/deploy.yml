@@ -1,0 +1,24 @@
+name: Deploy on selected branch with GHA
+run-name: Deployed to branch ${{ github.ref_name }} into production
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy"
+        required: true
+        default: "release/v1.0"
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}  # Checkout selected branch
+
+      - name: Deploy Application
+        run: |
+          echo "Deploying branch: ${{ github.event.inputs.branch }}"
+          # Add your deployment commands here (e.g., SSH, Docker, AWS)
