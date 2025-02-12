@@ -52,7 +52,7 @@ jobs:
       RUN_PATH: /home/viettravel-be
       JAR_NAME: app.jar
       APP_PATH: /home/viettravel-be/app.jar
-      APP_SERVICE: gha-be
+      APP_SERVICE: g79-be.service
     needs: build
     steps:
       - name: Download Artifact
