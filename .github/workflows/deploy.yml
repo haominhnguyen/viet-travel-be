@@ -1,5 +1,4 @@
-name: Deploy on selected branch with GHA
-run-name: Deployed to branch ${{ github.ref_name }} into production
+name: DEPLOYMENT with GHA
 
 on:
   workflow_dispatch:
