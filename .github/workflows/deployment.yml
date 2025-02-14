@@ -1,5 +1,5 @@
 name: DEPLOYMENT
-run-name: Deploy to branch ${{ github.event.inputs.branch }}
+run-name: Deploy to branch ${{ github.event.inputs.branch }} to production
 
 on:
   workflow_dispatch:
