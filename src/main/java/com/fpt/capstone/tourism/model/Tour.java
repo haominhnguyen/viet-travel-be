@@ -21,8 +21,7 @@ public class Tour extends BaseEntity{
     private Long id;
     private String name;
     private String highlights;
-    @Column(name = "number_seat")
-    private int numberSeats;
+
     @Column(name = "number_day")
     private int numberDays;
     @Column(name = "number_night")
@@ -48,10 +47,15 @@ public class Tour extends BaseEntity{
     )
     private List<Tag> tags;
 
+    private boolean published;
+
 
     @OneToOne
     @JoinColumn(name = "depart_location_id")
     private Location depart_location;
+
+    @Column(name = "mark_up_percent")
+    private double markUpPercent;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)

@@ -1,34 +1,37 @@
 package com.fpt.capstone.tourism.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder
-@Table(name = "tour_day_activity")
-public class TourDayActivity extends BaseEntity{
+@Table(name = "tour_booking_service")
+public class TourBookingService extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "day_id")
-    private TourDay tourDay;
+    @JoinColumn(name = "tour_booking_id")
+    private TourBooking tourBooking;
 
     @ManyToOne
-    @JoinColumn(name = "activity_id")
-    private Activity activity;
+    @JoinColumn(name = "service_id")
+    private Service service;
 
-    @Column(name = "number_ticket")
-    private int numberTicket;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
+
+
+    private String status;
+
+
+    private String reason;
+
 }

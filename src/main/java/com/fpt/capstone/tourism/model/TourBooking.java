@@ -43,5 +43,9 @@ public class TourBooking extends BaseEntity {
     private TourSchedule tourSchedule;
 
 
+    private String status;
+
+
+    private String reason;
 
 }

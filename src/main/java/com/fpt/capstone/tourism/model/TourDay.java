@@ -44,25 +44,7 @@ public class TourDay extends BaseEntity{
     private User tourGuide;
 
 
-
-
-
-
-
-
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayTransport> tourDayTransports;
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayMeal> tourDayMeals;
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayRoom> tourDayRooms;
-
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayActivity> tourDayActivities;
-
+    @ManyToMany(mappedBy = "tourDay")
+    private Set<Service> tourDayServices;
 
 }
