@@ -9,9 +9,6 @@ import java.util.List;
 
 public interface TourService {
     TourDTO findTopTourOfYear();
-
     List<TourDTO> findTrendingTours(int numberTour);
-
-
     GeneralResponse<PagingDTO<List<TourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
 }

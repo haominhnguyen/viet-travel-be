@@ -15,10 +15,6 @@ import java.util.List;
 
 
 public interface UserService {
-    void createEmailConfirmationToken(User user, String token);
-    User findUserByEmailConfirmationToken(String token);
-    void deleteEmailConfirmationToken(String token);
-
     String generateToken(User user);
     User findById(Long id);
     User findUserByUsername(String username);
