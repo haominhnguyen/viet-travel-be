@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @NoArgsConstructor
@@ -24,14 +26,21 @@ public class TourBookingService extends BaseEntity{
     @JoinColumn(name = "service_id")
     private Service service;
 
+    @Column(name = "current_quantity")
+    private int currentQuantity;
+
+    @Column(name = "requested_quantity")
+    private int requestedQuantity;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
 
+    @Column(name = "request_date")
+    private LocalDateTime requestDate;
 
-    private String status;
-
-
+    @Column(name = "reason")
     private String reason;
+
+    private String status; //(e.g., Pending, Approved, Rejected, Wait Confirmed).
 
 }

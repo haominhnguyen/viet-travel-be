@@ -31,7 +31,6 @@ public class TourDTO {
     private List<LocationDTO> locations;
     private List<TagDTO> tags;
     private LocationDTO depart_location;
-    private List<TicketDTO> tickets;
     private List<TourScheduleDTO> tourSchedules;
     private List<TourImageDTO> tourImages;
 }

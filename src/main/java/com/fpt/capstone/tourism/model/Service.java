@@ -22,9 +22,6 @@ public class Service extends BaseEntity{
 
     private String name;
 
-    @Column(name = "children_price")
-    private double childrenPrice;
-
     @Column(name = "adult_price")
     private double adultPrice;
 
@@ -50,5 +47,10 @@ public class Service extends BaseEntity{
             joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "tour_day_id"))
     private List<TourDay> tourDays;
+
+    @ManyToOne
+    @JoinColumn(name = "provider_id")
+    private ServiceProvider serviceProvider;
+
 
 }

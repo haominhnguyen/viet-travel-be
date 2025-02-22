@@ -123,21 +123,7 @@ public class TourServiceImpl implements TourService {
                 predicates.add(cb.or(tourNamePredicate, locationNamePredicate));
             }
 
-            // Filter by budget (Adult ticket price)
-            if (budgetFrom != null || budgetTo != null) {
-                Join<Tour, Ticket> ticketJoin = root.join("tickets", JoinType.LEFT);
-                Predicate ticketTypePredicate = cb.equal(ticketJoin.get("type"), "Adult");
 
-                if (budgetFrom != null) {
-                    Predicate minPricePredicate = cb.greaterThanOrEqualTo(ticketJoin.get("price"), budgetFrom);
-                    predicates.add(cb.and(ticketTypePredicate, minPricePredicate));
-                }
-
-                if (budgetTo != null) {
-                    Predicate maxPricePredicate = cb.lessThanOrEqualTo(ticketJoin.get("price"), budgetTo);
-                    predicates.add(cb.and(ticketTypePredicate, maxPricePredicate));
-                }
-            }
 
             // Filter by duration (number of days)
             if (duration != null && duration > 0) {

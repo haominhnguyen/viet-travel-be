@@ -22,7 +22,6 @@ public class TourResponseDTO {
     private List<Tag> tags;
     private Location depart_location;
     private User createdBy;
-    private List<Ticket> tickets;
     private List<TourSchedule> tourSchedules;
     private List<TourImage> tourImages;
 }

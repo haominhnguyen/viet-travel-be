@@ -31,7 +31,7 @@ public class TourDay extends BaseEntity{
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
 

@@ -21,8 +21,9 @@ public class TourSchedule extends BaseEntity {
 
     private Date date;
 
-    @Column(name = "number_seat")
-    private int numberSeats;
+    @ManyToOne
+    @JoinColumn(name = "pax_id", nullable = false)
+    private TourPax tourPax;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
