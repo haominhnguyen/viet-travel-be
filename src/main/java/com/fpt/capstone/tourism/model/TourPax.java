@@ -22,7 +22,10 @@ public class TourPax extends BaseEntity{
     private Double fixedCost;
 
     @Column(name = "pax_group", nullable = false)
-    private int paxGroup;
+    private int maxPax;
+
+    @Column(name = "pax_group", nullable = false)
+    private int minPax;
 
     @Column(name = "extra_hotel_cost", nullable = false)
     private Double extraHotelCost;

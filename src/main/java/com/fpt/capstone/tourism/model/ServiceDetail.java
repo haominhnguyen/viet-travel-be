@@ -2,8 +2,10 @@ package com.fpt.capstone.tourism.model;
 
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class ServiceDetail extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
