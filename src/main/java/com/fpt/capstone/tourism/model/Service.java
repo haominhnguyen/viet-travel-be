@@ -19,15 +19,16 @@ public class Service extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     private String name;
 
-    @Column(name = "adult_price")
-    private double adultPrice;
+    @Column(name = "nett_price")
+    private double nettPrice;
+
+    @Column(name = "selling_price")
+    private double sellingPrice;
 
     @Column(name = "image_url")
     private String imageUrl;
-
 
     @Column(name = "start_date")
     private LocalDateTime startDate;
