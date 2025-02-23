@@ -42,11 +42,8 @@ public class Service extends BaseEntity{
     @JoinColumn(name = "category_id")
     private ServiceCategory serviceCategory;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "service_tour_day",
-            joinColumns = @JoinColumn(name = "service_id"),
-            inverseJoinColumns = @JoinColumn(name = "tour_day_id"))
-    private List<TourDay> tourDays;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
+    private List<TourDayService> tourDayServices;
 
     @ManyToOne
     @JoinColumn(name = "provider_id")

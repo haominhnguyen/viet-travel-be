@@ -44,7 +44,7 @@ public class TourDay extends BaseEntity{
     private User tourGuide;
 
 
-    @ManyToMany(mappedBy = "tourDay")
-    private Set<Service> tourDayServices;
+    @OneToMany(mappedBy = "tourDay")
+    private Set<TourDayService> tourDayServices;
 
 }

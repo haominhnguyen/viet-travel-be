@@ -24,14 +24,14 @@ public class TourPax extends BaseEntity{
     @Column(name = "pax_group", nullable = false)
     private int paxGroup;
 
-    @Column(name = "variable_cost_per_pax", nullable = false)
-    private Double variableCostPerPax;
-
     @Column(name = "extra_hotel_cost", nullable = false)
     private Double extraHotelCost;
 
     @Column(name = "nett_price_per_pax", nullable = false)
     private Double nettPricePerPax;
+
+    @Column(name = "selling_price")
+    private Double sellingPrice;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "valid_from", nullable = false)

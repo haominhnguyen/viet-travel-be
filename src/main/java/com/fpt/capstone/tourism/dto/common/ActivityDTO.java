@@ -3,7 +3,6 @@ package com.fpt.capstone.tourism.dto.common;
 import com.fpt.capstone.tourism.model.ActivityCategory;
 import com.fpt.capstone.tourism.model.GeoPosition;
 import com.fpt.capstone.tourism.model.Location;
-import com.fpt.capstone.tourism.model.TourDayActivity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;

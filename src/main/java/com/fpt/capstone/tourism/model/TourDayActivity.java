@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,24 +12,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-@Table(name = "cancel_booking_request")
-public class CancelBookingRequest extends BaseEntity{
+@Table(name = "tour_day_activity")
+public class TourDayActivity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "booking_id")
-    private TourBooking booking;
+    @JoinColumn(name = "day_id")
+    private TourDay tourDay;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "activity_id")
+    private Activity activity;
 
-
-    private String status;
-
-    private String reason;
+    @Column(name = "number_ticket")
+    private int numberTicket;
 
     @Column(name = "is_deleted")
     private Boolean deleted;

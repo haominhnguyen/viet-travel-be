@@ -35,6 +35,8 @@ public class TourBookingCustomer extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private AgeType ageType;
 
+    @Column(name = "single_room")
+    private Boolean singleRoom;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
