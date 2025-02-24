@@ -46,10 +46,6 @@ public class TourBooking extends BaseEntity {
     @OneToMany(mappedBy = "tourBooking")
     private List<TourBookingCustomer> customers;
 
-
-    @OneToMany(mappedBy = "tourBooking")
-    private List<TourScheduleService> tourScheduleServices;
-
     private String status;
 
 
