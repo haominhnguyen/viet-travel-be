@@ -1,11 +1,19 @@
 package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "transactions")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Transaction extends BaseEntity{
 
     @Id
@@ -14,7 +22,7 @@ public class Transaction extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "booking_id", nullable = false)
-    private TourBookingService booking;
+    private TourScheduleService booking;
 
     @Column(nullable = false)
     private Double amount;
@@ -34,4 +42,7 @@ public class Transaction extends BaseEntity{
 
     @Column(length = 500)
     private String notes;
+
+    @OneToMany(mappedBy = "transaction")
+    private List<CostAccount> costAccount;
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -45,6 +46,10 @@ public class TourSchedule extends BaseEntity {
 
     @Column(name = "departure_time", columnDefinition = "TIME")
     private LocalTime departureTime;
+
+
+    @OneToMany(mappedBy = "tourSchedule")
+    private Set<TourOperationLog> operationLogs;
 
 
 

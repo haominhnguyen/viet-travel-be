@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -42,6 +43,12 @@ public class TourBooking extends BaseEntity {
     @JoinColumn(name = "schedule_id")
     private TourSchedule tourSchedule;
 
+    @OneToMany(mappedBy = "tourBooking")
+    private List<TourBookingCustomer> customers;
+
+
+    @OneToMany(mappedBy = "tourBooking")
+    private List<TourScheduleService> tourScheduleServices;
 
     private String status;
 

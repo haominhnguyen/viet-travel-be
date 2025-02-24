@@ -2,10 +2,17 @@ package com.fpt.capstone.tourism.model;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Table(name = "service_details")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ServiceDetail extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

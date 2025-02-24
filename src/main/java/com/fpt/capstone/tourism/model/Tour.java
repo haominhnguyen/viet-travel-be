@@ -47,15 +47,21 @@ public class Tour extends BaseEntity{
     )
     private List<Tag> tags;
 
-    private boolean published;
+    private boolean opened;
 
 
-    @OneToOne
+    @OneToMany(mappedBy = "tour")
+    private Set<TourPax> tourPax;
+
+    @ManyToOne
     @JoinColumn(name = "depart_location_id")
     private Location depart_location;
 
     @Column(name = "mark_up_percent")
     private double markUpPercent;
+
+
+    private String privacy;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)
@@ -66,4 +72,7 @@ public class Tour extends BaseEntity{
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
+
+
+
 }

@@ -33,6 +33,8 @@ public class ServiceProvider extends BaseEntity {
 
     private String email;
 
+    private int star;
+
     private String phone;
 
     private String address;
