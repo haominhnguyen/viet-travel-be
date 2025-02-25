@@ -1,12 +1,18 @@
 package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "tour_pax")
 public class TourPax extends BaseEntity{
 
@@ -21,10 +27,10 @@ public class TourPax extends BaseEntity{
     @Column(name = "fixed_cost", nullable = false)
     private Double fixedCost;
 
-    @Column(name = "pax_group", nullable = false)
+    @Column(name = "min_pax", nullable = false)
     private int maxPax;
 
-    @Column(name = "pax_group", nullable = false)
+    @Column(name = "max_pax", nullable = false)
     private int minPax;
 
     @Column(name = "extra_hotel_cost", nullable = false)

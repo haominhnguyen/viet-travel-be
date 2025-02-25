@@ -1,11 +1,12 @@
 package com.fpt.capstone.tourism.dto.response;
 
-import com.fpt.capstone.tourism.dto.common.TourDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.model.*;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -16,11 +17,13 @@ public class TourBasicDTO extends TourDTO {
     private int numberDays;
     private int numberNight;
     private String note;
-    private List<Location> locations;
-    private List<Tag> tags;
-    private Location depart_location;
+    private List<LocationDTO> locations;
+    private List<TagDTO> tags;
+    private LocationDTO depart_location;
+    private List<TourScheduleDTO> tourSchedules;
+    private List<TourImageDTO> tourImages;
+    private Set<TourPax> tourPax;
     private List<TourSchedule> tourSchedules;
-    private List<TourImage> tourImages;
 
 
 // gia, depart-time, remain slot, depart calendar (khoi hanh ngay nao)

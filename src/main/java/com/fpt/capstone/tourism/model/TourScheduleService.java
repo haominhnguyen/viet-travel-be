@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "tour_booking_service")
-public class TourBookingService extends BaseEntity{
+@Table(name = "tour_schedule_service")
+public class TourScheduleService extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "tour_booking_id")
-    private TourBooking tourBooking;
+    private TourSchedule tourSchedule;
 
     @ManyToOne
     @JoinColumn(name = "service_id")

@@ -18,8 +18,10 @@ public class TourDayService {
     @JoinColumn(name = "service_id")
     private Service service;
 
-
     private Integer quantity;
+
+    @Column(name = "selling_price")
+    private Double sellingPrice;
 
 
 }

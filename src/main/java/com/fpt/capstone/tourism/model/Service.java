@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -49,6 +50,10 @@ public class Service extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "provider_id")
     private ServiceProvider serviceProvider;
+
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
+    private Set<ServiceDetail> serviceDetails;
 
 
 }
