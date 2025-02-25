@@ -12,9 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "activity")
+@Table(name = "cost_account")
 public class CostAccount extends  BaseEntity{
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
