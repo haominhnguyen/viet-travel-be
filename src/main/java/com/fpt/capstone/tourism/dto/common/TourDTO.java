@@ -11,20 +11,26 @@ import java.util.Set;
 @Data
 @Builder
 public class TourDTO {
-    //    private Long id;
-//    private String name;
-//    private String highlights;
-//    private int numberSeats;
-//    private int numberDays;
-//    private int numberNight;
-//    private String note;
-//    private List<Long> locationsId;
-//    private List<Long> tagsId;
-//    private Long departLocationId;
+//    private Long id;----------
+//    private String name;--------
+//    private String highlights;---------
+//    private int numberDays;-----
+//    private int numberNight;---
+//    private String note;-------
+//    private Boolean deleted;
+//    private List<Location> locations;---------
+//    private List<Tag> tags;--------
+//    private boolean open;
+//    private Location depart_location;-------
+//    private double markUpPercent;
+//    private User createdBy;
+//    private List<TourSchedule> tourSchedules;
+//    private List<TourImage> tourImages;
+
+
     private Long id;
     private String name;
     private String highlights;
-    private int numberSeats;
     private int numberDays;
     private int numberNight;
     private String note;

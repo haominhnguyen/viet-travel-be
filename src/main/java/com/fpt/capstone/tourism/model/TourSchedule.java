@@ -35,7 +35,6 @@ public class TourSchedule extends BaseEntity {
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_guide_id")
     private User tourGuide;

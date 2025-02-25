@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.TourBasicDTO;
 
 import java.util.Date;
 import java.util.List;
