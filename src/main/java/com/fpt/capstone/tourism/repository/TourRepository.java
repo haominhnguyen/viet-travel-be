@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
@@ -62,4 +63,12 @@ public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecifica
     WHERE t.id IN :ids
 """)
     List<Tour> findSameLocationToursWithDetails(List<Long> tourIds);
+
+    @Query("""
+    SELECT tp.tour.id, MIN(tp.sellingPrice)
+    FROM TourPax tp
+    WHERE tp.tour.id IN :tourIds
+    GROUP BY tp.tour.id
+""")
+    List<Object[]> findMinSellingPrices(@Param("tourIds") List<Long> tourIds);
 }

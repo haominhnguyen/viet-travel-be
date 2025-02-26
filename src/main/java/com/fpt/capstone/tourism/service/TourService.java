@@ -9,9 +9,9 @@ import java.util.Date;
 import java.util.List;
 
 public interface TourService {
-    TourDTO findTopTourOfYear();
+    PublicTourDTO findTopTourOfYear();
 
-    List<TourDTO> findTrendingTours(int numberTour);
+    List<PublicTourDTO> findTrendingTours(int numberTour);
 
 
     GeneralResponse<PagingDTO<List<TourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);

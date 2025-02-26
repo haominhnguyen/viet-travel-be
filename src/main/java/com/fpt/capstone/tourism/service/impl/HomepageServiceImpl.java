@@ -37,8 +37,8 @@ public class HomepageServiceImpl implements HomepageService {
     @Override
     public GeneralResponse<HomepageDTO> viewHomepage(int numberTour, int numberBlog, int numberActivity, int numberLocation) {
         try {
-            TourDTO topTourOfYear = tourService.findTopTourOfYear();
-            List<TourDTO> trendingTours = tourService.findTrendingTours(numberTour);
+            PublicTourDTO topTourOfYear = tourService.findTopTourOfYear();
+            List<PublicTourDTO> trendingTours = tourService.findTrendingTours(numberTour);
             List<BlogResponseDTO> newBlogs = blogService.findNewestBlogs(numberBlog);
             List<ActivityDTO> recommendedActivities = activityService.findRecommendedActivities(numberActivity);
             List<LocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);

@@ -49,20 +49,38 @@ public class TourServiceImpl implements TourService {
     private final TagMapper tagMapper;
 
     @Override
-    public TourDTO findTopTourOfYear() {
+    public PublicTourDTO findTopTourOfYear() {
         try{
             List<Long> topTourIds = tourRepository.findTopTourIdsOfCurrentYear();
 
             if (topTourIds.isEmpty()) {
                 Tour tempTour = tourRepository.findNewestTour();
-                return tourMapper.toDTO(tempTour);
+                return PublicTourDTO.builder()
+                        .id(tempTour.getId())
+                        .name(tempTour.getName())
+                        .numberNight(tempTour.getNumberNight())
+                        .numberDays(tempTour.getNumberDays())
+                        .tags(tempTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
+                        .depart_location(locationMapper.toPublicLocationDTO(tempTour.getDepart_location()))
+                        .tourImages(tempTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
+                        .priceFrom(tourRepository.findMinSellingPriceForTours(tempTour.getId()))
+                        .build();
             }
 
             Long topTourId = topTourIds.get(0);
 
             // Fetch and convert the tour to DTO
-            return tourRepository.findById(topTourId)
-                    .map(tourMapper::toDTO).orElseThrow();
+            Tour topTour = tourRepository.findById(topTourIds.get(0)).orElseThrow();
+            return PublicTourDTO.builder()
+                    .id(topTour.getId())
+                    .name(topTour.getName())
+                    .numberNight(topTour.getNumberNight())
+                    .numberDays(topTour.getNumberDays())
+                    .tags(topTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
+                    .depart_location(locationMapper.toPublicLocationDTO(topTour.getDepart_location()))
+                    .tourImages(topTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
+                    .priceFrom(tourRepository.findMinSellingPriceForTours(topTour.getId()))
+                    .build();
         } catch (Exception ex){
             throw BusinessException.of("Error retrieving top tour of year", ex);
         }
@@ -70,15 +88,34 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public List<TourDTO> findTrendingTours(int numberTour) {
+    public List<PublicTourDTO> findTrendingTours(int numberTour) {
         try{
             Pageable pageable = PageRequest.of(0, numberTour);
             List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
 
-            // Fetch all tours by their IDs and convert to DTOs
-            return tourRepository.findAllById(trendingTourIds)
+            // Lấy danh sách các tour từ database theo danh sách ID
+            List<Tour> trendingTours = tourRepository.findAllById(trendingTourIds);
+
+            // Lấy giá thấp nhất từ bảng TourPax
+            Map<Long, Double> priceMap = tourRepository.findMinSellingPrices(trendingTourIds)
                     .stream()
-                    .map(tourMapper::toDTO)
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // tourId
+                            row -> (Double) row[1] // priceFrom
+                    ));
+
+            // Fetch all tours by their IDs and convert to DTOs
+            return trendingTours.stream()
+                    .map(tour -> new PublicTourDTO(
+                            tour.getId(),
+                            tour.getName(),
+                            tour.getNumberDays(),
+                            tour.getNumberNight(),
+                            tour.getTags().stream().map(tagMapper::toDTO).toList(),  // Convert tags
+                            locationMapper.toPublicLocationDTO(tour.getDepart_location()),  // Convert depart location
+                            tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(), // Convert images
+                            priceMap.getOrDefault(tour.getId(), 0.0) // Giá thấp nhất
+                    ))
                     .collect(Collectors.toList());
         }catch (Exception ex){
             throw BusinessException.of("Error retrieving trending tours", ex);
@@ -105,7 +142,7 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds) {
-//        try {
+        try {
             List<PublicTourDTO> publicTourDTOS = new ArrayList<>();
             //Get list id of list same location tour
             List<Long> tourIds = tourRepository.findSameLocationTourIds(locationIds);
@@ -139,9 +176,9 @@ public class TourServiceImpl implements TourService {
                 publicTourDTOS.add(publicTourDTO);
             }
             return publicTourDTOS;
-//        } catch (Exception ex){
-//            throw BusinessException.of("Error retrieving same location public tours", ex);
-//        }
+        } catch (Exception ex){
+            throw BusinessException.of("Error retrieving same location public tours", ex);
+        }
     }
 
     private GeneralResponse<PagingDTO<List<TourDTO>>> buildPagedResponse(Page<Tour> tourPage, List<TourDTO> tours) {
