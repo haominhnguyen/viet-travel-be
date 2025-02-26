@@ -131,6 +131,12 @@ public class Constants {
         public static final String EMPTY_ACTIVITY_CATEGORY = "Activity category can not be empty";
 
         public static final String SERVICE_NOT_EXITS = "Service not exits";
+        public static final String CATEGORY_ALREADY_EXISTS = "Category already exists";
+        public static final String CATEGORY_NOT_FOUND = "Category not found";
+        public static final String CATEGORY_LOADED = "Category loaded";
+        public static final String CATEGORY_CREATED = "Category created successfully";
+        public static final String CATEGORY_UPDATED = "Category updated successfully";
+        public static final String CATEGORY_DELETED = "Category deleted successfully";
     }
 
 

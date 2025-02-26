@@ -50,6 +50,4 @@ public class BlogController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ok(blogService.getBlogs(page, size, keyword, isDeleted, sortField, sortDirection));
     }
-
-
 }

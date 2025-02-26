@@ -51,9 +51,6 @@ public class Service extends BaseEntity{
     @JoinColumn(name = "provider_id")
     private ServiceProvider serviceProvider;
 
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
     private Set<ServiceDetail> serviceDetails;
-
-
 }

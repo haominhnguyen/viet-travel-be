@@ -28,5 +28,4 @@ public class ServiceCategory extends BaseEntity{
 
     @ManyToMany(mappedBy = "serviceCategories")
     private List<ServiceProvider> serviceProviders;
-
 }
