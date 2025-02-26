@@ -49,7 +49,6 @@ public class Tour extends BaseEntity{
 
     private boolean opened;
 
-
     @OneToMany(mappedBy = "tour")
     private Set<TourPax> tourPax;
 
@@ -72,7 +71,6 @@ public class Tour extends BaseEntity{
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
-
 
     @OneToMany(mappedBy = "tour")
     private List<TourDay> tourDays;

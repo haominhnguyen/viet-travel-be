@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -21,7 +22,11 @@ public class TourSchedule extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Date date;
+    @Column(name = "start_date")
+    private Date startDate;
+
+    @Column(name = "end_date")
+    private Date endDate;
 
     @ManyToOne
     @JoinColumn(name = "pax_id", nullable = false)
@@ -35,7 +40,6 @@ public class TourSchedule extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_guide_id")
@@ -51,6 +55,8 @@ public class TourSchedule extends BaseEntity {
     @OneToMany(mappedBy = "tourSchedule")
     private Set<TourOperationLog> operationLogs;
 
+    @OneToMany(mappedBy = "tourSchedule")
+    private List<TourBooking> bookings;
 
 
 }

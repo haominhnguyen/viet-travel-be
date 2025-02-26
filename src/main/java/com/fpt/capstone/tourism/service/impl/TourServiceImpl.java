@@ -1,7 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.ServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -25,10 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
-
-import static com.fpt.capstone.tourism.constants.Constants.Message.GENERAL_SUCCESS_MESSAGE;
 
 @RequiredArgsConstructor
 @Service
@@ -48,10 +44,11 @@ public class TourServiceImpl implements TourService {
             }
 
             // Pick a random tour ID from the list
-            Long randomTourId = topTourIds.get(new Random().nextInt(topTourIds.size()));
+//            Long randomTourId = topTourIds.get(new Random().nextInt(topTourIds.size()));
+            Long topTourId = topTourIds.get(0);
 
             // Fetch and convert the tour to DTO
-            return tourRepository.findById(randomTourId)
+            return tourRepository.findById(topTourId)
                     .map(tourMapper::toDTO).orElseThrow();
         } catch (Exception ex){
             throw BusinessException.of("Error retrieving top tour of year", ex);
@@ -105,6 +102,7 @@ public class TourServiceImpl implements TourService {
 
             // Always filter out deleted tours
             predicates.add(cb.equal(root.get("deleted"), false));
+            predicates.add(cb.equal(root.get("open"), true));
 
             // Search by tour name OR depart location name
             // Normalize Vietnamese text for search (ignore case and accents)

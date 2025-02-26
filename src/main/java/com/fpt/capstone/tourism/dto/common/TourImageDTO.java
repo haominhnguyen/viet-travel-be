@@ -10,6 +10,5 @@ import lombok.Data;
 public class TourImageDTO {
     private Long id;
     private String imageUrl;
-    private Boolean deleted;
 
 }
