@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.TourDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

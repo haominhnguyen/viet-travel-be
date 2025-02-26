@@ -1,11 +1,20 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TagDTO;
 import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.mapper.LocationMapper;
+import com.fpt.capstone.tourism.mapper.TagMapper;
+import com.fpt.capstone.tourism.mapper.TourImageMapper;
 import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.repository.TagRepository;
+import com.fpt.capstone.tourism.repository.TourImageRepository;
 import com.fpt.capstone.tourism.repository.TourRepository;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.persistence.criteria.Expression;
@@ -21,9 +30,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -31,6 +42,11 @@ import java.util.stream.Collectors;
 public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
     private final TourMapper tourMapper;
+    private final LocationMapper locationMapper;
+    private final TourImageMapper tourImageMapper;
+    private final TourImageRepository tourImageRepository;
+    private final TagRepository tagRepository;
+    private final TagMapper tagMapper;
 
     @Override
     public TourDTO findTopTourOfYear() {
@@ -40,11 +56,8 @@ public class TourServiceImpl implements TourService {
             if (topTourIds.isEmpty()) {
                 Tour tempTour = tourRepository.findNewestTour();
                 return tourMapper.toDTO(tempTour);
-                //throw BusinessException.of("Top tour of the year not found");
             }
 
-            // Pick a random tour ID from the list
-//            Long randomTourId = topTourIds.get(new Random().nextInt(topTourIds.size()));
             Long topTourId = topTourIds.get(0);
 
             // Fetch and convert the tour to DTO
@@ -58,14 +71,19 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public List<TourDTO> findTrendingTours(int numberTour) {
-        Pageable pageable = PageRequest.of(0, numberTour);
-        List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
+        try{
+            Pageable pageable = PageRequest.of(0, numberTour);
+            List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
 
-        // Fetch all tours by their IDs and convert to DTOs
-        return tourRepository.findAllById(trendingTourIds)
-                .stream()
-                .map(tourMapper::toDTO)
-                .collect(Collectors.toList());
+            // Fetch all tours by their IDs and convert to DTOs
+            return tourRepository.findAllById(trendingTourIds)
+                    .stream()
+                    .map(tourMapper::toDTO)
+                    .collect(Collectors.toList());
+        }catch (Exception ex){
+            throw BusinessException.of("Error retrieving trending tours", ex);
+        }
+
     }
 
     @Override
@@ -81,8 +99,49 @@ public class TourServiceImpl implements TourService {
 
             return buildPagedResponse(tourPage, tourDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("not ok", ex);
+            throw BusinessException.of("not ok to get all public tour", ex);
         }
+    }
+
+    @Override
+    public List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds) {
+//        try {
+            List<PublicTourDTO> publicTourDTOS = new ArrayList<>();
+            //Get list id of list same location tour
+            List<Long> tourIds = tourRepository.findSameLocationTourIds(locationIds);
+            for(Long tourId : tourIds) {
+                //Get tour information
+                Tour tour = tourRepository.findById(tourId).orElseThrow();
+
+                //Get list tag for each tour
+                List<TagDTO> tags = tagRepository.findTagsByTourId(tourId)
+                        .stream().map(tagMapper::toDTO).toList();;
+
+                //Get min price for each tour
+                Double minPrice = tourRepository.findMinSellingPriceForTours(tourId);
+
+                // Get list image for each tour
+                List<PublicTourImageDTO> images = tourImageRepository.findTourImagesByTourId(tourId)
+                        .stream().map(tourImageMapper::toPublicTourImageDTO).toList();;
+
+
+                PublicTourDTO publicTourDTO = PublicTourDTO.builder()
+                        .id(tourId)
+                        .name(tour.getName())
+                        .numberDays(tour.getNumberDays())
+                        .numberNight(tour.getNumberNight())
+                        .tags(tags)
+                        .depart_location(locationMapper.toPublicLocationDTO(tour.getDepart_location()))
+                        .tourImages(images)
+                        .priceFrom(minPrice)
+                        .build();
+
+                publicTourDTOS.add(publicTourDTO);
+            }
+            return publicTourDTOS;
+//        } catch (Exception ex){
+//            throw BusinessException.of("Error retrieving same location public tours", ex);
+//        }
     }
 
     private GeneralResponse<PagingDTO<List<TourDTO>>> buildPagedResponse(Page<Tour> tourPage, List<TourDTO> tours) {

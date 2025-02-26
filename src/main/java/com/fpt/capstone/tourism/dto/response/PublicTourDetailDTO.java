@@ -21,7 +21,7 @@ public class PublicTourDetailDTO {
     private PublicLocationDTO depart_location;
     private List<PublicTourScheduleDTO> tourSchedules;
     private List<PublicTourImageDTO> tourImages;
-    private List<TourDTO> otherTours;
+    private List<PublicTourDTO> otherTours;
     private List<PublicTourDayDTO> tourDays;
 
 

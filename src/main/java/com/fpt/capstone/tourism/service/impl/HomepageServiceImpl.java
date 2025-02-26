@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.Tour;
@@ -94,7 +91,8 @@ public class HomepageServiceImpl implements HomepageService {
     public GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id) {
         try{
             Tour currentTour = tourRepository.findById(id).orElseThrow();
-//            TourDTO otherTour = tourService.findTourSameLocation();
+            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
+            List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
             //Mapping to DTO
@@ -112,6 +110,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
+                    .otherTours(otherTour)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Tour detail loaded successfully", tourBasicDTO);
         } catch (Exception ex){
