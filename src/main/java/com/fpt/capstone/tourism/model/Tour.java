@@ -72,4 +72,7 @@ public class Tour extends BaseEntity{
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
 
+    @OneToMany(mappedBy = "tour")
+    private List<TourDay> tourDays;
+
 }

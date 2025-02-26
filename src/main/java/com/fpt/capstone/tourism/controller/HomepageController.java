@@ -2,7 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.TourBasicDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
 import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -43,15 +43,9 @@ public class HomepageController {
                                                                                              @RequestParam(required = false) String keyword){
         return ResponseEntity.ok(homepageService.viewAllHotel(page, size, keyword));
     }
-//    @GetMapping("/list-restaurant")
-//    public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceProviderDTO>>>> viewAllRestaurant(@RequestParam(defaultValue = "0") int page,
-//                                                                                 @RequestParam(defaultValue = "10") int size,
-//                                                                                 @RequestParam(required = false) String keyword){
-//        return ResponseEntity.ok(homepageService.viewAllRestaurant(page, size, keyword));
-//    }
-//    @GetMapping("/activity/details/{id}")
-//    public ResponseEntity<GeneralResponse<PublicActivityDetailDTO>> viewActivityDetail(@PathVariable Long id,
-//                                                                                       @RequestParam(value = "numberActivity", defaultValue = "3") int numberActivity){
-//        return ResponseEntity.ok(homepageService.viewPublicActivityDetail(id, numberActivity));
-//    }
+    @GetMapping("/tour-detail/{id}")
+    public ResponseEntity<GeneralResponse<PublicTourDetailDTO>> viewTourDetail(@PathVariable Long id){
+        return ResponseEntity.ok(homepageService.viewTourDetail(id));
+    }
+
 }

@@ -35,11 +35,11 @@ public class TourBooking extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "schedule_id")
     private TourSchedule tourSchedule;
 

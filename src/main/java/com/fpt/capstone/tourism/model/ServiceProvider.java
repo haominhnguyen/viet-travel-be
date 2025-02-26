@@ -46,7 +46,7 @@ public class ServiceProvider extends BaseEntity {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "geo_position_id")
     private GeoPosition geoPosition;
 
