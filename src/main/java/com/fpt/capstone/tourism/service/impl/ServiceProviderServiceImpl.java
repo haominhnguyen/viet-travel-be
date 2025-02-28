@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -236,19 +237,19 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         };
     }
     @Override
-    public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllHotel(int page, int size, String keyword) {
+    public GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> getAllHotel(int page, int size, String keyword, Integer star) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-            Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Hotel");
+            Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Hotel", star);
 
             Page<ServiceProvider> serviceProviderPage = serviceProviderRepository.findAll(spec, pageable);
-            List<ServiceProviderDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
-                    .map(serviceProviderMapper::toDTO)
+            List<PublicServiceProviderDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
+                    .map(serviceProviderMapper::toPublicServiceProviderDTO)
                     .collect(Collectors.toList());
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("not ok", ex);
+            throw BusinessException.of("Fail to get all hotel", ex);
         }
     }
 
@@ -258,7 +259,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllRestaurant(int page, int size, String keyword) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-            Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Restaurant");
+            Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Restaurant", 1);
 
             Page<ServiceProvider> serviceProviderPage = serviceProviderRepository.findAll(spec, pageable);
             List<ServiceProviderDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
@@ -271,8 +272,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         }
     }
 
-    private GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> buildPagedResponse(Page<ServiceProvider> serviceProviderPage, List<ServiceProviderDTO> serviceProviders) {
-        PagingDTO<List<ServiceProviderDTO>> pagingDTO = PagingDTO.<List<ServiceProviderDTO>>builder()
+    private <T>GeneralResponse<PagingDTO<List<T>>> buildPagedResponse(Page<ServiceProvider> serviceProviderPage, List<T> serviceProviders) {
+        PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(serviceProviderPage.getNumber())
                 .size(serviceProviderPage.getSize())
                 .total(serviceProviderPage.getTotalElements())
@@ -282,7 +283,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
 
-    private Specification<ServiceProvider> buildSearchSpecification(String keyword, String categoryName) {
+    private Specification<ServiceProvider> buildSearchSpecification(String keyword, String categoryName, Integer star) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -311,6 +312,11 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
                 // Match either ServiceProvider name or Location name
                 predicates.add(cb.or(serviceNamePredicate, locationNamePredicate));
+            }
+
+            // Filter by star
+            if (star != null && star > 0) {
+                predicates.add(cb.equal(root.get("star"), star));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
