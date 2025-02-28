@@ -23,6 +23,7 @@ public class TourDay extends BaseEntity{
     @Column(name = "day_title")
     private String title;
 
+    @Column(columnDefinition = "text")
     private String content;
 
     @Column(name = "meal_plan")
@@ -35,7 +36,7 @@ public class TourDay extends BaseEntity{
     @JoinColumn(name = "tour_id")
     private Tour tour;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "location_id")
     private Location location;
 
