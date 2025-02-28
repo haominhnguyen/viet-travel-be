@@ -19,5 +19,6 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
     Optional<ServiceProvider> findByName(String serviceProviderName);
     boolean existsByName(String serviceProviderName);
     Optional<ServiceProvider> findByUserId(Long userId);
+
 }
 

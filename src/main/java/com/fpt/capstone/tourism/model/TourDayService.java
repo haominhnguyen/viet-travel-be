@@ -22,6 +22,4 @@ public class TourDayService {
 
     @Column(name = "selling_price")
     private Double sellingPrice;
-
-
 }

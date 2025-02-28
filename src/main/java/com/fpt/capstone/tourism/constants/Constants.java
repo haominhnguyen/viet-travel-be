@@ -137,6 +137,11 @@ public class Constants {
         public static final String CATEGORY_CREATED = "Category created successfully";
         public static final String CATEGORY_UPDATED = "Category updated successfully";
         public static final String CATEGORY_DELETED = "Category deleted successfully";
+
+        public static final String SERVICE_NOT_FOUND = "Service not found";
+        public static final String SERVICE_RETRIEVE_FAIL = "Service retrieve failed";
+        public static final String SERVICE_RETRIEVE_SUCCESS = "Service retrieved successfully";
+        public static final String SERVICE_NOT_BELONG_TO_PROVIDER = "Service does not belong to provider";
     }
 
 
