@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
 import com.fpt.capstone.tourism.service.HomepageService;
@@ -39,10 +40,14 @@ public class HomepageController {
         return ResponseEntity.ok(homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate));
     }
     @GetMapping("/list-hotel")
-    public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceProviderDTO>>>> viewAllHotel(@RequestParam(defaultValue = "0") int page,
-                                                                                             @RequestParam(defaultValue = "10") int size,
-                                                                                             @RequestParam(required = false) String keyword){
-        return ResponseEntity.ok(homepageService.viewAllHotel(page, size, keyword));
+    public ResponseEntity<GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>>> viewAllHotel(@RequestParam(defaultValue = "0") int page,
+                                                                                                   @RequestParam(defaultValue = "10") int size,
+                                                                                                   @RequestParam(required = false) String keyword,
+                                                                                                   @RequestParam(value = "star",required = false) Integer star,
+                                                                                                   @RequestParam(value = "budgetTo",required = false) Double budgetTo,
+                                                                                                   @RequestParam(value = "budgetFrom",required = false)  Double budgetFrom
+                                                                                                   ){
+        return ResponseEntity.ok(homepageService.viewAllHotel(page, size, keyword, star));
     }
     @GetMapping("/tour-detail/{id}")
     public ResponseEntity<GeneralResponse<PublicTourDetailDTO>> viewTourDetail(@PathVariable Long id){

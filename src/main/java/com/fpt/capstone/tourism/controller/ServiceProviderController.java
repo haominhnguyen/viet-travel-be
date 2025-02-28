@@ -37,8 +37,8 @@ public class ServiceProviderController {
     public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceProviderDTO>>>> getAllServiceProviders(@RequestParam(defaultValue = "0") int page,
                                                                                                        @RequestParam(defaultValue = "10") int size,
                                                                                                        @RequestParam(required = false) String keyword,
-                                                                                                       @RequestParam(required = false) Boolean isDeleted) {
-        return ResponseEntity.ok(serviceProviderService.getAllServiceProviders(page, size, keyword, isDeleted));
+                                                                                                       @RequestParam(required = false) Boolean isDeleted,@RequestParam(defaultValue = "desc") String orderDate) {
+        return ResponseEntity.ok(serviceProviderService.getAllServiceProviders(page, size, keyword, isDeleted, orderDate));
     }
 
     @PutMapping("/update/{id}")
