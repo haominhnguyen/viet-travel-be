@@ -124,19 +124,38 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
             Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate);
 
+            //Find TOur satisfying conditions
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
-            List<TourDTO> tourDTOS = tourPage.getContent().stream()
-                    .map(tourMapper::toDTO)
+
+            //Find min price of each tour
+            Map<Long, Double> minPriceMap = tourRepository.findMinSellingPrices(tourPage.getContent().stream().map(Tour::getId).toList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // tourId
+                            row -> (Double) row[1] // priceFrom
+                    ));;
+
+            List<PublicTourDTO> publicTourDTOS = tourPage.getContent().stream()
+                    .map(tour -> new PublicTourDTO(
+                            tour.getId(),
+                            tour.getName(),
+                            tour.getNumberDays(),
+                            tour.getNumberNight(),
+                            tour.getTags().stream().map(tagMapper::toDTO).toList(),
+                            locationMapper.toPublicLocationDTO(tour.getDepart_location()),
+                            tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(),
+                            minPriceMap.getOrDefault(tour.getId(), 0.0)  // Giá thấp nhất
+                    ))
                     .collect(Collectors.toList());
 
-            return buildPagedResponse(tourPage, tourDTOS);
+            return buildPagedResponse(tourPage, publicTourDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("not ok to get all public tour", ex);
+            throw BusinessException.of("Get all public tour fail", ex);
         }
     }
 
@@ -181,8 +200,8 @@ public class TourServiceImpl implements TourService {
         }
     }
 
-    private GeneralResponse<PagingDTO<List<TourDTO>>> buildPagedResponse(Page<Tour> tourPage, List<TourDTO> tours) {
-        PagingDTO<List<TourDTO>> pagingDTO = PagingDTO.<List<TourDTO>>builder()
+    private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponse(Page<Tour> tourPage, List<T> tours) {
+        PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(tourPage.getNumber())
                 .size(tourPage.getSize())
                 .total(tourPage.getTotalElements())
@@ -194,11 +213,12 @@ public class TourServiceImpl implements TourService {
 
     private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
         return (root, query, cb) -> {
+            query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
             // Always filter out deleted tours
             predicates.add(cb.equal(root.get("deleted"), false));
-            predicates.add(cb.equal(root.get("open"), true));
+            predicates.add(cb.equal(root.get("opened"), true));
 
             // Search by tour name OR depart location name
             // Normalize Vietnamese text for search (ignore case and accents)
@@ -227,7 +247,18 @@ public class TourServiceImpl implements TourService {
             // Filter by tour schedule date
             if (fromDate != null) {
                 Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
-                predicates.add(cb.greaterThanOrEqualTo(scheduleJoin.get("date"), fromDate));
+                predicates.add(cb.greaterThanOrEqualTo(scheduleJoin.get("startDate"), fromDate));
+            }
+
+            //Filter by price of tour
+            if(budgetFrom != null) {
+                Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
+                predicates.add(cb.greaterThanOrEqualTo(paxJoin.get("sellingPrice"), budgetFrom));
+            }
+
+            if(budgetTo!= null) {
+                Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
+                predicates.add(cb.lessThanOrEqualTo(paxJoin.get("sellingPrice"), budgetTo));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

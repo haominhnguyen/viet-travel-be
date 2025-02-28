@@ -14,7 +14,7 @@ public interface TourService {
     List<PublicTourDTO> findTrendingTours(int numberTour);
 
 
-    GeneralResponse<PagingDTO<List<TourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
+    GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
 
     List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds);
 }
