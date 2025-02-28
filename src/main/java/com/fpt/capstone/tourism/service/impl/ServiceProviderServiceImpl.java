@@ -13,10 +13,7 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.repository.LocationRepository;
-import com.fpt.capstone.tourism.repository.RoleRepository;
-import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
-import com.fpt.capstone.tourism.repository.UserRoleRepository;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fpt.capstone.tourism.service.UserService;
@@ -55,6 +52,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     private final ServiceCategoryMapper serviceCategoryMapper;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final UserRepository userRepository;
+    private final ServiceRepository serviceRepository;
     private final EmailConfirmationService emailConfirmationService;
     private final UserService userService;
     private final PasswordGenerateImpl passwordGenerate;
@@ -81,6 +80,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             serviceProvider.setCreatedAt(LocalDateTime.now());
 
 
+            //Create account for service provider
             User serviceUser = createAccountServiceProvider(serviceProvider.getName(),
                     serviceProvider.getEmail(),
                     serviceProvider.getPhone(),
@@ -113,9 +113,10 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllServiceProviders(int page, int size, String keyword, Boolean isDeleted) {
+    public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllServiceProviders(int page, int size, String keyword, Boolean isDeleted, String orderDate) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+            Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
             Specification<ServiceProvider> spec = buildSearchSpecification(keyword, isDeleted);
 
             Page<ServiceProvider> serviceProviderPage = serviceProviderRepository.findAll(spec, pageable);
@@ -125,7 +126,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("not ok", ex);
+            throw BusinessException.of("Fail to get all service provider", ex);
         }
     }
 
@@ -154,6 +155,9 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(!serviceProviderDTO.getWebsite().equals(serviceProvider.getWebsite())){
                 serviceProvider.setWebsite(serviceProviderDTO.getWebsite());
             }
+            if(serviceProviderDTO.getStar() != serviceProvider.getStar()){
+                serviceProvider.setStar(serviceProviderDTO.getStar());
+            }
             if(!serviceProviderDTO.getEmail().equals(serviceProvider.getEmail())){
                 //Check duplicate email
                 if(serviceProviderRepository.findByEmail(serviceProviderDTO.getEmail()) != null){
@@ -170,6 +174,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(!serviceProviderDTO.getAddress().equals(serviceProvider.getAddress())){
                 serviceProvider.setAddress(serviceProviderDTO.getAddress());
             }
+            System.out.println(serviceProviderDTO.getId());
 
             if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
                 GeoPosition geoPosition = GeoPosition.builder()
@@ -205,16 +210,26 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         try{
             ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
 
+            //Soft delete account of service provider
+            User user = userRepository.findUserById(serviceProvider.getUser().getId()).orElseThrow();
+            user.setDeleted(isDeleted);
+
+            //Soft delete service that is provided by this service provider
+            serviceRepository.findAllServicesByProviderId(serviceProvider.getId()).forEach(service ->
+                    service.setDeleted(isDeleted)
+            );
+
+            //Soft delete service provider
             serviceProvider.setDeleted(isDeleted);
             serviceProvider.setUpdatedAt(LocalDateTime.now());
             serviceProviderRepository.save(serviceProvider);
 
             ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), UPDATE_SERVICE_PROVIDER_SUCCESS, serviceProviderDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Change status service provider successfully", serviceProviderDTO);
         }catch (BusinessException be){
             throw be;
         } catch (Exception ex){
-            throw BusinessException.of(UPDATE_SERVICE_PROVIDER_FAIL, ex);
+            throw BusinessException.of("Fail to change status service provider", ex);
         }
     }
 
@@ -347,7 +362,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
                     });
 
             String randomPassword = passwordGenerate.generatePassword();
-            System.out.println(randomPassword);
+
             // Create new user
             User user = User.builder()
                     .username(email.trim().toLowerCase())
@@ -359,7 +374,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
                     .deleted(false)
                     .emailConfirmed(true)
                     .build();
-            System.out.println("create new user finish");
+
             User savedUser = userService.saveUser(user);
 
             // Assign role to user

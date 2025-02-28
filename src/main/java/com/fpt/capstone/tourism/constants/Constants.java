@@ -146,7 +146,7 @@ public class Constants {
         public static final String REGEX_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
         public static final String REGEX_FULLNAME = "^[a-zA-Z][a-zA-Z\s]*$";
         public static final String REGEX_EMAIL = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-        public static final String REGEX_PHONE = "^[0-9]{10}$";
+        public static final String REGEX_PHONE = "^[0-9]{10,15}$";
 
     }
 }
