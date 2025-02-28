@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<Service, Long> {
@@ -17,5 +18,10 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     Optional<Service> findByIdAndProviderId(@Param("id") Long id, @Param("providerId") Long providerId);
 
     Page<Service> findAll(Specification<Service> spec, Pageable pageable);
+    @Query("""
+        SELECT s FROM Service s
+        WHERE s.serviceProvider.id = :providerId
+     """)
+    List<Service> findAllServicesByProviderId(@Param("providerId") Long providerId);
 }
 

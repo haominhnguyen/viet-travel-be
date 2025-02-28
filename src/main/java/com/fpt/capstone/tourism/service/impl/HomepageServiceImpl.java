@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.Tour;
@@ -40,8 +37,8 @@ public class HomepageServiceImpl implements HomepageService {
     @Override
     public GeneralResponse<HomepageDTO> viewHomepage(int numberTour, int numberBlog, int numberActivity, int numberLocation) {
         try {
-            TourDTO topTourOfYear = tourService.findTopTourOfYear();
-            List<TourDTO> trendingTours = tourService.findTrendingTours(numberTour);
+            PublicTourDTO topTourOfYear = tourService.findTopTourOfYear();
+            List<PublicTourDTO> trendingTours = tourService.findTrendingTours(numberTour);
             List<BlogResponseDTO> newBlogs = blogService.findNewestBlogs(numberBlog);
             List<ActivityDTO> recommendedActivities = activityService.findRecommendedActivities(numberActivity);
             List<LocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);
@@ -62,8 +59,8 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllHotel(int page, int size, String keyword) {
-        return providerService.getAllHotel(page, size, keyword);
+    public GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> viewAllHotel(int page, int size, String keyword, Integer star) {
+        return providerService.getAllHotel(page, size, keyword, star);
     }
 
 //    @Override
@@ -72,7 +69,7 @@ public class HomepageServiceImpl implements HomepageService {
 //    }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
         return tourService.getAllPublicTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate);
     }
 
@@ -94,7 +91,8 @@ public class HomepageServiceImpl implements HomepageService {
     public GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id) {
         try{
             Tour currentTour = tourRepository.findById(id).orElseThrow();
-//            TourDTO otherTour = tourService.findTourSameLocation();
+            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
+            List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
             //Mapping to DTO
@@ -112,6 +110,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
+                    .otherTours(otherTour)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Tour detail loaded successfully", tourBasicDTO);
         } catch (Exception ex){
