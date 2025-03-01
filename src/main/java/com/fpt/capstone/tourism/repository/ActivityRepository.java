@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.model.Location;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +18,6 @@ public interface ActivityRepository extends JpaRepository<Activity, Long>, JpaSp
 
     Activity findByTitle(String title);
     @Query(value = "SELECT * FROM activity WHERE is_deleted = FALSE AND location_id =:locationId ORDER BY RANDOM() LIMIT :numberActivity", nativeQuery = true)
-    List<Activity> findRelatedActivities(Long locationId, int numberActivity);
+    List<Activity> findRelatedActivities(@Param("locationId") Long locationId, int numberActivity);
 }
 

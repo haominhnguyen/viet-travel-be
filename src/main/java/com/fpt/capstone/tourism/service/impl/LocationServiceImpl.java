@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.request.GeoPositionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
@@ -164,10 +165,10 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<LocationDTO> findRecommendedLocations(int numberLocation) {
+    public List<PublicLocationDTO> findRecommendedLocations(int numberLocation) {
         List<Location> randomLocations = locationRepository.findRandomLocation(numberLocation);
         return randomLocations.stream()
-                .map(locationMapper::toDTO)
+                .map(locationMapper::toPublicLocationDTO)
                 .collect(Collectors.toList());
     }
 

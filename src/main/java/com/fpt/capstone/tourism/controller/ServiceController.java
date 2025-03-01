@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.ServiceBaseDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -31,7 +32,7 @@ public class ServiceController {
     private final ServiceProviderRepository serviceProviderRepository;
 
     @GetMapping("/list")
-    public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceDTO>>>> getServices(
+    public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceBaseDTO>>>> getServices(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

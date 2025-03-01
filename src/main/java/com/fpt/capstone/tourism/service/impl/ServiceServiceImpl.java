@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.mapper.ServiceBaseMapper;
 import com.fpt.capstone.tourism.mapper.custom.ServiceCustomMapper;
 import com.fpt.capstone.tourism.mapper.ServiceFullMapper;
 import com.fpt.capstone.tourism.mapper.ServiceMapper;
@@ -36,12 +37,12 @@ public class ServiceServiceImpl implements ServiceService {
     private EntityManager entityManager;
 
     private final ServiceRepository serviceRepository;
-    private final ServiceMapper serviceMapper;
+    private final ServiceBaseMapper serviceMapper;
     private final ServiceFullMapper serviceFullMapper;
     private final ServiceCustomMapper serviceCustomMapper;
 
     @Override
-    public GeneralResponse<PagingDTO<List<ServiceDTO>>> getAllServices(
+    public GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> getAllServices(
             int page, int size, String keyword, Boolean isDeleted, String sortField,
             String sortDirection, Long providerId) {
         try {
@@ -58,7 +59,7 @@ public class ServiceServiceImpl implements ServiceService {
             Specification<Service> spec = buildSearchSpecification(keyword, isDeleted, providerId);
 
             Page<Service> servicePage = serviceRepository.findAll(spec, pageable);
-            List<ServiceDTO> serviceDTOs = servicePage.getContent().stream()
+            List<ServiceBaseDTO> serviceDTOs = servicePage.getContent().stream()
                     .map(serviceMapper::toDTO)
                     .collect(Collectors.toList());
 
@@ -93,8 +94,8 @@ public class ServiceServiceImpl implements ServiceService {
         };
     }
 
-    private GeneralResponse<PagingDTO<List<ServiceDTO>>> buildPagedResponse(Page<Service> servicePage, List<ServiceDTO> serviceDTOs) {
-        PagingDTO<List<ServiceDTO>> pagingDTO = PagingDTO.<List<ServiceDTO>>builder()
+    private GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> buildPagedResponse(Page<Service> servicePage, List<ServiceBaseDTO> serviceDTOs) {
+        PagingDTO<List<ServiceBaseDTO>> pagingDTO = PagingDTO.<List<ServiceBaseDTO>>builder()
                 .page(servicePage.getNumber())
                 .size(servicePage.getSize())
                 .total(servicePage.getTotalElements())

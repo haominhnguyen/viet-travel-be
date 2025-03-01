@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.response.PublicServiceDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceDetailDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
 import com.fpt.capstone.tourism.dto.common.TourDayServiceDTO;
@@ -37,5 +38,19 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
             "WHERE s.id = :serviceId")
     Optional<Service> findByIdWithDetails(@Param("serviceId") Long serviceId);
 
+
+    @Query("""
+        SELECT s FROM Service s
+        WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName = 'Hotel'
+        AND s.deleted = FALSE 
+     """)
+    List<Service> findRoomsByProviderId(@Param("providerId") Long id);
+
+    @Query("""
+        SELECT s FROM Service s
+        WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName != 'Hotel'
+        AND s.deleted = FALSE 
+     """)
+    List<Service> findOtherServicesByProviderId(@Param("providerId")Long id);
 }
 
