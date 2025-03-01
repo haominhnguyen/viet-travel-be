@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -20,7 +21,7 @@ public class ServiceFullDTO  {
     private Boolean deleted;
     private ServiceCategoryDTO serviceCategory;
     private ServiceProviderDTO serviceProvider;
-    private List<ServiceDetailDTO> serviceDetails;
+    private Set<ServiceDetailDTO> serviceDetails;
     private List<TourDayServiceDTO> tourDayServices;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

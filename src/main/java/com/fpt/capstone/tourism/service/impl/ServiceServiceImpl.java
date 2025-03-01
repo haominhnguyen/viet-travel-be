@@ -1,39 +1,44 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.ServiceDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.mapper.custom.ServiceCustomMapper;
 import com.fpt.capstone.tourism.mapper.ServiceFullMapper;
 import com.fpt.capstone.tourism.mapper.ServiceMapper;
+import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.ServiceDetail;
 import com.fpt.capstone.tourism.repository.ServiceRepository;
 import com.fpt.capstone.tourism.service.ServiceService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
-@Service
+@org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ServiceServiceImpl implements ServiceService {
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final ServiceRepository serviceRepository;
     private final ServiceMapper serviceMapper;
     private final ServiceFullMapper serviceFullMapper;
+    private final ServiceCustomMapper serviceCustomMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<ServiceDTO>>> getAllServices(
@@ -50,9 +55,9 @@ public class ServiceServiceImpl implements ServiceService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<com.fpt.capstone.tourism.model.Service> spec = buildSearchSpecification(keyword, isDeleted, providerId);
+            Specification<Service> spec = buildSearchSpecification(keyword, isDeleted, providerId);
 
-            Page<com.fpt.capstone.tourism.model.Service> servicePage = serviceRepository.findAll(spec, pageable);
+            Page<Service> servicePage = serviceRepository.findAll(spec, pageable);
             List<ServiceDTO> serviceDTOs = servicePage.getContent().stream()
                     .map(serviceMapper::toDTO)
                     .collect(Collectors.toList());
@@ -63,7 +68,7 @@ public class ServiceServiceImpl implements ServiceService {
         }
     }
 
-    private Specification<com.fpt.capstone.tourism.model.Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {
+    private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -88,7 +93,7 @@ public class ServiceServiceImpl implements ServiceService {
         };
     }
 
-    private GeneralResponse<PagingDTO<List<ServiceDTO>>> buildPagedResponse(Page<com.fpt.capstone.tourism.model.Service> servicePage, List<ServiceDTO> serviceDTOs) {
+    private GeneralResponse<PagingDTO<List<ServiceDTO>>> buildPagedResponse(Page<Service> servicePage, List<ServiceDTO> serviceDTOs) {
         PagingDTO<List<ServiceDTO>> pagingDTO = PagingDTO.<List<ServiceDTO>>builder()
                 .page(servicePage.getNumber())
                 .size(servicePage.getSize())
@@ -99,19 +104,23 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GeneralResponse<ServiceFullDTO> getServiceById(Long id, Long providerId) {
-        com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(id)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
-        try{
+        try {
+            Service service = serviceRepository.findByIdWithDetails(id)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+
             if (!service.getServiceProvider().getId().equals(providerId)) {
                 throw BusinessException.of(HttpStatus.FORBIDDEN, SERVICE_NOT_BELONG_TO_PROVIDER);
             }
-            ServiceFullDTO serviceDTO = serviceFullMapper.toDTO(service);
+            System.out.println("Service Details: " + service.getServiceDetails().size());
+            ServiceFullDTO serviceDTO = serviceCustomMapper.mapToServiceFullDTO(service);
             return GeneralResponse.of(serviceDTO, SERVICE_RETRIEVE_SUCCESS);
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
-            throw BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving service: " + e.getMessage());
         }
-
     }
 
 }

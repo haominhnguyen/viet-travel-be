@@ -52,12 +52,8 @@ public class ServiceController {
     public ResponseEntity<GeneralResponse<ServiceFullDTO>> getServiceDetail(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
             Long providerId = getLoggedInServiceProviderId(userDetails);
             return ResponseEntity.ok(serviceService.getServiceById(id, providerId));
-        } catch (Exception e) {
-            throw BusinessException.of(SERVICE_NOT_FOUND, e);
-        }
     }
 
     private Long getLoggedInServiceProviderId(UserDetails userDetails) {

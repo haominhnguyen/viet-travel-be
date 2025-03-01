@@ -1,10 +1,15 @@
 package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class TourDayService {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
