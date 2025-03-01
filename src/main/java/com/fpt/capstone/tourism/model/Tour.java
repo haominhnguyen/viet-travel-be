@@ -20,6 +20,8 @@ public class Tour extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @Column(columnDefinition = "text")
     private String highlights;
 
     @Column(name = "number_day")
@@ -59,7 +61,7 @@ public class Tour extends BaseEntity{
     @Column(name = "mark_up_percent")
     private double markUpPercent;
 
-
+    @Column(columnDefinition = "text")
     private String privacy;
 
     @ManyToOne
