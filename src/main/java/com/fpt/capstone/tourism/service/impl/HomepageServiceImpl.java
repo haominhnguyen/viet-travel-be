@@ -4,15 +4,15 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
+import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.Tour;
-import com.fpt.capstone.tourism.repository.ActivityRepository;
-import com.fpt.capstone.tourism.repository.TourRepository;
-import com.fpt.capstone.tourism.repository.TourScheduleRepository;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,9 +27,14 @@ public class HomepageServiceImpl implements HomepageService {
     private final LocationService locationService;
     private final ActivityRepository activityRepository;
     private final TourRepository tourRepository;
+    private final LocationRepository locationRepository;
+    private final BlogRepository blogRepository;
     private final TourScheduleRepository tourScheduleRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
     private final ActivityMapper activityMapper;
     private final LocationMapper locationMapper;
+    private final BlogMapper blogMapper;
+    private final ServiceProviderMapper serviceProviderMapper;
     private final TagMapper tagMapper;
     private final TourImageMapper tourImageMapper;
     private final TourDayMapper tourDayMapper;
@@ -41,7 +46,7 @@ public class HomepageServiceImpl implements HomepageService {
             List<PublicTourDTO> trendingTours = tourService.findTrendingTours(numberTour);
             List<BlogResponseDTO> newBlogs = blogService.findNewestBlogs(numberBlog);
             List<ActivityDTO> recommendedActivities = activityService.findRecommendedActivities(numberActivity);
-            List<LocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);
+            List<PublicLocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);
 
             //Mapping to Dto
             HomepageDTO homepageDTO = HomepageDTO.builder()
@@ -117,6 +122,50 @@ public class HomepageServiceImpl implements HomepageService {
             throw BusinessException.of("Tour detail loaded fail", ex);
         }
 
+    }
+
+    @Override
+    public GeneralResponse<PublicLocationDetailDTO> viewPublicLocationDetail(Long id) {
+        try {
+            //Find location
+            Location location = locationRepository.findById(id).orElseThrow();
+
+            //Find tour in the same location
+            List<PublicTourDTO> tours = tourService.findSameLocationPublicTour(Collections.singletonList(id));
+
+            //Find blog related to the location
+            List<BlogResponseDTO> blogs = blogRepository.findBlogRelatedLocations(location.getName())
+                    .stream().map(blogMapper::toDTO).collect(Collectors.toList())
+                     ;
+
+            //Find activities related to the location
+            List<PublicActivityDTO> activities = activityRepository.findRelatedActivities(id, 3)
+                    .stream().map(activityMapper::toPublicActivityDTO).collect(Collectors.toList());
+
+            //Find other locations
+            List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(3);
+
+            //Find hotel related to the location
+            List<PublicServiceProviderDTO> hotels = serviceProviderRepository.getHotelByLocationId(id)
+                    .stream().map(serviceProviderMapper::toPublicServiceProviderDTO).collect(Collectors.toList());
+
+
+            //Mapping to Dto
+            PublicLocationDetailDTO publicLocationDetailDTO = PublicLocationDetailDTO.builder()
+                    .id(id)
+                    .name(location.getName())
+                    .description(location.getDescription())
+                    .image(location.getImage())
+                    .tours(tours)
+                    .blogs(blogs)
+                    .activities(activities)
+                    .locations(publicLocations)
+                    .hotels(hotels)
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Location detail loaded successfully", publicLocationDetailDTO);
+        } catch (Exception ex){
+            throw BusinessException.of("Location detail loaded fail", ex);
+        }
     }
 
 }

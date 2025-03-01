@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 
 import java.util.Date;
 import java.util.List;
@@ -22,4 +19,6 @@ public interface HomepageService {
 //    GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long id, int numberActivity);
 
     GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id);
+
+    GeneralResponse<PublicLocationDetailDTO> viewPublicLocationDetail(Long id);
 }
