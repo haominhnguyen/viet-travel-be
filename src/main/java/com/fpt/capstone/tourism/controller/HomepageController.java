@@ -62,6 +62,11 @@ public class HomepageController {
         return ResponseEntity.ok(homepageService.viewPublicLocationDetail(id));
     }
 
+    @GetMapping("/hotel-detail/{id}")
+    public ResponseEntity<GeneralResponse<PublicHotelDetailDTO>> viewHotelDetail(@PathVariable Long id){
+        return ResponseEntity.ok(homepageService.viewPublicHotelDetail(id));
+    }
+
 
 
 }

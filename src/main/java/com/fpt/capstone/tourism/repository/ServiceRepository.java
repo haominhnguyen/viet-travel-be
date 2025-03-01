@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.response.PublicServiceDTO;
 import com.fpt.capstone.tourism.model.Service;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,4 +15,18 @@ public interface ServiceRepository  extends JpaRepository<Service, Long> {
         WHERE s.serviceProvider.id = :providerId
      """)
     List<Service> findAllServicesByProviderId(@Param("providerId") Long providerId);
+
+    @Query("""
+        SELECT s FROM Service s
+        WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName = 'Hotel'
+        AND s.deleted = FALSE 
+     """)
+    List<Service> findRoomsByProviderId(@Param("providerId") Long id);
+
+    @Query("""
+        SELECT s FROM Service s
+        WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName != 'Hotel'
+        AND s.deleted = FALSE 
+     """)
+    List<Service> findOtherServicesByProviderId(@Param("providerId")Long id);
 }

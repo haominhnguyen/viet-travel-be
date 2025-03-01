@@ -21,6 +21,7 @@ public interface BlogRepository extends JpaRepository<Blog, Long>, JpaSpecificat
     @Query("SELECT b FROM Blog b JOIN b.blogTags t WHERE t.name = :tagName")
     List<Blog> findByBlogTags_Name(@Param("tagName") String tagName, Pageable pageable);
 
-    @Query(value = "SELECT * FROM blog WHERE LOWER(UNACCENT(title)) LIKE LOWER(UNACCENT(CONCAT('%', :keyword, '%')))", nativeQuery = true)
+    @Query(value = "SELECT * FROM blog WHERE LOWER(UNACCENT(title)) LIKE LOWER(UNACCENT(CONCAT('%', :keyword, '%')))" +
+            "AND blog.is_deleted = false", nativeQuery = true)
     List<Blog> findBlogRelatedLocations(@Param("keyword") String location);
 }

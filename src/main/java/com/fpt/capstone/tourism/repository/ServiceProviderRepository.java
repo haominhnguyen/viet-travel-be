@@ -31,7 +31,8 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             JOIN sv.serviceCategories sc
             WHERE l.id = :locationId
             AND sc.categoryName = 'Hotel'
-            ORDER BY RANDOM() LIMIT 3
+            AND sv.deleted = FALSE 
+            ORDER BY RANDOM() LIMIT 6
                         """)
     List<ServiceProvider> getHotelByLocationId(@Param("locationId") Long id);
 }

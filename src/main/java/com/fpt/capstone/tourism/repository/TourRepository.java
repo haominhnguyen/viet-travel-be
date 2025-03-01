@@ -49,20 +49,14 @@ public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecifica
     SELECT t.id
     FROM tour t
              JOIN tour_location tl ON t.id = tl.tour_id
-    WHERE tl.location_id IN (:locationIds)
+    WHERE tl.location_id IN (:locationIds) AND t.is_deleted = FALSE
     GROUP BY t.id
     ORDER BY RANDOM()
     LIMIT 3;
 """, nativeQuery = true)
     List<Long> findSameLocationTourIds(@Param("locationIds") List<Long> locationIds);
 
-    @Query("""
-    SELECT DISTINCT t FROM Tour t
-    LEFT JOIN FETCH t.tourImages img
-    LEFT JOIN FETCH t.depart_location loc
-    WHERE t.id IN :ids
-""")
-    List<Tour> findSameLocationToursWithDetails(List<Long> tourIds);
+
 
     @Query("""
     SELECT tp.tour.id, MIN(tp.sellingPrice)

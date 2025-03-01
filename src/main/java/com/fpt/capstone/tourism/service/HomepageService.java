@@ -21,4 +21,6 @@ public interface HomepageService {
     GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id);
 
     GeneralResponse<PublicLocationDetailDTO> viewPublicLocationDetail(Long id);
+
+    GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long id);
 }

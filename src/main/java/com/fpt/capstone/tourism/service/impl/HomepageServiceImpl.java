@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
@@ -25,6 +26,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final ActivityService activityService;
     private final ServiceProviderService providerService;
     private final LocationService locationService;
+    private final ServiceRepository serviceRepository;
     private final ActivityRepository activityRepository;
     private final TourRepository tourRepository;
     private final LocationRepository locationRepository;
@@ -35,6 +37,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final LocationMapper locationMapper;
     private final BlogMapper blogMapper;
     private final ServiceProviderMapper serviceProviderMapper;
+    private final ServiceMapper serviceMapper;
     private final TagMapper tagMapper;
     private final TourImageMapper tourImageMapper;
     private final TourDayMapper tourDayMapper;
@@ -139,11 +142,11 @@ public class HomepageServiceImpl implements HomepageService {
                      ;
 
             //Find activities related to the location
-            List<PublicActivityDTO> activities = activityRepository.findRelatedActivities(id, 3)
+            List<PublicActivityDTO> activities = activityRepository.findRelatedActivities(id, 6)
                     .stream().map(activityMapper::toPublicActivityDTO).collect(Collectors.toList());
 
             //Find other locations
-            List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(3);
+            List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(6);
 
             //Find hotel related to the location
             List<PublicServiceProviderDTO> hotels = serviceProviderRepository.getHotelByLocationId(id)
@@ -165,6 +168,32 @@ public class HomepageServiceImpl implements HomepageService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Location detail loaded successfully", publicLocationDetailDTO);
         } catch (Exception ex){
             throw BusinessException.of("Location detail loaded fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long id) {
+        try {
+            //Find service provider
+            ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
+
+            //Find list rooms of the service provider
+            List<PublicServiceDTO> rooms = serviceRepository.findRoomsByProviderId(id)
+                    .stream().map(serviceMapper::toPublicServiceDTO).collect(Collectors.toList());;
+
+            //Find list other services of the service provider
+            List<PublicServiceDTO> otherServices = serviceRepository.findOtherServicesByProviderId(id)
+                    .stream().map(serviceMapper::toPublicServiceDTO).collect(Collectors.toList());
+
+            //Mapping to Dto
+            PublicHotelDetailDTO publicHotelDetailDTO = PublicHotelDetailDTO.builder()
+                    .serviceProvider(serviceProviderMapper.toPublicServiceProviderDTO(serviceProvider))
+                    .rooms(rooms)
+                    .otherServices(otherServices)
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Hotel detail loaded successfully", publicHotelDetailDTO);
+        } catch (Exception ex){
+            throw BusinessException.of("Hotel detail loaded fail", ex);
         }
     }
 
