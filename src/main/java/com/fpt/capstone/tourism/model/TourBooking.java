@@ -21,9 +21,6 @@ public class TourBooking extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "booking_date")
-    private Date bookingDate;
-
     private int seats;
 
     private String note;
@@ -46,7 +43,9 @@ public class TourBooking extends BaseEntity {
     @OneToMany(mappedBy = "tourBooking")
     private List<TourBookingCustomer> customers;
 
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private TourBookingStatus status;
 
 
     private String reason;
