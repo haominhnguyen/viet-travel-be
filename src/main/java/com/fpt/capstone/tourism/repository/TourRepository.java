@@ -17,7 +17,7 @@ import java.util.Map;
 @Repository
 public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
     @Query("SELECT tb.tour.id FROM TourBooking tb " +
-            "WHERE YEAR(tb.bookingDate) = YEAR(CURRENT_DATE)" +
+            "WHERE YEAR(tb.createdAt) = YEAR(CURRENT_DATE)" +
             "AND tb.tour.deleted = FALSE " +
             "AND tb.tour.opened = TRUE " +
             "GROUP BY tb.tour.id " +

@@ -22,7 +22,7 @@ public class Transaction extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "booking_id", nullable = false)
-    private TourScheduleService booking;
+    private TourBooking booking;
 
     @Column(nullable = false)
     private Double amount;
@@ -38,7 +38,8 @@ public class Transaction extends BaseEntity{
     private String receivedBy; // Người nhận tiền
 
     @Column(name = "payment_method", nullable = false)
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Column(length = 500)
     private String notes;
