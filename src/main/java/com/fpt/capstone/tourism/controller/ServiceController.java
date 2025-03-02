@@ -46,7 +46,7 @@ public class ServiceController {
         }
     }
 
-    @GetMapping("/list/{serviceId}/tour-day-services")
+    @GetMapping("/tour-day-services/{serviceId}")
     public ResponseEntity<GeneralResponse<List<TourDayServiceDTO>>> getTourDayServicesByService(
             @PathVariable Long serviceId,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -54,14 +54,13 @@ public class ServiceController {
         return ResponseEntity.ok(serviceService.getTourDayServicesByServiceId(serviceId, providerId));
     }
 
-    @GetMapping("/list/{serviceId}/details")
+    @GetMapping("/details/{serviceId}")
     public ResponseEntity<GeneralResponse<List<ServiceDetailDTO>>> getServiceDetailsByService(
             @PathVariable Long serviceId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long providerId = getLoggedInServiceProviderId(userDetails);
         return ResponseEntity.ok(serviceService.getServiceDetailsByServiceId(serviceId, providerId));
     }
-
 
 //    @GetMapping("/details/{id}")
 //    public ResponseEntity<GeneralResponse<ServiceFullDTO>> getServiceDetail(

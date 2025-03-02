@@ -28,8 +28,6 @@ import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ServiceServiceImpl implements ServiceService {
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private final ServiceRepository serviceRepository;
     private final ServiceBaseMapper serviceBaseMapper;
@@ -65,29 +63,39 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     public GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId) {
-        Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+        try{
+            Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
-        List<TourDayServiceDTO> tourDayServices = service.getTourDayServices()
-                .stream()
-                .map(tourDayServiceMapper::toDTO)
-                .collect(Collectors.toList());
+            List<TourDayServiceDTO> tourDayServices = service.getTourDayServices()
+                    .stream()
+                    .map(tourDayServiceMapper::toDTO)
+                    .collect(Collectors.toList());
 
-        return GeneralResponse.of(tourDayServices, TOUR_DAY_SERVICES_RETRIEVED);
+            return GeneralResponse.of(tourDayServices, TOUR_DAY_SERVICES_RETRIEVED);
+        } catch (BusinessException e) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_TOUR_DAY_SERVICE_FAIL);
+        }
     }
 
     public GeneralResponse<List<ServiceDetailDTO>> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
-        Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+        try {
+            // Use a query that specifically fetches the service details to avoid the circular reference issue
+            Service service = serviceRepository.findByIdAndProviderIdWithServiceDetails(serviceId, providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
-        List<ServiceDetailDTO> serviceDetails = service.getServiceDetails()
-                .stream()
-                .map(serviceDetailMapper::toDTO)
-                .collect(Collectors.toList());
+            List<ServiceDetailDTO> serviceDetails = service.getServiceDetails()
+                    .stream()
+                    .map(serviceDetailMapper::toDTO)
+                    .collect(Collectors.toList());
 
-        return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
+            return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_SERVICE_DETAIL_FAIL);
+        }
     }
-
 
 
     private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {

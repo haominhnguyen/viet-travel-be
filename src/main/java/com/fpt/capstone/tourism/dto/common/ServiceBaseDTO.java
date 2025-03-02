@@ -22,8 +22,12 @@ public class ServiceBaseDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean deleted;
-    private ServiceCategory serviceCategory;
-    private ServiceProvider serviceProvider;
+    private Long serviceCategoryId;
+    private String serviceCategoryName;
+    private Long serviceProviderId;
+    private String serviceProviderName;
+    private String serviceProviderAbbreviation;
+    private String serviceProviderImageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

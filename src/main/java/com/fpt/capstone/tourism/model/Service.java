@@ -12,6 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"tourDayServices", "serviceDetails"})
+@EqualsAndHashCode(callSuper = true, exclude = {"tourDayServices", "serviceDetails"})
 public class Service extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

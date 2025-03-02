@@ -144,6 +144,8 @@ public class Constants {
         public static final String SERVICE_NOT_BELONG_TO_PROVIDER = "Service does not belong to provider";
         public static final String TOUR_DAY_SERVICES_RETRIEVED = "Tour day services retrieved successfully";
         public static final String SERVICE_DETAILS_RETRIEVED = "Service details retrieved successfully";
+        public static final String GET_TOUR_DAY_SERVICE_FAIL = "Get tour day service failed";
+        public static final String GET_SERVICE_DETAIL_FAIL = "Get service detail failed";
     }
 
 
