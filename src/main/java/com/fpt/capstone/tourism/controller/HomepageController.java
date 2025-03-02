@@ -1,16 +1,17 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.*;
+import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.service.HomepageService;
+import com.fpt.capstone.tourism.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +20,8 @@ import java.util.List;
 @RequestMapping("/public")
 public class HomepageController {
     private final HomepageService homepageService;
+    private final TourService tourService;
+    private final LocationRepository locationRepository;
 
     @GetMapping("/homepage")
     public ResponseEntity<GeneralResponse<HomepageDTO>> view(@RequestParam(value = "numberTour", defaultValue = "3") int numberTour,
@@ -53,5 +56,17 @@ public class HomepageController {
     public ResponseEntity<GeneralResponse<PublicTourDetailDTO>> viewTourDetail(@PathVariable Long id){
         return ResponseEntity.ok(homepageService.viewTourDetail(id));
     }
+
+    @GetMapping("/location-detail/{id}")
+    public ResponseEntity<GeneralResponse<PublicLocationDetailDTO>> viewLocationDetail(@PathVariable Long id){
+        return ResponseEntity.ok(homepageService.viewPublicLocationDetail(id));
+    }
+
+    @GetMapping("/hotel-detail/{id}")
+    public ResponseEntity<GeneralResponse<PublicHotelDetailDTO>> viewHotelDetail(@PathVariable Long id){
+        return ResponseEntity.ok(homepageService.viewPublicHotelDetail(id));
+    }
+
+
 
 }

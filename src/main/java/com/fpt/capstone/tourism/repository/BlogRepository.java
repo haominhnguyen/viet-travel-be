@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.common.BlogDTO;
+import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
 import com.fpt.capstone.tourism.model.Blog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,4 +20,8 @@ public interface BlogRepository extends JpaRepository<Blog, Long>, JpaSpecificat
 
     @Query("SELECT b FROM Blog b JOIN b.blogTags t WHERE t.name = :tagName")
     List<Blog> findByBlogTags_Name(@Param("tagName") String tagName, Pageable pageable);
+
+    @Query(value = "SELECT * FROM blog WHERE LOWER(UNACCENT(title)) LIKE LOWER(UNACCENT(CONCAT('%', :keyword, '%')))" +
+            "AND blog.is_deleted = false", nativeQuery = true)
+    List<Blog> findBlogRelatedLocations(@Param("keyword") String location);
 }
