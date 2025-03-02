@@ -29,16 +29,6 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
      """)
     List<Service> findAllServicesByProviderId(@Param("providerId") Long providerId);
 
-    @Query("SELECT s FROM Service s " +
-            "LEFT JOIN FETCH s.serviceCategory " +
-            "LEFT JOIN FETCH s.serviceProvider " +
-            "LEFT JOIN FETCH s.serviceDetails " +
-            "LEFT JOIN FETCH s.tourDayServices tds " +
-            "LEFT JOIN FETCH tds.tourDay " +
-            "WHERE s.id = :serviceId")
-    Optional<Service> findByIdWithDetails(@Param("serviceId") Long serviceId);
-
-
     @Query("""
         SELECT s FROM Service s
         WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName = 'Hotel'
@@ -52,5 +42,22 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
         AND s.deleted = FALSE 
      """)
     List<Service> findOtherServicesByProviderId(@Param("providerId")Long id);
+
+    @Query("SELECT DISTINCT s FROM Service s " +
+            "LEFT JOIN FETCH s.serviceCategory " +
+            "LEFT JOIN FETCH s.serviceProvider " +
+            //"LEFT JOIN FETCH s.serviceDetails " +
+            "WHERE s.id = :serviceId")
+    Optional<Service> findByIdWithDetails(@Param("serviceId") Long serviceId);
+
+    @Query("SELECT DISTINCT s FROM Service s " +
+            "LEFT JOIN FETCH s.serviceDetails " +
+            "LEFT JOIN FETCH s.tourDayServices tds " +
+            "LEFT JOIN FETCH tds.tourDay " +
+            "WHERE s.id = :serviceId")
+    Optional<Service> findByIdWithTourDayServiceAndDetails(@Param("serviceId") Long serviceId);
+
+
+
 }
 

@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.controller;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.ServiceBaseDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.ServiceProvider;
@@ -49,13 +46,30 @@ public class ServiceController {
         }
     }
 
-    @GetMapping("/details/{id}")
-    public ResponseEntity<GeneralResponse<ServiceFullDTO>> getServiceDetail(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
-            Long providerId = getLoggedInServiceProviderId(userDetails);
-            return ResponseEntity.ok(serviceService.getServiceById(id, providerId));
+    @GetMapping("/list/{serviceId}/tour-day-services")
+    public ResponseEntity<GeneralResponse<List<TourDayServiceDTO>>> getTourDayServicesByService(
+            @PathVariable Long serviceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long providerId = getLoggedInServiceProviderId(userDetails);
+        return ResponseEntity.ok(serviceService.getTourDayServicesByServiceId(serviceId, providerId));
     }
+
+    @GetMapping("/list/{serviceId}/details")
+    public ResponseEntity<GeneralResponse<List<ServiceDetailDTO>>> getServiceDetailsByService(
+            @PathVariable Long serviceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long providerId = getLoggedInServiceProviderId(userDetails);
+        return ResponseEntity.ok(serviceService.getServiceDetailsByServiceId(serviceId, providerId));
+    }
+
+
+//    @GetMapping("/details/{id}")
+//    public ResponseEntity<GeneralResponse<ServiceFullDTO>> getServiceDetail(
+//            @AuthenticationPrincipal UserDetails userDetails,
+//            @PathVariable Long id) {
+//        Long providerId = getLoggedInServiceProviderId(userDetails);
+//        return ResponseEntity.ok(serviceService.getServiceById(id, providerId));
+//    }
 
     private Long getLoggedInServiceProviderId(UserDetails userDetails) {
         if (userDetails == null) {

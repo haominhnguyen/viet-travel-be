@@ -3,12 +3,8 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.mapper.ServiceBaseMapper;
-import com.fpt.capstone.tourism.mapper.custom.ServiceCustomMapper;
-import com.fpt.capstone.tourism.mapper.ServiceFullMapper;
-import com.fpt.capstone.tourism.mapper.ServiceMapper;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.Service;
-import com.fpt.capstone.tourism.model.ServiceDetail;
 import com.fpt.capstone.tourism.repository.ServiceRepository;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.persistence.EntityManager;
@@ -16,7 +12,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,9 +32,9 @@ public class ServiceServiceImpl implements ServiceService {
     private EntityManager entityManager;
 
     private final ServiceRepository serviceRepository;
-    private final ServiceBaseMapper serviceMapper;
-    private final ServiceFullMapper serviceFullMapper;
-    private final ServiceCustomMapper serviceCustomMapper;
+    private final ServiceBaseMapper serviceBaseMapper;
+    private final ServiceDetailMapper serviceDetailMapper;
+    private final TourDayServiceMapper tourDayServiceMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> getAllServices(
@@ -60,7 +55,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             Page<Service> servicePage = serviceRepository.findAll(spec, pageable);
             List<ServiceBaseDTO> serviceDTOs = servicePage.getContent().stream()
-                    .map(serviceMapper::toDTO)
+                    .map(serviceBaseMapper::toDTO)
                     .collect(Collectors.toList());
 
             return buildPagedResponse(servicePage, serviceDTOs);
@@ -68,6 +63,32 @@ public class ServiceServiceImpl implements ServiceService {
             throw BusinessException.of("Failed to retrieve services", ex);
         }
     }
+
+    public GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId) {
+        Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+
+        List<TourDayServiceDTO> tourDayServices = service.getTourDayServices()
+                .stream()
+                .map(tourDayServiceMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return GeneralResponse.of(tourDayServices, TOUR_DAY_SERVICES_RETRIEVED);
+    }
+
+    public GeneralResponse<List<ServiceDetailDTO>> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
+        Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+
+        List<ServiceDetailDTO> serviceDetails = service.getServiceDetails()
+                .stream()
+                .map(serviceDetailMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
+    }
+
+
 
     private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {
         return (root, query, cb) -> {
@@ -102,26 +123,6 @@ public class ServiceServiceImpl implements ServiceService {
                 .items(serviceDTOs)
                 .build();
         return GeneralResponse.of(pagingDTO, SERVICE_RETRIEVE_SUCCESS);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public GeneralResponse<ServiceFullDTO> getServiceById(Long id, Long providerId) {
-        try {
-            Service service = serviceRepository.findByIdWithDetails(id)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
-
-            if (!service.getServiceProvider().getId().equals(providerId)) {
-                throw BusinessException.of(HttpStatus.FORBIDDEN, SERVICE_NOT_BELONG_TO_PROVIDER);
-            }
-            System.out.println("Service Details: " + service.getServiceDetails().size());
-            ServiceFullDTO serviceDTO = serviceCustomMapper.mapToServiceFullDTO(service);
-            return GeneralResponse.of(serviceDTO, SERVICE_RETRIEVE_SUCCESS);
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception e) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving service: " + e.getMessage());
-        }
     }
 
 }

@@ -1,6 +1,9 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import java.time.LocalDateTime;
+
+import com.fpt.capstone.tourism.model.ServiceCategory;
+import com.fpt.capstone.tourism.model.ServiceProvider;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +22,10 @@ public class ServiceBaseDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean deleted;
-    private Long categoryId;
-    private String categoryName;
-    private Long providerId;
-    private String providerName;
+    private ServiceCategory serviceCategory;
+    private ServiceProvider serviceProvider;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
 
 

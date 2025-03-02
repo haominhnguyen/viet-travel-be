@@ -12,7 +12,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"serviceCategory", "serviceProvider", "serviceDetails", "tourDayServices"})
 public class Service extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,12 +41,12 @@ public class Service extends BaseEntity{
     @JoinColumn(name = "category_id")
     private ServiceCategory serviceCategory;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
-    private List<TourDayService> tourDayServices;
-
     @ManyToOne
     @JoinColumn(name = "provider_id")
     private ServiceProvider serviceProvider;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
+    private List<TourDayService> tourDayServices;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
     private Set<ServiceDetail> serviceDetails;
