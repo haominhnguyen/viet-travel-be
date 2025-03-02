@@ -129,31 +129,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public void createEmailConfirmationToken(User user, String token) {
-        // First, delete any existing tokens for this user
-        emailConfirmationTokenRepository.deleteByUser(user);
-        // Create and save the new token
-        Token confirmationToken = new Token();
-        confirmationToken.setToken(token);
-        confirmationToken.setUser(user);
-        confirmationToken.setCreatedAt(LocalDateTime.now());
-        emailConfirmationTokenRepository.save(confirmationToken);
-    }
-
-    @Override
-    public User findUserByEmailConfirmationToken(String token) {
-        Optional<Token> confirmationToken = emailConfirmationTokenRepository.findByToken(token);
-        return confirmationToken.map(Token::getUser).orElse(null);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEmailConfirmationToken(String token) {
-        emailConfirmationTokenRepository.deleteByToken(token);
-    }
-
-    @Override
     public GeneralResponse<UserProfileResponseDTO> getUserProfile(String username) {
         try {
 

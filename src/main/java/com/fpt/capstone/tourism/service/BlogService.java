@@ -15,7 +15,7 @@ public interface BlogService {
     GeneralResponse<BlogResponseDTO> createBlog(BlogRequestDTO blogRequestDTO);
     GeneralResponse<BlogResponseDTO> updateBlog(Long id,BlogRequestDTO blogRequestDTO);
     GeneralResponse<BlogResponseDTO> getBlogById(Long id);
-    GeneralResponse<BlogResponseDTO> changeBlogDeletedStatus(Long id, boolean isDeleted);
+    GeneralResponse<BlogResponseDTO> changeBlogDeletedStatus(Long id, Boolean deleted);
     GeneralResponse<PagingDTO<List<BlogResponseDTO>>> getBlogs(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection);
     List<BlogResponseDTO> findNewestBlogs(int numberBlog);
     List<PublicBlogResponseDTO> getBlogsByTagName(String tagName, int numberOfBlogs);

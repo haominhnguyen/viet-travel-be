@@ -119,10 +119,10 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public GeneralResponse<BlogResponseDTO> changeBlogDeletedStatus(Long id, boolean isDeleted) {
+    public GeneralResponse<BlogResponseDTO> changeBlogDeletedStatus(Long id, Boolean deleted) {
         try {
             Blog blog = blogRepository.findById(id).orElseThrow();
-            blog.setDeleted(isDeleted);
+            blog.setDeleted(deleted);
             //blogRepository.save(blog);
             Blog savedBlog = blogRepository.save(blog);
             BlogResponseDTO blogResponseDTO = blogMapper.toDTO(savedBlog);

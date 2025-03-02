@@ -395,10 +395,5 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             throw BusinessException.of("Create account service provider fail");
         }
     }
-
-
-
-
-
 }
 

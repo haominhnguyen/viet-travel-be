@@ -2,14 +2,18 @@ package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.model.*;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TourDTO {
 //    private Long id;----------
 //    private String name;--------
