@@ -5,11 +5,14 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.helper.validator.Validator;
+import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
+import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
 import com.fpt.capstone.tourism.model.*;
@@ -36,6 +39,7 @@ import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -50,6 +54,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     private final LocationRepository locationRepository;
     private final ServiceProviderMapper serviceProviderMapper;
     private final ServiceCategoryMapper serviceCategoryMapper;
+    private final LocationMapper locationMapper;
+    private final GeoPositionMapper geoPositionMapper;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
@@ -258,8 +264,30 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Hotel", star);
 
             Page<ServiceProvider> serviceProviderPage = serviceProviderRepository.findAll(spec, pageable);
+
+            //Find min room price of each hotel
+            Map<Long, Double> minPriceMap = serviceProviderRepository.findMinRoomPricesByHotelIds(serviceProviderPage.getContent().stream().map(ServiceProvider::getId).toList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // tourId
+                            row -> (Double) row[1] // priceFrom
+                    ));;
+
             List<PublicServiceProviderDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
-                    .map(serviceProviderMapper::toPublicServiceProviderDTO)
+                    .map(serviceProvider -> new PublicServiceProviderDTO(
+                            serviceProvider.getId(),
+                            serviceProvider.getImageUrl(),
+                            serviceProvider.getName(),
+                            serviceProvider.getAbbreviation(),
+                            serviceProvider.getWebsite(),
+                            serviceProvider.getEmail(),
+                            serviceProvider.getStar(),
+                            serviceProvider.getPhone(),
+                            serviceProvider.getAddress(),
+                            locationMapper.toPublicLocationDTO(serviceProvider.getLocation()),
+                            geoPositionMapper.toDTO(serviceProvider.getGeoPosition()),
+                            minPriceMap.getOrDefault(serviceProvider.getId(), 0.0)
+                    ))
                     .collect(Collectors.toList());
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
