@@ -123,10 +123,10 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-            Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate);
+            Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
 
             //Find TOur satisfying conditions
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
@@ -213,7 +213,7 @@ public class TourServiceImpl implements TourService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
 
-    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -261,6 +261,10 @@ public class TourServiceImpl implements TourService {
             if(budgetTo!= null) {
                 Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
                 predicates.add(cb.lessThanOrEqualTo(paxJoin.get("sellingPrice"), budgetTo));
+            }
+
+            if(departLocationId!= null) {
+                predicates.add(cb.equal(root.get("depart_location").get("id"), departLocationId));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

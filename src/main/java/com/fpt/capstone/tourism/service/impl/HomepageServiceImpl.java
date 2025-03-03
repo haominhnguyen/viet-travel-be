@@ -77,8 +77,8 @@ public class HomepageServiceImpl implements HomepageService {
 //    }
 
     @Override
-    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
-        return tourService.getAllPublicTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate);
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
+        return tourService.getAllPublicTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
     }
 
 //    @Override
