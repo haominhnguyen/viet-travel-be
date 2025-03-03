@@ -5,12 +5,14 @@ import com.fpt.capstone.tourism.dto.common.TagDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.repository.TagRepository;
 import com.fpt.capstone.tourism.repository.TourImageRepository;
 import com.fpt.capstone.tourism.repository.TourRepository;
+import com.fpt.capstone.tourism.repository.TourScheduleRepository;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @Service
 public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
+    private final TourScheduleRepository tourScheduleRepository;
     private final TourMapper tourMapper;
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
@@ -98,6 +101,7 @@ public class TourServiceImpl implements TourService {
                             row -> (Double) row[1] // priceFrom
                     ));
 
+
             // Fetch all tours by their IDs and convert to DTOs
             return trendingTours.stream()
                     .map(tour -> new PublicTourDTO(
@@ -107,6 +111,7 @@ public class TourServiceImpl implements TourService {
                             tour.getNumberNight(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),  // Convert tags
                             locationMapper.toPublicLocationDTO(tour.getDepart_location()),  // Convert depart location
+                            tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(), // Convert images
                             priceMap.getOrDefault(tour.getId(), 0.0) // Giá thấp nhất
                     ))
@@ -134,6 +139,8 @@ public class TourServiceImpl implements TourService {
                             row -> (Double) row[1] // priceFrom
                     ));;
 
+
+
             List<PublicTourDTO> publicTourDTOS = tourPage.getContent().stream()
                     .map(tour -> new PublicTourDTO(
                             tour.getId(),
@@ -142,6 +149,7 @@ public class TourServiceImpl implements TourService {
                             tour.getNumberNight(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),
                             locationMapper.toPublicLocationDTO(tour.getDepart_location()),
+                            tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(),
                             minPriceMap.getOrDefault(tour.getId(), 0.0)  // Giá thấp nhất
                     ))
