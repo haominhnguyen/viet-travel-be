@@ -162,7 +162,7 @@ public class ServiceDetailServiceImpl implements ServiceDetailService{
 
     @Override
     @Transactional
-    public GeneralResponse<Boolean> changeServiceDetailStatus(Long serviceId, Long detailId, boolean isDeleted, Long providerId) {
+    public GeneralResponse<ServiceDetailResponseDTO> changeServiceDetailStatus(Long serviceId, Long detailId, Boolean isDeleted, Long providerId) {
         try {
             // Check if service exists and belongs to provider
             serviceRepository.findByIdAndServiceProviderId(serviceId, providerId)
@@ -176,8 +176,17 @@ public class ServiceDetailServiceImpl implements ServiceDetailService{
             serviceDetail.setDeleted(isDeleted);
             serviceDetailRepository.save(serviceDetail);
 
+            ServiceDetailResponseDTO responseDTO = new ServiceDetailResponseDTO();
+            responseDTO.setId(serviceDetail.getId());
+            responseDTO.setTitle(serviceDetail.getTitle());
+            responseDTO.setContent(serviceDetail.getContent());
+            responseDTO.setServiceId(serviceDetail.getService().getId());
+            responseDTO.setCreatedAt(serviceDetail.getCreatedAt());
+            responseDTO.setUpdatedAt(serviceDetail.getUpdatedAt());
+            responseDTO.setDeleted(serviceDetail.getDeleted());
+
             String messageCode = isDeleted ? SERVICE_DETAIL_DELETED : SERVICE_DETAIL_RESTORED;
-            return GeneralResponse.of(true, messageCode);
+            return GeneralResponse.of(responseDTO, messageCode);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
@@ -185,6 +194,4 @@ public class ServiceDetailServiceImpl implements ServiceDetailService{
             throw BusinessException.of(CHANGE_SERVICE_DETAIL_STATUS_FAIL, ex);
         }
     }
-
-
 }

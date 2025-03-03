@@ -1,10 +1,17 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.ServiceCategory;
+import com.fpt.capstone.tourism.model.ServiceProvider;
+import com.fpt.capstone.tourism.repository.ServiceCategoryRepository;
+import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.ServiceRepository;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.persistence.EntityManager;
@@ -20,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,8 +39,11 @@ public class ServiceServiceImpl implements ServiceService {
 
     private final ServiceRepository serviceRepository;
     private final ServiceBaseMapper serviceBaseMapper;
+    private final ServiceFullMapper serviceFullMapper;
     private final ServiceDetailMapper serviceDetailMapper;
     private final TourDayServiceMapper tourDayServiceMapper;
+    private final ServiceCategoryRepository serviceCategoryRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
 
     @Override
     public GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> getAllServices(
@@ -133,6 +144,118 @@ public class ServiceServiceImpl implements ServiceService {
                 .build();
         return GeneralResponse.of(pagingDTO, SERVICE_RETRIEVE_SUCCESS);
     }
+
+    @Override
+    public GeneralResponse<ServiceResponseDTO> createService(ServiceRequestDTO requestDTO, Long providerId) {
+        try {
+            // Validate service category
+            ServiceCategory category = serviceCategoryRepository.findById(requestDTO.getCategoryId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND));
+
+            // Validate service provider
+            ServiceProvider provider = serviceProviderRepository.findById(providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_PROVIDER_NOT_FOUND));
+
+            // Validate dates
+            Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
+            //Validate prices
+            Validator.validatePrices(requestDTO.getNettPrice(),requestDTO.getSellingPrice());
+
+            // Check if service with the same name exists for this provider
+            if (serviceRepository.existsByNameAndServiceProviderId(requestDTO.getName(), providerId)) {
+                throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
+            }
+            // Map and set additional fields
+            Service service = serviceFullMapper.toEntity(requestDTO);
+            service.setServiceCategory(category);
+            service.setServiceProvider(provider);
+            service.setDeleted(false);
+            service.setCreatedAt(LocalDateTime.now());
+
+            // Save and return
+            Service savedService = serviceRepository.save(service);
+            return GeneralResponse.of(
+                    serviceFullMapper.toResponseDTO(savedService),
+                    SERVICE_CREATED
+            );
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(CREATE_SERVICE_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ServiceResponseDTO> updateService(Long serviceId, ServiceRequestDTO requestDTO, Long providerId) {
+        try {
+            // Validate service
+            Service service = serviceRepository.findByIdAndServiceProviderId(serviceId, providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+
+            // Validate service category
+            ServiceCategory category = serviceCategoryRepository.findById(requestDTO.getCategoryId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND));
+
+            // Validate dates
+            Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
+            //Validate prices
+            Validator.validatePrices(requestDTO.getNettPrice(),requestDTO.getSellingPrice());
+
+            // Check if service with the same name exists (excluding current service)
+            if (serviceRepository.existsByNameAndServiceProviderIdAndIdNot(
+                    requestDTO.getName(), providerId, serviceId)) {
+                throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
+            }
+
+            // Update fields
+            service.setName(requestDTO.getName());
+            service.setNettPrice(requestDTO.getNettPrice());
+            service.setSellingPrice(requestDTO.getSellingPrice());
+            service.setImageUrl(requestDTO.getImageUrl());
+            service.setStartDate(requestDTO.getStartDate());
+            service.setEndDate(requestDTO.getEndDate());
+            service.setServiceCategory(category);
+            service.setUpdatedAt(LocalDateTime.now());
+
+            // Save and return
+            Service updatedService = serviceRepository.save(service);
+            return GeneralResponse.of(
+                    serviceFullMapper.toResponseDTO(updatedService),
+                    SERVICE_UPDATED
+            );
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(UPDATE_SERVICE_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ServiceResponseDTO> changeServiceStatus(Long serviceId, Boolean isDeleted, Long providerId) {
+        try {
+            // Validate service
+            Service service = serviceRepository.findByIdAndServiceProviderId(serviceId, providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+
+            // Update status
+            service.setDeleted(isDeleted);
+            service.setUpdatedAt(LocalDateTime.now());
+
+            // Save and return
+            Service updatedService = serviceRepository.save(service);
+            String messageCode = isDeleted ? SERVICE_DELETED : SERVICE_RESTORED;
+
+            return GeneralResponse.of(
+                    serviceFullMapper.toResponseDTO(updatedService),
+                    messageCode
+            );
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, ex);
+        }
+    }
+
 
 }
 

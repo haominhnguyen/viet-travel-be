@@ -11,5 +11,5 @@ public interface ServiceDetailService {
     GeneralResponse<List<ServiceDetailResponseDTO>> getAllServiceDetails(Long serviceId, Long providerId);
     GeneralResponse<ServiceDetailResponseDTO> getServiceDetailById(Long serviceId, Long detailId, Long providerId);
     GeneralResponse<ServiceDetailResponseDTO> updateServiceDetail(Long serviceId, Long detailId, Long providerId, ServiceDetailRequestDTO requestDTO);
-    GeneralResponse<Boolean> changeServiceDetailStatus(Long serviceId, Long detailId, boolean isDeleted,Long providerId);
+    GeneralResponse<ServiceDetailResponseDTO> changeServiceDetailStatus(Long serviceId, Long detailId, Boolean isDeleted,Long providerId);
 }

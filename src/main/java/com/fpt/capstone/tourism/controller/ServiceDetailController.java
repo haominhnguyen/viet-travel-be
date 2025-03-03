@@ -72,10 +72,10 @@ public class ServiceDetailController {
     }
 
     @PostMapping("/change-status/{detailId}")
-    public ResponseEntity<GeneralResponse<Boolean>> changeServiceDetailStatus(
+    public ResponseEntity<GeneralResponse<ServiceDetailResponseDTO>> changeServiceDetailStatus(
             @PathVariable Long serviceId,
             @PathVariable Long detailId,
-            @RequestBody boolean isDeleted,
+            @RequestBody Boolean isDeleted,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long providerId = getLoggedInServiceProviderId(userDetails);
         return ResponseEntity.ok(serviceDetailService.changeServiceDetailStatus(serviceId, detailId, isDeleted,providerId));
