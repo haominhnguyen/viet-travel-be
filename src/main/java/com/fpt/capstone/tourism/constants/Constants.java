@@ -146,6 +146,19 @@ public class Constants {
         public static final String SERVICE_DETAILS_RETRIEVED = "Service details retrieved successfully";
         public static final String GET_TOUR_DAY_SERVICE_FAIL = "Get tour day service failed";
         public static final String GET_SERVICE_DETAIL_FAIL = "Get service detail failed";
+
+        public static final String SERVICE_DETAIL_CREATED = "Service detail created successfully";
+        public static final String SERVICE_DETAIL_UPDATED = "Service detail updated successfully";
+        public static final String SERVICE_DETAIL_DELETED = "Service detail deleted successfully";
+        public static final String SERVICE_DETAIL_RETRIEVED = "Service detail retrieved successfully";
+        public static final String SERVICE_DETAIL_NOT_FOUND = "Service detail not found";
+        public static final String CREATE_SERVICE_DETAIL_FAIL = "Failed to create service detail";
+        public static final String UPDATE_SERVICE_DETAIL_FAIL = "Failed to update service detail";
+        public static final String DELETE_SERVICE_DETAIL_FAIL = "Failed to delete service detail";
+        public static final String GET_SERVICE_DETAILS_FAIL = "Failed to retrieve service details";
+        public static final String SERVICE_DETAIL_RESTORED = "Service detail restored successfully";
+        public static final String CHANGE_SERVICE_DETAIL_STATUS_FAIL = "Failed to change service detail status";
+        public static final String SERVICE_DETAIL_TITLE_EXISTS = "Service detail title already exists";
     }
 
 

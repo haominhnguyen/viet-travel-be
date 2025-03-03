@@ -98,6 +98,7 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
 
+
     private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
