@@ -25,4 +25,6 @@ public class ServiceDetail extends BaseEntity{
     @Column(name = "content", nullable = false)
     private String content;  // The actual detail information (e.g., "King-size", "Luxury Bus")
 
+    @Column
+    private Boolean deleted;
 }

@@ -9,9 +9,9 @@ import org.mapstruct.MappingConstants;
 import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ServiceDetailMapper {
+public interface ServiceDetailMapper extends EntityMapper<ServiceDetailDTO, ServiceDetail> {
     @Mapping(source = "createdAt", target = "createdAt")
     @Mapping(source = "updatedAt", target = "updatedAt")
-    List<ServiceDetailDTO> toDTOList(List<ServiceDetail> entities);
+    ServiceDetailDTO toDTO(ServiceDetail entity);
 }
 

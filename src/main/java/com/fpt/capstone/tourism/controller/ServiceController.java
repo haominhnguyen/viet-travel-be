@@ -1,17 +1,18 @@
 package com.fpt.capstone.tourism.controller;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.ServiceBaseDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
+import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.service.ServiceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,25 +50,76 @@ public class ServiceController {
         }
     }
 
-    @GetMapping("/details/{id}")
-    public ResponseEntity<GeneralResponse<ServiceFullDTO>> getServiceDetail(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
-            Long providerId = getLoggedInServiceProviderId(userDetails);
-            return ResponseEntity.ok(serviceService.getServiceById(id, providerId));
+    @GetMapping("/tour-day-services/{serviceId}")
+    public ResponseEntity<GeneralResponse<List<TourDayServiceDTO>>> getTourDayServicesByService(
+            @PathVariable Long serviceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long providerId = getLoggedInServiceProviderId(userDetails);
+        return ResponseEntity.ok(serviceService.getTourDayServicesByServiceId(serviceId, providerId));
     }
+
+    @GetMapping("/details/{serviceId}")
+    public ResponseEntity<GeneralResponse<List<ServiceDetailDTO>>> getServiceDetailsByService(
+            @PathVariable Long serviceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long providerId = getLoggedInServiceProviderId(userDetails);
+        return ResponseEntity.ok(serviceService.getServiceDetailsByServiceId(serviceId, providerId));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> createService(
+            @Valid @RequestBody ServiceRequestDTO requestDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long providerId = getLoggedInServiceProviderId(userDetails);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(serviceService.createService(requestDTO, providerId));
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            throw BusinessException.of(CREATE_SERVICE_FAIL, e);
+        }
+    }
+
+    @PutMapping("/update/{serviceId}")
+    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> updateService(
+            @PathVariable Long serviceId,
+            @Valid @RequestBody ServiceRequestDTO requestDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long providerId = getLoggedInServiceProviderId(userDetails);
+            return ResponseEntity.ok(serviceService.updateService(serviceId, requestDTO, providerId));
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            throw BusinessException.of(UPDATE_SERVICE_FAIL, e);
+        }
+    }
+
+    @PostMapping("/change-status/{serviceId}")
+    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> changeServiceStatus(
+            @PathVariable Long serviceId,
+            @RequestBody Boolean isDeleted,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            Long providerId = getLoggedInServiceProviderId(userDetails);
+            return ResponseEntity.ok(serviceService.changeServiceStatus(serviceId, isDeleted, providerId));
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, e);
+        }
+    }
+
 
     private Long getLoggedInServiceProviderId(UserDetails userDetails) {
         if (userDetails == null) {
             throw BusinessException.of(USER_NOT_AUTHENTICATED);
         }
-
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND));
-
         ServiceProvider serviceProvider = serviceProviderRepository.findByUserId(user.getId())
                 .orElseThrow(() -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND));
-
         return serviceProvider.getId();
     }
 }

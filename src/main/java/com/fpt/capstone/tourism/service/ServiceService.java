@@ -1,10 +1,9 @@
 package com.fpt.capstone.tourism.service;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.ServiceBaseDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceFullDTO;
+import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 
 import java.util.List;
 
@@ -13,6 +12,11 @@ public interface ServiceService {
                                                                     Boolean isDeleted, String sortField,
                                                                     String sortDirection, Long providerId);
 
-    GeneralResponse<ServiceFullDTO> getServiceById(Long id, Long providerId);
+    //GeneralResponse<ServiceFullDTO> getServiceById(Long id, Long providerId);
+    GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId);
+    GeneralResponse<List<ServiceDetailDTO>> getServiceDetailsByServiceId(Long serviceId, Long providerId);
+    GeneralResponse<ServiceResponseDTO> createService(ServiceRequestDTO requestDTO, Long providerId);
+    GeneralResponse<ServiceResponseDTO> updateService(Long serviceId, ServiceRequestDTO requestDTO, Long providerId);
+    GeneralResponse<ServiceResponseDTO> changeServiceStatus(Long serviceId, Boolean isDeleted, Long providerId);
 }
 
