@@ -2,15 +2,16 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TagDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
+import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.TourSimpleDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.repository.TagRepository;
 import com.fpt.capstone.tourism.repository.TourImageRepository;
 import com.fpt.capstone.tourism.repository.TourRepository;
+import com.fpt.capstone.tourism.repository.TourScheduleRepository;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -31,16 +32,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @RequiredArgsConstructor
 @Service
 public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
+    private final TourScheduleRepository tourScheduleRepository;
     private final TourMapper tourMapper;
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
     private final TourImageRepository tourImageRepository;
     private final TagRepository tagRepository;
     private final TagMapper tagMapper;
+    private final TourDayMapper tourDayMapper;
 
     @Override
     public PublicTourDTO findTopTourOfYear() {
@@ -98,6 +103,7 @@ public class TourServiceImpl implements TourService {
                             row -> (Double) row[1] // priceFrom
                     ));
 
+
             // Fetch all tours by their IDs and convert to DTOs
             return trendingTours.stream()
                     .map(tour -> new PublicTourDTO(
@@ -107,6 +113,7 @@ public class TourServiceImpl implements TourService {
                             tour.getNumberNight(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),  // Convert tags
                             locationMapper.toPublicLocationDTO(tour.getDepart_location()),  // Convert depart location
+                            tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(), // Convert images
                             priceMap.getOrDefault(tour.getId(), 0.0) // Giá thấp nhất
                     ))
@@ -118,10 +125,10 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-            Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate);
+            Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
 
             //Find TOur satisfying conditions
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
@@ -142,6 +149,7 @@ public class TourServiceImpl implements TourService {
                             tour.getNumberNight(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),
                             locationMapper.toPublicLocationDTO(tour.getDepart_location()),
+                            tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(),
                             minPriceMap.getOrDefault(tour.getId(), 0.0)  // Giá thấp nhất
                     ))
@@ -194,6 +202,62 @@ public class TourServiceImpl implements TourService {
         }
     }
 
+    @Override
+    public GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable) {
+        Specification<Tour> spec = buildSimpleSearchSpecification(keyword, isDeleted, isOpened);
+        Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
+        List<TourSimpleDTO> tourDTOs = tourPage.getContent().stream()
+                .map(this::convertToTourSimpleDTO)
+                .collect(Collectors.toList());
+        return buildSimplePagedResponse(tourPage, tourDTOs);
+    }
+
+    @Override
+    public GeneralResponse<TourDetailDTO> getTourDetail(Long id) {
+        try{
+            Tour currentTour = tourRepository.findById(id).orElseThrow();
+            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
+            List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
+
+            //Mapping to DTO
+            TourDetailDTO tourBasicDTO = TourDetailDTO.builder()
+                    .id(currentTour.getId())
+                    .name(currentTour.getName())
+                    .highlights(currentTour.getHighlights())
+                    .numberDays(currentTour.getNumberDays())
+                    .numberNight(currentTour.getNumberNight())
+                    .note(currentTour.getNote())
+                    .privacy(currentTour.getPrivacy())
+                    .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
+                    .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
+                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepart_location()))
+                    .tourSchedules(tourScheduleBasicDTO)
+                    .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
+                    .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DETAIL_LOAD_SUCCESS, tourBasicDTO);
+        } catch (Exception ex){
+            throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
+        }
+    }
+
+    private TourSimpleDTO convertToTourSimpleDTO(Tour tour) {
+        return TourSimpleDTO.builder()
+                .id(tour.getId())
+                .name(tour.getName())
+                .highlights(tour.getHighlights())
+                .numberDays(tour.getNumberDays())
+                .numberNight(tour.getNumberNight())
+                .note(tour.getNote())
+                .deleted(tour.getDeleted())
+                .opened(tour.isOpened())
+                .markUpPercent(tour.getMarkUpPercent())
+                .privacy(tour.getPrivacy())
+                .createdUserId(tour.getCreatedBy().getId())
+                .createdUserName(tour.getCreatedBy().getFullName())
+                .build();
+    }
+
     private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponse(Page<Tour> tourPage, List<T> tours) {
         PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(tourPage.getNumber())
@@ -205,7 +269,7 @@ public class TourServiceImpl implements TourService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
 
-    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate) {
+    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -255,9 +319,48 @@ public class TourServiceImpl implements TourService {
                 predicates.add(cb.lessThanOrEqualTo(paxJoin.get("sellingPrice"), budgetTo));
             }
 
+            if(departLocationId!= null) {
+                predicates.add(cb.equal(root.get("depart_location").get("id"), departLocationId));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
+
+    private Specification<Tour> buildSimpleSearchSpecification(String keyword, Boolean isDeleted, Boolean isOpened) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                Expression<String> normalizedName = cb.function("unaccent", String.class, cb.lower(root.get("name")));
+                Expression<String> normalizedKeyword = cb.function("unaccent", String.class, cb.literal(keyword.toLowerCase()));
+
+                Predicate namePredicate = cb.like(normalizedName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+                predicates.add(namePredicate);
+            }
+
+            // Filter by deletion status
+            if (isDeleted != null) {
+                predicates.add(cb.equal(root.get("deleted"), isDeleted));
+            }
+            if (isOpened != null) {
+                predicates.add(cb.equal(root.get("opened"), isOpened));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private GeneralResponse<PagingDTO<List<TourSimpleDTO>>> buildSimplePagedResponse(Page<Tour> tourPage, List<TourSimpleDTO> tourDTOs) {
+        PagingDTO<List<TourSimpleDTO>> pagingDTO = PagingDTO.<List<TourSimpleDTO>>builder()
+                .page(tourPage.getNumber())
+                .size(tourPage.getSize())
+                .total(tourPage.getTotalElements())
+                .items(tourDTOs)
+                .build();
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
+    }
 
 }

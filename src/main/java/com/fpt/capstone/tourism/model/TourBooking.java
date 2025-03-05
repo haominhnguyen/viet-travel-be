@@ -25,6 +25,9 @@ public class TourBooking extends BaseEntity {
 
     private String note;
 
+    @Column(name = "booking_code", unique = true)
+    private String bookingCode;
+
     @Column(name = "is_deleted")
     private Boolean deleted;
 
@@ -43,10 +46,14 @@ public class TourBooking extends BaseEntity {
     @OneToMany(mappedBy = "tourBooking")
     private List<TourBookingCustomer> customers;
 
-
     @Enumerated(EnumType.STRING)
     private TourBookingStatus status;
 
+    @Column(name = "selling_price")
+    private Double sellingPrice;
+
+    @Column(name = "extra_hotel_cost")
+    private Double extraHotelCost;
 
     private String reason;
 

@@ -4,6 +4,8 @@ import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
@@ -273,5 +275,23 @@ public class Validator {
         isNullOrEmpty(activityDTO.getGeoPosition().toString(), EMPTY_LOCATION_GEO_POSITION);
         isNullOrEmpty(activityDTO.getLocation().toString(), EMPTY_LOCATION);
         isNullOrEmpty(activityDTO.getActivityCategory().toString(), EMPTY_ACTIVITY_CATEGORY);
+    }
+
+    public static void validateDates(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_DATE_RANGE);
+        }
+    }
+    public static void validatePrices(Double nettPrice, Double sellingPrice){
+        if (nettPrice == null || sellingPrice == null) {
+           throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_PRICE);
+        }
+        if (nettPrice < 0 || sellingPrice < 0) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_PRICE);
+        }
+
+        if (nettPrice > sellingPrice) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_PRICE_RANGE);
+        }
     }
 }

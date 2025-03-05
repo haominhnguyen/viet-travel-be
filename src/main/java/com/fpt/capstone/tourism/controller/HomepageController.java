@@ -39,8 +39,9 @@ public class HomepageController {
                                                                                        @RequestParam(value = "budgetFrom", required = false) Double budgetFrom,
                                                                                        @RequestParam(value = "duration", required = false) Integer duration,
                                                                                        @RequestParam(value = "fromDate", required = false)
-                                                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate){
-        return ResponseEntity.ok(homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate));
+                                                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
+                                                                                       @RequestParam(value = "departLocationId", required = false) Long departLocationId){
+        return ResponseEntity.ok(homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId));
     }
     @GetMapping("/list-hotel")
     public ResponseEntity<GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>>> viewAllHotel(@RequestParam(defaultValue = "0") int page,

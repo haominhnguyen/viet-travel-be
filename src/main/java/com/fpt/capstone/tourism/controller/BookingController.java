@@ -41,4 +41,11 @@ public class BookingController {
     }
 
 
+
+    @GetMapping("/details/{bookingCode}")
+    public ResponseEntity<GeneralResponse<?>> getBookingDetails(@PathVariable("bookingCode") String bookingCode){
+        return ResponseEntity.ok(bookingService.getTourBookingDetails(bookingCode));
+    }
+
+
 }

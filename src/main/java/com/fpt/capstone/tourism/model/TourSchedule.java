@@ -47,6 +47,10 @@ public class TourSchedule extends BaseEntity {
     @JoinColumn(name = "tour_guide_id")
     private User tourGuide;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operator_id")
+    private User Operator;
+
     @Column(name = "meeting_location")
     private String meetingLocation;
 

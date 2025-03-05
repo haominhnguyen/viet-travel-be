@@ -24,7 +24,6 @@ public class PublicTourDetailDTO {
     private List<PublicTourDTO> otherTours;
     private List<PublicTourDayDTO> tourDays;
 
-
 // gia, depart-time, remain slot, depart calendar (khoi hanh ngay nao)
     //Schedule (lich trinh cho cac ngay cu the: di dau, may bua)
     //Other same location tour

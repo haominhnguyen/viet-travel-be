@@ -10,6 +10,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class PublicTourScheduleDTO {
     private Long scheduleId;
     private LocalDateTime startDate;

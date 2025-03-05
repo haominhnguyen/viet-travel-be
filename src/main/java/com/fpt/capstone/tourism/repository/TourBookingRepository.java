@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TourBookingRepository extends JpaRepository<TourBooking, Long> {
+    TourBooking findByBookingCode(String bookingCode);
 }
