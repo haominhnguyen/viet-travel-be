@@ -22,5 +22,7 @@ public class BookingRequestDTO {
     private List<BookingRequestCustomerDTO> adults;
     private List<BookingRequestCustomerDTO> children;
     private Double total;
+    private Double sellingPrice;
+    private Double extraHotelCost;
 
 }

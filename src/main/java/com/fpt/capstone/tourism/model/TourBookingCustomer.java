@@ -26,7 +26,10 @@ public class TourBookingCustomer extends BaseEntity{
     private TourBooking tourBooking;
 
     @Column(name = "customer_name")
-    private String customerName;
+    private String fullName;
+
+    private String address;
+
     private String email;
 
     @Column(name = "date_of_birth")
@@ -34,6 +37,10 @@ public class TourBookingCustomer extends BaseEntity{
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+
+    @Column(name = "pick_up_location")
+    private String pickUpLocation;
 
     private String note;
 
@@ -49,4 +56,7 @@ public class TourBookingCustomer extends BaseEntity{
 
     @Column(name = "is_deleted")
     private Boolean deleted;
+
+    @Column(name = "booked_person", updatable = false)
+    private Boolean bookedPerson;
 }

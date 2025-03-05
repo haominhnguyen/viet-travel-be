@@ -83,7 +83,7 @@ public class HomepageServiceImpl implements HomepageService {
 
 //    @Override
 //    public GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long activityId, int numberActivity) {
-//        ActivityDTO activityDTO = activityMapper.toDTO(activityRepository.findById(activityId).orElseThrow());
+//        ActivityDTO activityDTO = activityMapper.toEntity(activityRepository.findById(activityId).orElseThrow());
 //        List<ActivityDTO> relatedActivities = activityService.findRelatedActivities(activityId, numberActivity);
 //
 //        //Mapping to Dto

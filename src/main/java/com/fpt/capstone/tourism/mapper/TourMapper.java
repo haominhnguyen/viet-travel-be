@@ -16,7 +16,7 @@ public interface TourMapper extends EntityMapper<TourDTO, Tour>  {
 //    @Mapping(target = "locationsId", source = "locations", qualifiedByName = "mapLocationIds")
 //    @Mapping(target = "tagsId", source = "tags", qualifiedByName = "mapTagIds")
 //    @Mapping(target = "departLocationId", source = "depart_location.id")
-//    TourDTO toDTO(Tour entity);
+//    TourDTO toEntity(Tour entity);
 
     @Named("mapLocationIds")
     static List<Long> mapLocationIds(List<com.fpt.capstone.tourism.model.Location> locations) {
