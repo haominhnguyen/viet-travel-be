@@ -10,5 +10,6 @@ public class TourDayServiceDTO{
     private Long id;
     private Integer quantity;
     private Double sellingPrice;
+    private TourDayDTO tourDay;
 }
 

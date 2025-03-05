@@ -14,7 +14,7 @@ public interface HomepageService {
 
 //    GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword);
 
-    GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
+    GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId);
 
 //    GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long id, int numberActivity);
 

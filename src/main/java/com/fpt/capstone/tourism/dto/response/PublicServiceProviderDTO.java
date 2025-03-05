@@ -27,4 +27,5 @@ public class PublicServiceProviderDTO {
     private String address;
     private PublicLocationDTO location;
     private GeoPositionDTO geoPosition;
+    private Double minRoomPrice;
 }

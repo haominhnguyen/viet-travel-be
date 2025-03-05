@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,5 +36,15 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             ORDER BY RANDOM() LIMIT 6
                         """)
     List<ServiceProvider> getHotelByLocationId(@Param("locationId") Long id);
+
+
+    @Query("""
+SELECT s.serviceProvider.id, MIN(s.sellingPrice)
+    FROM Service s
+    WHERE s.serviceProvider.id IN :hotelIds
+    GROUP BY s.serviceProvider.id
+
+""")
+    List<Object[]> findMinRoomPricesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 }
 
