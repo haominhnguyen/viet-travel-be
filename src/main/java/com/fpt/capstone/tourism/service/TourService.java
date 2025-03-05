@@ -1,8 +1,11 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.TourSimpleDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
 import java.util.List;
@@ -12,8 +15,12 @@ public interface TourService {
 
     List<PublicTourDTO> findTrendingTours(int numberTour);
 
-
     GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId);
 
     List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds);
+
+
+    GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable);
+
+    GeneralResponse<TourDetailDTO> getTourDetail(Long id);
 }

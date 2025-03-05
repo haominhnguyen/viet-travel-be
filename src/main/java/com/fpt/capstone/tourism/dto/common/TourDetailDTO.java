@@ -1,14 +1,18 @@
-package com.fpt.capstone.tourism.dto.response;
+package com.fpt.capstone.tourism.dto.common;
 
-import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.response.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Builder
-public class PublicTourDetailDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class TourDetailDTO {
     private Long id;
     private String name;
     private String highlights;
@@ -21,12 +25,5 @@ public class PublicTourDetailDTO {
     private PublicLocationDTO depart_location;
     private List<PublicTourScheduleDTO> tourSchedules;
     private List<PublicTourImageDTO> tourImages;
-    private List<PublicTourDTO> otherTours;
     private List<PublicTourDayDTO> tourDays;
-
-// gia, depart-time, remain slot, depart calendar (khoi hanh ngay nao)
-    //Schedule (lich trinh cho cac ngay cu the: di dau, may bua)
-    //Other same location tour
-    //gia nguoi lon, gia tre em, phu thu phong
-
 }
