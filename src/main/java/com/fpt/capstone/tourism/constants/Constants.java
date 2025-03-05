@@ -172,6 +172,8 @@ public class Constants {
         public static final String INVALID_DATE_RANGE = "Invalid date range";
         public static final String INVALID_PRICE_RANGE = "Selling price must be greater than or equal to nett price";
         public static final String INVALID_PRICE = "Price must be a valid number";
+        public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
+        public static final String TOUR_DETAIL_LOAD_FAIL = "Tour detail load failed";
 
     }
 
