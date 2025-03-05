@@ -42,7 +42,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     FROM TourSchedule ts
     JOIN ts.tourPax tp
     LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status != "PENDING"
-    WHERE ts.id IN :scheduleIds
+    WHERE ts.id IN :scheduleIds AND ts.deleted = FALSE 
     GROUP BY ts.id, tp.maxPax
 """)
     List<Object[]> findAvailableSeatsByScheduleIds(@Param("scheduleIds") List<Long> scheduleIds);

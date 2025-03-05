@@ -378,7 +378,6 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     public User createAccountServiceProvider(String fullName, String email, String phone, String address) {
         try {
 
-
             // Ensure "CUSTOMER" role exists, otherwise create it
             Role userRole = roleRepository.findByRoleName("SERVICE_PROVIDER")
                     .orElseGet(() -> {

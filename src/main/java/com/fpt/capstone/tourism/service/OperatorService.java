@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface OperatorService {
     GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate);
+
+    GeneralResponse<OperatorTourDTO> operateTour(Long id);
 }

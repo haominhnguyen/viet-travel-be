@@ -21,7 +21,7 @@ public class OperatorTourDTO {
     private String status;
     private String tourName;
     private String tourGuide;
-    private String Operator;
+    private String operator;
     private Integer maxPax;
     private Integer availableSeats;
 }

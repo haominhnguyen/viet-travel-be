@@ -11,6 +11,7 @@ import com.fpt.capstone.tourism.model.TourPax;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.TourScheduleRepository;
+import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OperatorServiceImpl implements OperatorService {
     private final TourScheduleRepository tourScheduleRepository;
+    private final UserRepository userRepository;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -74,6 +77,45 @@ public class OperatorServiceImpl implements OperatorService {
             return buildPagedResponse(tourPage, operatorTourDTOS);
         } catch (Exception ex) {
             throw BusinessException.of("Operator get all tour fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<OperatorTourDTO> operateTour(Long id) {
+        try {
+
+            TourSchedule tourSchedule = tourScheduleRepository.findById(id).orElseThrow();
+
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User user = userRepository.findByUsername(username).orElseThrow(() ->
+                    BusinessException.of("User not found"));
+
+            tourSchedule.setOperator(user);
+            tourScheduleRepository.save(tourSchedule);
+
+            Map<Long, Integer> availableSeatsMap = tourScheduleRepository
+                    .findAvailableSeatsByScheduleIds(Collections.singletonList(tourSchedule.getId()))
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // scheduleId
+                            row -> (Integer) row[1] // availableSeats
+                    ));
+
+            OperatorTourDTO operatorTourDTO = OperatorTourDTO.builder()
+                    .scheduleId(tourSchedule.getId())
+                    .startDate(tourSchedule.getStartDate())
+                    .endDate(tourSchedule.getEndDate())
+                    .status(tourSchedule.getStatus())
+                    .tourName(tourSchedule.getTour().getName())
+                    .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
+                    .operator(user.getFullName())
+                    .maxPax(tourSchedule.getTourPax().getMaxPax())
+                    .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator received tour to operate successfully", operatorTourDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Operator receive tour success", ex);
         }
     }
 
