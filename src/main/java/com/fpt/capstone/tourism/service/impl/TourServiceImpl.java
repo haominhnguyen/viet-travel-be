@@ -57,10 +57,10 @@ public class TourServiceImpl implements TourService {
                 return PublicTourDTO.builder()
                         .id(tempTour.getId())
                         .name(tempTour.getName())
-                        .numberNight(tempTour.getNumberNight())
+                        .numberNight(tempTour.getNumberNights())
                         .numberDays(tempTour.getNumberDays())
                         .tags(tempTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                        .depart_location(locationMapper.toPublicLocationDTO(tempTour.getDepart_location()))
+                        .depart_location(locationMapper.toPublicLocationDTO(tempTour.getDepartLocation()))
                         .tourImages(tempTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                         .priceFrom(tourRepository.findMinSellingPriceForTours(tempTour.getId()))
                         .build();
@@ -73,10 +73,10 @@ public class TourServiceImpl implements TourService {
             return PublicTourDTO.builder()
                     .id(topTour.getId())
                     .name(topTour.getName())
-                    .numberNight(topTour.getNumberNight())
+                    .numberNight(topTour.getNumberNights())
                     .numberDays(topTour.getNumberDays())
                     .tags(topTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                    .depart_location(locationMapper.toPublicLocationDTO(topTour.getDepart_location()))
+                    .depart_location(locationMapper.toPublicLocationDTO(topTour.getDepartLocation()))
                     .tourImages(topTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .priceFrom(tourRepository.findMinSellingPriceForTours(topTour.getId()))
                     .build();
@@ -110,9 +110,9 @@ public class TourServiceImpl implements TourService {
                             tour.getId(),
                             tour.getName(),
                             tour.getNumberDays(),
-                            tour.getNumberNight(),
+                            tour.getNumberNights(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),  // Convert tags
-                            locationMapper.toPublicLocationDTO(tour.getDepart_location()),  // Convert depart location
+                            locationMapper.toPublicLocationDTO(tour.getDepartLocation()),  // Convert depart location
                             tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(), // Convert images
                             priceMap.getOrDefault(tour.getId(), 0.0) // Giá thấp nhất
@@ -146,9 +146,9 @@ public class TourServiceImpl implements TourService {
                             tour.getId(),
                             tour.getName(),
                             tour.getNumberDays(),
-                            tour.getNumberNight(),
+                            tour.getNumberNights(),
                             tour.getTags().stream().map(tagMapper::toDTO).toList(),
-                            locationMapper.toPublicLocationDTO(tour.getDepart_location()),
+                            locationMapper.toPublicLocationDTO(tour.getDepartLocation()),
                             tourScheduleRepository.findTourScheduleBasicByTourId(tour.getId()),
                             tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).toList(),
                             minPriceMap.getOrDefault(tour.getId(), 0.0)  // Giá thấp nhất
@@ -187,9 +187,9 @@ public class TourServiceImpl implements TourService {
                         .id(tourId)
                         .name(tour.getName())
                         .numberDays(tour.getNumberDays())
-                        .numberNight(tour.getNumberNight())
+                        .numberNight(tour.getNumberNights())
                         .tags(tags)
-                        .depart_location(locationMapper.toPublicLocationDTO(tour.getDepart_location()))
+                        .depart_location(locationMapper.toPublicLocationDTO(tour.getDepartLocation()))
                         .tourImages(images)
                         .priceFrom(minPrice)
                         .build();
@@ -225,12 +225,12 @@ public class TourServiceImpl implements TourService {
                     .name(currentTour.getName())
                     .highlights(currentTour.getHighlights())
                     .numberDays(currentTour.getNumberDays())
-                    .numberNight(currentTour.getNumberNight())
+                    .numberNight(currentTour.getNumberNights())
                     .note(currentTour.getNote())
                     .privacy(currentTour.getPrivacy())
                     .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
                     .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepart_location()))
+                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
@@ -247,7 +247,7 @@ public class TourServiceImpl implements TourService {
                 .name(tour.getName())
                 .highlights(tour.getHighlights())
                 .numberDays(tour.getNumberDays())
-                .numberNight(tour.getNumberNight())
+                .numberNight(tour.getNumberNights())
                 .note(tour.getNote())
                 .deleted(tour.getDeleted())
                 .opened(tour.isOpened())

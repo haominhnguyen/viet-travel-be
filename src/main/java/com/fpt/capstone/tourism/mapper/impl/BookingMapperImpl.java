@@ -2,7 +2,6 @@ package com.fpt.capstone.tourism.mapper.impl;
 
 import com.fpt.capstone.tourism.dto.common.TourScheduleShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.TourShortInfoDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.TagMapper;
@@ -29,10 +28,10 @@ public class BookingMapperImpl implements BookingMapper {
                 .id(tour.getId())
                 .name(tour.getName())
                 .numberDays(tour.getNumberDays())
-                .numberNight(tour.getNumberNight())
+                .numberNight(tour.getNumberNights())
                 .privacy(tour.getPrivacy())
                 .tourImages(tourImageMapper.toPublicTourImageDTO(tour.getTourImages().get(0)))
-                .depart_location(locationMapper.toPublicLocationDTO(tour.getDepart_location()))
+                .depart_location(locationMapper.toPublicLocationDTO(tour.getDepartLocation()))
                 .tags(tour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
                 .build();
     }
@@ -43,8 +42,6 @@ public class BookingMapperImpl implements BookingMapper {
                 .scheduleId(tourSchedule.getId())
                 .startDate(tourSchedule.getStartDate())
                 .endDate(tourSchedule.getEndDate())
-                .sellingPrice(tourSchedule.getTourPax().getSellingPrice())
-                .extraHotelCost(tourSchedule.getTourPax().getExtraHotelCost())
                 .build();
     }
 }

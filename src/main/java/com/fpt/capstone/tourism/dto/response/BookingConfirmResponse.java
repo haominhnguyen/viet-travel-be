@@ -14,8 +14,9 @@ public class BookingConfirmResponse {
     private String bookingCode;
     private LocalDateTime createdAt;
     private BookedPersonDTO bookedPerson;
+    private Double sellingPrice;
+    private Double extraHotelCost;
     private TourShortInfoDTO tour;
-
     private TourScheduleShortInfoDTO tourSchedule;
     private List<TourCustomerDTO> adults;
     private List<TourCustomerDTO> children;

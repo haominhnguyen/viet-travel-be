@@ -13,6 +13,7 @@ import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.mapper.TourImageMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.AgeType;
+import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
@@ -57,9 +58,9 @@ public class BookingServiceImpl implements BookingService {
                     .id(currentTour.getId())
                     .name(currentTour.getName())
                     .numberDays(currentTour.getNumberDays())
-                    .numberNight(currentTour.getNumberNight())
+                    .numberNight(currentTour.getNumberNights())
                     .privacy(currentTour.getPrivacy())
-                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepart_location()))
+                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImage(tourImageMapper.toPublicTourImageDTO(currentTour.getTourImages().get(0)))
                     .build();
@@ -93,6 +94,7 @@ public class BookingServiceImpl implements BookingService {
                     .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
+                    .tourBookingCategory(TourBookingCategory.ONLINE)
                     .build();
 
 
@@ -179,6 +181,8 @@ public class BookingServiceImpl implements BookingService {
                     .tour(tourShortInfoDTO)
                     .tourSchedule(tourScheduleShortInfoDTO)
                     .adults(adults)
+                    .sellingPrice(tourBooking.getSellingPrice())
+                    .extraHotelCost(tourBooking.getExtraHotelCost())
                     .children(children)
                     .bookingCode(tourBooking.getBookingCode())
                     .createdAt(tourBooking.getCreatedAt())

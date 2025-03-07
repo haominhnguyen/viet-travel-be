@@ -24,7 +24,7 @@ public class Tour extends BaseEntity{
     @Column(name = "number_day")
     private int numberDays;
     @Column(name = "number_night")
-    private int numberNight;
+    private int numberNights;
 
     private String note;
 
@@ -53,7 +53,7 @@ public class Tour extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "depart_location_id")
-    private Location depart_location;
+    private Location departLocation;
 
     @Column(name = "mark_up_percent")
     private double markUpPercent;
