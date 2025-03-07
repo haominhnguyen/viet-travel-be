@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

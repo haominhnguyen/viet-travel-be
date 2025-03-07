@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.model;
+package com.fpt.capstone.tourism.model.enums;
 
 public enum TourBookingStatus {
     PENDING,

@@ -1,7 +1,7 @@
 package com.fpt.capstone.tourism.dto.common;
 
 
-import com.fpt.capstone.tourism.model.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
 

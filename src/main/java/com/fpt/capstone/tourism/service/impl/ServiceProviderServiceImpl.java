@@ -1,13 +1,8 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
-import com.fpt.capstone.tourism.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.helper.validator.Validator;
@@ -16,6 +11,7 @@ import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.Role;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;

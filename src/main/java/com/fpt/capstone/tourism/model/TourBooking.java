@@ -1,13 +1,13 @@
 package com.fpt.capstone.tourism.model;
 
 
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -56,5 +56,8 @@ public class TourBooking extends BaseEntity {
     private Double extraHotelCost;
 
     private String reason;
+
+
+
 
 }

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 
 import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.AgeType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

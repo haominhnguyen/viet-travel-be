@@ -3,7 +3,7 @@ package com.fpt.capstone.tourism.mapper;
 import com.fpt.capstone.tourism.dto.common.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.common.TourCustomerDTO;
-import com.fpt.capstone.tourism.model.AgeType;
+import com.fpt.capstone.tourism.model.enums.AgeType;
 import com.fpt.capstone.tourism.model.TourBookingCustomer;
 
 import java.util.List;

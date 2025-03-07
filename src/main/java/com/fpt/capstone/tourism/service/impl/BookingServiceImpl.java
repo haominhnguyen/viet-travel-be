@@ -12,6 +12,8 @@ import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.mapper.TourImageMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.AgeType;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;

@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
-import com.fpt.capstone.tourism.model.AgeType;
+import com.fpt.capstone.tourism.model.enums.AgeType;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourBookingCustomer;
 import org.springframework.data.jpa.repository.JpaRepository;
