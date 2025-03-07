@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.dto.response;
 
-import com.fpt.capstone.tourism.model.enums.Role;
+import com.fpt.capstone.tourism.model.Role;
 import lombok.Builder;
 import lombok.Data;
 

@@ -11,7 +11,7 @@ import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.Role;
+import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;

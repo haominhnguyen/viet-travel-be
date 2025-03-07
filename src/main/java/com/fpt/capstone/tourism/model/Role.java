@@ -1,7 +1,6 @@
-package com.fpt.capstone.tourism.model.enums;
+package com.fpt.capstone.tourism.model;
 
 
-import com.fpt.capstone.tourism.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
