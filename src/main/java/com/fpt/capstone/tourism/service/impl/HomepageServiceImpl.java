@@ -114,7 +114,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .privacy(currentTour.getPrivacy())
                     .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
                     .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
+                    .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))

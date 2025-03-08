@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import jakarta.persistence.*;
@@ -58,6 +59,9 @@ public class TourBooking extends BaseEntity {
 
     @Column(name = "extra_hotel_cost")
     private Double extraHotelCost;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     private String reason;
 

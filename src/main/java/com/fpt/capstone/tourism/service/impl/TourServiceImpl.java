@@ -60,7 +60,7 @@ public class TourServiceImpl implements TourService {
                         .numberNight(tempTour.getNumberNights())
                         .numberDays(tempTour.getNumberDays())
                         .tags(tempTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                        .depart_location(locationMapper.toPublicLocationDTO(tempTour.getDepartLocation()))
+                        .departLocation(locationMapper.toPublicLocationDTO(tempTour.getDepartLocation()))
                         .tourImages(tempTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                         .priceFrom(tourRepository.findMinSellingPriceForTours(tempTour.getId()))
                         .build();
@@ -76,7 +76,7 @@ public class TourServiceImpl implements TourService {
                     .numberNight(topTour.getNumberNights())
                     .numberDays(topTour.getNumberDays())
                     .tags(topTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                    .depart_location(locationMapper.toPublicLocationDTO(topTour.getDepartLocation()))
+                    .departLocation(locationMapper.toPublicLocationDTO(topTour.getDepartLocation()))
                     .tourImages(topTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .priceFrom(tourRepository.findMinSellingPriceForTours(topTour.getId()))
                     .build();
@@ -189,7 +189,7 @@ public class TourServiceImpl implements TourService {
                         .numberDays(tour.getNumberDays())
                         .numberNight(tour.getNumberNights())
                         .tags(tags)
-                        .depart_location(locationMapper.toPublicLocationDTO(tour.getDepartLocation()))
+                        .departLocation(locationMapper.toPublicLocationDTO(tour.getDepartLocation()))
                         .tourImages(images)
                         .priceFrom(minPrice)
                         .build();
@@ -230,7 +230,7 @@ public class TourServiceImpl implements TourService {
                     .privacy(currentTour.getPrivacy())
                     .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
                     .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
-                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
+                    .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))

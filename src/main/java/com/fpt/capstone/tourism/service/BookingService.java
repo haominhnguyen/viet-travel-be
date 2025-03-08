@@ -8,4 +8,5 @@ public interface BookingService {
      GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId);
      GeneralResponse<?> createBooking(BookingRequestDTO bookingRequestDTO);
      GeneralResponse<?> getTourBookingDetails(String bookingCode);
+     GeneralResponse<?> viewListBooking();
 }
