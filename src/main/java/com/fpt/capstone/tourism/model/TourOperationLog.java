@@ -18,8 +18,8 @@ public class TourOperationLog extends BaseEntity{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "day_id")
-    private TourDay tourDay;
+    @JoinColumn(name = "tour_schedule_id")
+    private TourSchedule tourSchedule;
 
     private String content;
     private String action;

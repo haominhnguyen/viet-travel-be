@@ -1,9 +1,9 @@
 package com.fpt.capstone.tourism.dto.common;
 
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.model.ActivityCategory;
 import com.fpt.capstone.tourism.model.GeoPosition;
 import com.fpt.capstone.tourism.model.Location;
-import com.fpt.capstone.tourism.model.TourDayActivity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +24,6 @@ public class ActivityDTO {
     private double pricePerPerson;
     private boolean deleted;
     private GeoPositionDTO geoPosition;
-    private LocationDTO location;
+    private PublicLocationDTO location;
     private ActivityCategoryDTO activityCategory;
 }

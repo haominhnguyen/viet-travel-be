@@ -17,6 +17,4 @@ public class GeoPositionDTO {
     private Long id;
     private Double latitude;
     private Double longitude;
-    private boolean deleted;
-
 }

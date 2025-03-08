@@ -131,6 +131,17 @@ public class Constants {
         public static final String EMPTY_ACTIVITY_CATEGORY = "Activity category can not be empty";
 
         public static final String SERVICE_NOT_EXITS = "Service not exits";
+        public static final String CATEGORY_ALREADY_EXISTS = "Category already exists";
+        public static final String CATEGORY_NOT_FOUND = "Category not found";
+        public static final String CATEGORY_LOADED = "Category loaded";
+        public static final String CATEGORY_CREATED = "Category created successfully";
+        public static final String CATEGORY_UPDATED = "Category updated successfully";
+        public static final String CATEGORY_DELETED = "Category deleted successfully";
+
+        public static final String SERVICE_NOT_FOUND = "Service not found";
+        public static final String SERVICE_RETRIEVE_FAIL = "Service retrieve failed";
+        public static final String SERVICE_RETRIEVE_SUCCESS = "Service retrieved successfully";
+        public static final String SERVICE_NOT_BELONG_TO_PROVIDER = "Service does not belong to provider";
     }
 
 
@@ -140,7 +151,7 @@ public class Constants {
         public static final String REGEX_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
         public static final String REGEX_FULLNAME = "^[a-zA-Z][a-zA-Z\s]*$";
         public static final String REGEX_EMAIL = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-        public static final String REGEX_PHONE = "^[0-9]{10}$";
+        public static final String REGEX_PHONE = "^[0-9]{10,15}$";
 
     }
 }

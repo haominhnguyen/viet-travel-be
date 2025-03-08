@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.Set;
@@ -20,9 +17,10 @@ public class Tour extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @Column(columnDefinition = "text")
     private String highlights;
-    @Column(name = "number_seat")
-    private int numberSeats;
+
     @Column(name = "number_day")
     private int numberDays;
     @Column(name = "number_night")
@@ -48,21 +46,32 @@ public class Tour extends BaseEntity{
     )
     private List<Tag> tags;
 
+    private boolean opened;
 
-    @OneToOne
+    @OneToMany(mappedBy = "tour")
+    private Set<TourPax> tourPax;
+
+    @ManyToOne
     @JoinColumn(name = "depart_location_id")
     private Location depart_location;
+
+    @Column(name = "mark_up_percent")
+    private double markUpPercent;
+
+    @Column(columnDefinition = "text")
+    private String privacy;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Ticket> tickets;
-
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourSchedule> tourSchedules;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
+
+    @OneToMany(mappedBy = "tour")
+    private List<TourDay> tourDays;
+
 }

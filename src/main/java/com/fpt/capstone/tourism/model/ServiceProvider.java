@@ -2,10 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +30,8 @@ public class ServiceProvider extends BaseEntity {
 
     private String email;
 
+    private int star;
+
     private String phone;
 
     private String address;
@@ -44,7 +43,7 @@ public class ServiceProvider extends BaseEntity {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "geo_position_id")
     private GeoPosition geoPosition;
 

@@ -9,8 +9,8 @@ import java.io.Serializable;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class PagingDTO<T> implements Serializable {
     private int page;
     private int size;

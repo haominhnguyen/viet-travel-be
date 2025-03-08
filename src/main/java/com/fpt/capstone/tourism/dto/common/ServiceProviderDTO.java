@@ -28,6 +28,7 @@ public class ServiceProviderDTO {
 
     @Email(message = "Invalid email format")
     private String email;
+    private int star;
 
     private String phone;
 

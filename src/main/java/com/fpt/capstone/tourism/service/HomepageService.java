@@ -1,7 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 
 import java.util.Date;
 import java.util.List;
@@ -10,13 +10,17 @@ public interface HomepageService {
     GeneralResponse<HomepageDTO> viewHomepage(int numberTour, int numberBlog, int numberActivity, int numberLocation);
 
 
-    GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllHotel(int page, int size, String keyword);
+    GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> viewAllHotel(int page, int size, String keyword, Integer star);
 
-    GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword);
+//    GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword);
 
-    GeneralResponse<PagingDTO<List<TourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
+    GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate);
 
-    GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long id, int numberActivity);
+//    GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long id, int numberActivity);
 
-//    GeneralResponse<PublicServiceDetailDTO> viewPublicRestaurantDetail(Long id, int numberRestaurant);
+    GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id);
+
+    GeneralResponse<PublicLocationDetailDTO> viewPublicLocationDetail(Long id);
+
+    GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long id);
 }

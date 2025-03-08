@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 
 import java.util.List;
 
@@ -18,5 +19,5 @@ public interface LocationService {
 
     GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO);
 
-    List<LocationDTO> findRecommendedLocations(int numberLocation);
+    List<PublicLocationDTO> findRecommendedLocations(int numberLocation);
 }

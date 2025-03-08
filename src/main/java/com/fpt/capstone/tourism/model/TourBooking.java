@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -20,9 +21,6 @@ public class TourBooking extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "booking_date")
-    private Date bookingDate;
-
     private int seats;
 
     private String note;
@@ -34,14 +32,22 @@ public class TourBooking extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "schedule_id")
     private TourSchedule tourSchedule;
 
+    @OneToMany(mappedBy = "tourBooking")
+    private List<TourBookingCustomer> customers;
 
+
+    @Enumerated(EnumType.STRING)
+    private TourBookingStatus status;
+
+
+    private String reason;
 
 }

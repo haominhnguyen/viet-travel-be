@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 
@@ -23,6 +20,7 @@ public class TourDay extends BaseEntity{
     @Column(name = "day_title")
     private String title;
 
+    @Column(columnDefinition = "text")
     private String content;
 
     @Column(name = "meal_plan")
@@ -31,38 +29,16 @@ public class TourDay extends BaseEntity{
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "tour_id")
     private Tour tour;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @OneToOne
-    @JoinColumn(name = "tour_guide_id")
-    private User tourGuide;
-
-
-
-
-
-
-
-
 
     @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayTransport> tourDayTransports;
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayMeal> tourDayMeals;
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayRoom> tourDayRooms;
-
-
-    @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayActivity> tourDayActivities;
-
+    private Set<TourDayService> tourDayServices;
 
 }

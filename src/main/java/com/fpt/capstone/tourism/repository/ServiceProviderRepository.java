@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.model.ServiceProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,9 +16,24 @@ import java.util.Optional;
 @Repository
 public interface ServiceProviderRepository extends JpaRepository<ServiceProvider, Long>, JpaSpecificationExecutor<ServiceProvider> {
     ServiceProvider findByEmail(String email);
+
     ServiceProvider findByPhone(String phoneNumber);
+
     Optional<ServiceProvider> findByName(String serviceProviderName);
+
     boolean existsByName(String serviceProviderName);
+
     Optional<ServiceProvider> findByUserId(Long userId);
+
+    @Query("""
+            SELECT sv FROM ServiceProvider sv
+            JOIN sv.location l
+            JOIN sv.serviceCategories sc
+            WHERE l.id = :locationId
+            AND sc.categoryName = 'Hotel'
+            AND sv.deleted = FALSE 
+            ORDER BY RANDOM() LIMIT 6
+                        """)
+    List<ServiceProvider> getHotelByLocationId(@Param("locationId") Long id);
 }
 
