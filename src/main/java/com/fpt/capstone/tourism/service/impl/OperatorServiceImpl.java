@@ -1,15 +1,19 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.OperatorTourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.TagDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.mapper.TagMapper;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourPax;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.repository.TourRepository;
 import com.fpt.capstone.tourism.repository.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.service.OperatorService;
@@ -28,6 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +40,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OperatorServiceImpl implements OperatorService {
     private final TourScheduleRepository tourScheduleRepository;
+    private final TourRepository tourRepository;
     private final UserRepository userRepository;
+    private final TagMapper tagMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -115,7 +122,63 @@ public class OperatorServiceImpl implements OperatorService {
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator received tour to operate successfully", operatorTourDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator receive tour success", ex);
+            throw BusinessException.of("Operator receive tour fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<OperatorTourDetailDTO> getTourDetail(Long scheduleId) {
+        try {
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() -> BusinessException.of("Tour schedule not found"));
+
+            Tour tour = tourRepository.findByScheduleId(scheduleId);
+
+            TourPax tourPax = tou
+//            private Long scheduleId;
+//            private String tourName;
+//            private String tourType;
+//            private List<TagDTO> tags;
+//            private Integer numberDays;
+//            private Integer numberNights;
+//            private String departureLocation;
+//            private LocalDateTime startDate;
+//            private LocalDateTime endDate;
+//            private LocalDateTime createdAt;
+//            private String createdBy;
+            private Integer maxPax;
+            private Integer soldSeats;
+            private Integer pendingSeats;
+            private Integer remainingSeats;
+//            private String operatorName;
+//            private LocalTime departureTime;
+//            private String tourGuideName;
+//            private String meetingLocation;
+            private Double totalTourCost;
+            private Double paidTourCost;
+            private Double remainingTourCost;
+            private Double revenueCost;
+
+            OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
+                    .scheduleId(scheduleId)
+                    .tourName(tour.getName())
+                    .tourType(tour.isOpened() ? "S.I.C Group" : "Private")
+                    .tags(tagMapper.toDtoList(tour.getTags()))
+                    .numberDays(tour.getNumberDays())
+                    .numberNights(tour.getNumberNight())
+                    .departureLocation(tour.getDepart_location().getName())
+                    .startDate(tourSchedule.getStartDate())
+                    .endDate(tourSchedule.getEndDate())
+                    .createdAt(tour.getCreatedAt())
+                    .createdBy(tour.getCreatedBy().getFullName())
+                    .operatorName(Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse("null"))
+                    .departureTime(tourSchedule.getDepartureTime() != null ? tourSchedule.getDepartureTime() : null)
+                    .tourGuideName(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse("null"))
+                    .meetingLocation(tourSchedule.getMeetingLocation() != null ? tourSchedule.getMeetingLocation() : "null")
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get tour detail successfully", operatorTourDetailDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Operator get tour detail fail", ex);
         }
     }
 

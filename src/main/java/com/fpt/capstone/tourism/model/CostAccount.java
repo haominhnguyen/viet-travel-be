@@ -26,7 +26,7 @@ public class CostAccount extends  BaseEntity{
     private String content;
 
 
-    private Double amount;
+    private Double amount; // Đơn giá
 
     private int discount;
 

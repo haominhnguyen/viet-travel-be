@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
+public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
     @Query("SELECT tb.tour.id FROM TourBooking tb " +
             "WHERE YEAR(tb.createdAt) = YEAR(CURRENT_DATE)" +
             "AND tb.tour.deleted = FALSE " +
@@ -35,34 +35,38 @@ public interface TourRepository  extends JpaRepository<Tour, Long>, JpaSpecifica
     Tour findNewestTour();
 
 
-
     @Query("""
-    SELECT tp.tour.id, MIN(tp.sellingPrice) 
-    FROM TourPax tp
-    WHERE tp.tour.id = :tourId
-    GROUP BY tp.tour.id
-""")
+                SELECT tp.tour.id, MIN(tp.sellingPrice) 
+                FROM TourPax tp
+                WHERE tp.tour.id = :tourId
+                GROUP BY tp.tour.id
+            """)
     Double findMinSellingPriceForTours(@Param("tourId") Long tourId);
 
 
     @Query(value = """
-    SELECT t.id
-    FROM tour t
-             JOIN tour_location tl ON t.id = tl.tour_id
-    WHERE tl.location_id IN (:locationIds) AND t.is_deleted = FALSE
-    GROUP BY t.id
-    ORDER BY RANDOM()
-    LIMIT 3;
-""", nativeQuery = true)
+                SELECT t.id
+                FROM tour t
+                         JOIN tour_location tl ON t.id = tl.tour_id
+                WHERE tl.location_id IN (:locationIds) AND t.is_deleted = FALSE
+                GROUP BY t.id
+                ORDER BY RANDOM()
+                LIMIT 3;
+            """, nativeQuery = true)
     List<Long> findSameLocationTourIds(@Param("locationIds") List<Long> locationIds);
 
 
+    @Query("""
+                SELECT tp.tour.id, MIN(tp.sellingPrice)
+                FROM TourPax tp
+                WHERE tp.tour.id IN :tourIds
+                GROUP BY tp.tour.id
+            """)
+    List<Object[]> findMinSellingPrices(@Param("tourIds") List<Long> tourIds);
 
     @Query("""
-    SELECT tp.tour.id, MIN(tp.sellingPrice)
-    FROM TourPax tp
-    WHERE tp.tour.id IN :tourIds
-    GROUP BY tp.tour.id
-""")
-    List<Object[]> findMinSellingPrices(@Param("tourIds") List<Long> tourIds);
+            SELECT t FROM Tour t
+            JOIN TourSchedule ts ON ts.tour.id = t.id AND ts =: scheduleId
+            """)
+    Tour findByScheduleId(@Param("scheduleId") Long scheduleId);
 }
