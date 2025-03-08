@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.ActivityDTO;
 import com.fpt.capstone.tourism.dto.common.GeoPositionDTO;
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.ActivityCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ActivityMapper;
@@ -104,7 +105,7 @@ class ActivityServiceImplTest {
         geoPositionDTO.setLongitude(-122.4194);
         activityDTO.setGeoPosition(geoPositionDTO);
 
-        LocationDTO locationDTO = new LocationDTO();
+        PublicLocationDTO locationDTO = new PublicLocationDTO();
         locationDTO.setId(1L);
         locationDTO.setName("San Francisco");
         activityDTO.setLocation(locationDTO);
@@ -206,7 +207,7 @@ class ActivityServiceImplTest {
         geoPositionDTO.setLongitude(-74.0060);
         activityDTO.setGeoPosition(geoPositionDTO);
 
-        LocationDTO locationDTO = new LocationDTO();
+        PublicLocationDTO locationDTO = new PublicLocationDTO();
         locationDTO.setId(2L);
         locationDTO.setName("New York");
         activityDTO.setLocation(locationDTO);
@@ -242,7 +243,7 @@ class ActivityServiceImplTest {
         when(activityRepository.findById(1L)).thenReturn(Optional.of(activity));
         when(activityRepository.findByTitle(activityDTO.getTitle())).thenReturn(null);
         when(geoPositionMapper.toEntity(any(GeoPositionDTO.class))).thenReturn(geoPosition);
-        when(locationMapper.toEntity(any(LocationDTO.class))).thenReturn(location);
+        when(locationMapper.toEntity(any(PublicLocationDTO.class))).thenReturn(location);
         when(activityCategoryMapper.toEntity(any(ActivityCategoryDTO.class))).thenReturn(activityCategory);
         when(activityRepository.save(any())).thenReturn(activity);
         when(activityMapper.toDTO(any())).thenReturn(activityDTO);

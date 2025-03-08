@@ -6,14 +6,8 @@ import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
 import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
-import com.fpt.capstone.tourism.model.GeoPosition;
-import com.fpt.capstone.tourism.model.Location;
-import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceProvider;
-import com.fpt.capstone.tourism.repository.LocationRepository;
-import com.fpt.capstone.tourism.repository.RoleRepository;
-import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
-import com.fpt.capstone.tourism.repository.UserRoleRepository;
+import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +61,13 @@ class ServiceProviderServiceImplTest {
     private PasswordGenerateImpl passwordGenerate;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private ServiceRepository serviceRepository;
 
     private ServiceProvider mockServiceProvider;
     private ServiceProviderDTO mockServiceProviderDTO;
@@ -101,7 +101,7 @@ class ServiceProviderServiceImplTest {
         mockServiceProviderDTO.setWebsite("www.fpt.com");
 
         // Setting up GeoPositionDTO
-        GeoPositionDTO geoPositionDTO = new GeoPositionDTO(1L, 1.2, 1.3, false);
+        GeoPositionDTO geoPositionDTO = new GeoPositionDTO(1L, 1.2, 1.3);
         mockServiceProviderDTO.setGeoPosition(geoPositionDTO);
 
         // Setting up LocationDTO
@@ -117,7 +117,7 @@ class ServiceProviderServiceImplTest {
         // Setting up Service Categories
         ServiceCategoryDTO serviceCategoryDTO = new ServiceCategoryDTO();
         serviceCategoryDTO.setId(1L);
-        serviceCategoryDTO.setName("Test Category");
+        serviceCategoryDTO.setCategoryName("Test Category");
 
         List<ServiceCategoryDTO> serviceCategoriesDTO = new ArrayList<>();
         serviceCategoriesDTO.add(serviceCategoryDTO);
@@ -185,7 +185,7 @@ class ServiceProviderServiceImplTest {
         mockServiceProviderDTO.setWebsite("www.fpt.com");
 
         // Create and set GeoPositionDTO
-        GeoPositionDTO geoPositionDTO = new GeoPositionDTO(1L, 1.2, 1.3, false);
+        GeoPositionDTO geoPositionDTO = new GeoPositionDTO(1L, 1.2, 1.3);
         mockServiceProviderDTO.setGeoPosition(geoPositionDTO);
 
         // Ensure mockServiceProvider also has a GeoPosition
@@ -220,7 +220,7 @@ class ServiceProviderServiceImplTest {
 
         ServiceCategoryDTO serviceCategoryDTO = new ServiceCategoryDTO();
         serviceCategoryDTO.setId(1L);
-        serviceCategoryDTO.setName("Test Category");
+        serviceCategoryDTO.setCategoryName("Test Category");
 
         List<ServiceCategory> serviceCategories = new ArrayList<>();
         serviceCategories.add(serviceCategory);
@@ -231,8 +231,8 @@ class ServiceProviderServiceImplTest {
         mockServiceProviderDTO.setServiceCategories(serviceCategoriesDTO);
 
         when(serviceProviderRepository.findById(anyLong())).thenReturn(Optional.of(mockServiceProvider));
-        lenient().when(serviceProviderMapper.toDTO(any())).thenReturn(mockServiceProviderDTO); // ✅ Ignore unused stubbing
-        lenient().when(serviceProviderRepository.save(any())).thenReturn(mockServiceProvider); // ✅ Ignore unused stubbing
+        lenient().when(serviceProviderMapper.toDTO(any())).thenReturn(mockServiceProviderDTO);
+        lenient().when(serviceProviderRepository.save(any())).thenReturn(mockServiceProvider);
 
         GeneralResponse<ServiceProviderDTO> response = serviceProviderService.updateServiceProvider(1L, mockServiceProviderDTO);
 
@@ -244,8 +244,19 @@ class ServiceProviderServiceImplTest {
 
     @Test
     void deleteServiceProvider_Success() {
+        User mockUser = new User();
+        mockUser.setId(100L);
+
+        mockServiceProvider = new ServiceProvider();
+        mockServiceProvider.setId(1L);
+        mockServiceProvider.setUser(mockUser);
         mockServiceProvider.setDeleted(true);
+
+        mockServiceProviderDTO = new ServiceProviderDTO();
         mockServiceProviderDTO.setDeleted(true);
+
+        when(userRepository.findUserById(anyLong())).thenReturn(Optional.of(mockUser));
+
         when(serviceProviderRepository.findById(anyLong())).thenReturn(Optional.of(mockServiceProvider));
         when(serviceProviderRepository.save(any())).thenReturn(mockServiceProvider);
         when(serviceProviderMapper.toDTO(any())).thenReturn(mockServiceProviderDTO);
@@ -260,12 +271,14 @@ class ServiceProviderServiceImplTest {
     void getAllServiceProviders_Success() {
         List<ServiceProvider> serviceProviders = List.of(mockServiceProvider);
         Page<ServiceProvider> serviceProviderPage = new PageImpl<>(serviceProviders);
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").descending());
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
 
-        when(serviceProviderRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(serviceProviderPage);
+        lenient().when(serviceProviderRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(serviceProviderPage);
+
         when(serviceProviderMapper.toDTO(any())).thenReturn(mockServiceProviderDTO);
 
-        GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> response = serviceProviderService.getAllServiceProviders(0, 10, "Test", false);
+        GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> response = serviceProviderService.getAllServiceProviders(0, 10, "Test", false, null);
 
         assertEquals(200, response.getStatus());
         assertEquals(1, response.getData().getItems().size());

@@ -88,7 +88,7 @@ class ServiceProviderControllerTest {
         List<ServiceProviderDTO> providers = Collections.singletonList(responseDTO);
         PagingDTO<List<ServiceProviderDTO>> pagingDTO = new PagingDTO<>(0, 10, 1, providers);
 
-        when(serviceProviderService.getAllServiceProviders(0, 10, null, null))
+        when(serviceProviderService.getAllServiceProviders(0, 10, null, null,null))
                 .thenReturn(new GeneralResponse<>(200, "Success", pagingDTO));
 
         mockMvc.perform(get("/ceo/service-provider/list")
