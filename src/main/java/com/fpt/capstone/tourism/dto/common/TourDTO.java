@@ -1,6 +1,8 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -32,8 +34,14 @@ public class TourDTO {
     private String name;
     private String highlights;
     private int numberDays;
-    private int numberNight;
+    private int numberNights;
     private String note;
+    private TourType tourType;
+    private TourStatus tourStatus;
+
+
+
+
     private List<LocationDTO> locations;
     private List<TagDTO> tags;
     private LocationDTO departLocation;

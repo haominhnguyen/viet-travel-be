@@ -1,5 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,7 +48,13 @@ public class Tour extends BaseEntity{
     )
     private List<Tag> tags;
 
-    private boolean opened;
+    @Column(name = "tour_type")
+    @Enumerated(EnumType.STRING)
+    private TourType tourType;
+
+    @Column(name = "tour_status")
+    @Enumerated(EnumType.STRING)
+    private TourStatus tourStatus;
 
     @OneToMany(mappedBy = "tour")
     private Set<TourPax> tourPax;

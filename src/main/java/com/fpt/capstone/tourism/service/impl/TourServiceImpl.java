@@ -252,7 +252,7 @@ public class TourServiceImpl implements TourService {
                 .numberNight(tour.getNumberNights())
                 .note(tour.getNote())
                 .deleted(tour.getDeleted())
-                .opened(tour.isOpened())
+                .tourType(tour.getTourType())
                 .markUpPercent(tour.getMarkUpPercent())
                 .privacy(tour.getPrivacy())
                 .createdUserId(tour.getCreatedBy().getId())

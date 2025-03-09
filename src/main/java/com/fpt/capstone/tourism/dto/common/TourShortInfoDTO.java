@@ -14,8 +14,8 @@ public class TourShortInfoDTO {
     private String name;
     private int numberDays;
     private int numberNights;
+    private PublicTourImageDTO tourImage;
     private String privacy;
     private List<TagDTO> tags;
     private PublicLocationDTO departLocation;
-    private PublicTourImageDTO tourImage;
 }
