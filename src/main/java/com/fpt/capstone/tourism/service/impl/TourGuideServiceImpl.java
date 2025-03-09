@@ -7,7 +7,7 @@ import com.fpt.capstone.tourism.dto.response.TourGuideResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.TourGuideMapper;
-import com.fpt.capstone.tourism.model.enums.Role;
+import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
 import com.fpt.capstone.tourism.repository.RoleRepository;

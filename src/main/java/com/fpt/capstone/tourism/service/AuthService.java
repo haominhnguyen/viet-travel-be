@@ -7,7 +7,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.model.enums.Role;
+import com.fpt.capstone.tourism.model.Role;
 
 import java.util.List;
 

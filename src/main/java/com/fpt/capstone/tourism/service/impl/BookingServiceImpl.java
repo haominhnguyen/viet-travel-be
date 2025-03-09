@@ -7,12 +7,10 @@ import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
-import com.fpt.capstone.tourism.mapper.BookingMapper;
-import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
-import com.fpt.capstone.tourism.mapper.TourImageMapper;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.AgeType;
+import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
@@ -48,8 +46,6 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
         try{
             Tour currentTour = tourRepository.findById(tourId).orElseThrow();
-            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
-            List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             PublicTourScheduleDTO tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
 
             //Mapping to DTO
@@ -57,9 +53,9 @@ public class BookingServiceImpl implements BookingService {
                     .id(currentTour.getId())
                     .name(currentTour.getName())
                     .numberDays(currentTour.getNumberDays())
-                    .numberNight(currentTour.getNumberNight())
+                    .numberNight(currentTour.getNumberNights())
                     .privacy(currentTour.getPrivacy())
-                    .depart_location(locationMapper.toPublicLocationDTO(currentTour.getDepart_location()))
+                    .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImage(tourImageMapper.toPublicTourImageDTO(currentTour.getTourImages().get(0)))
                     .build();
@@ -93,6 +89,8 @@ public class BookingServiceImpl implements BookingService {
                     .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
+                    .tourBookingCategory(TourBookingCategory.ONLINE)
+                    .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .build();
 
 
@@ -124,7 +122,7 @@ public class BookingServiceImpl implements BookingService {
 
             CostAccount costAccount = CostAccount.builder()
                     .amount(bookingRequestDTO.getTotal())
-                    .content("Customer pay for Booking Tour ID: " + bookingRequestDTO.getTourId())
+                    .content("Customer pay for Booking Code: " + result.getBookingCode())
                     .discount(0)
                     .finalAmount(bookingRequestDTO.getTotal())
                     .quantity(1)
@@ -179,14 +177,31 @@ public class BookingServiceImpl implements BookingService {
                     .tour(tourShortInfoDTO)
                     .tourSchedule(tourScheduleShortInfoDTO)
                     .adults(adults)
+                    .sellingPrice(tourBooking.getSellingPrice())
+                    .extraHotelCost(tourBooking.getExtraHotelCost())
                     .children(children)
+                    .note(tourBooking.getNote())
                     .bookingCode(tourBooking.getBookingCode())
+                    .paymentMethod(tourBooking.getPaymentMethod())
                     .createdAt(tourBooking.getCreatedAt())
+                    .paymentMethod(tourBooking.getPaymentMethod())
                     .build();
 
             return GeneralResponse.of(bookingConfirmResponse);
         } catch (Exception ex) {
             throw BusinessException.of(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> viewListBooking() {
+        try{
+            List<TourBooking> tourBookings = tourBookingRepository.findAll();
+            List<TourBookingDTO> tourBookingsDTOs = tourBookings.stream().map(bookingMapper::toDto).toList();
+            return GeneralResponse.of(tourBookingsDTOs);
+        } catch (Exception ex){
+            throw BusinessException.of("Get data failed", ex);
+        }
+
     }
 }

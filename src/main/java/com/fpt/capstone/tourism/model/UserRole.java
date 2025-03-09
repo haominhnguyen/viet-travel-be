@@ -1,6 +1,5 @@
 package com.fpt.capstone.tourism.model;
 
-import com.fpt.capstone.tourism.model.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

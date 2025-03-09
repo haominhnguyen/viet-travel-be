@@ -11,7 +11,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
 import com.fpt.capstone.tourism.helper.TokenEncryptorImpl;
 import com.fpt.capstone.tourism.model.Token;
-import com.fpt.capstone.tourism.model.enums.Role;
+import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;

@@ -19,7 +19,7 @@ public class PublicTourDTO {
     private int numberDays;
     private int numberNight;
     private List<TagDTO> tags;
-    private PublicLocationDTO depart_location;
+    private PublicLocationDTO departLocation;
     private List<PublicTourScheduleDTO> tourSchedules;
     private List<PublicTourImageDTO> tourImages;
     private Double priceFrom;

@@ -11,7 +11,7 @@ public class TourBookingDataResponseDTO {
     private int numberDays;
     private int numberNight;
     private String privacy;
-    private PublicLocationDTO depart_location;
+    private PublicLocationDTO departLocation;
     private PublicTourScheduleDTO tourSchedules;
     private PublicTourImageDTO tourImage;
 }

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.dto.response;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.model.TourBookingCustomer;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,8 +15,11 @@ public class BookingConfirmResponse {
     private String bookingCode;
     private LocalDateTime createdAt;
     private BookedPersonDTO bookedPerson;
+    private Double sellingPrice;
+    private Double extraHotelCost;
+    private PaymentMethod paymentMethod;
     private TourShortInfoDTO tour;
-
+    private String note;
     private TourScheduleShortInfoDTO tourSchedule;
     private List<TourCustomerDTO> adults;
     private List<TourCustomerDTO> children;

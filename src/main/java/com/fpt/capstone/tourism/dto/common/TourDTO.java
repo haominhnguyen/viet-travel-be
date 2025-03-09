@@ -25,7 +25,7 @@ public class TourDTO {
 //    private double markUpPercent;
 //    private User createdBy;
 //    private List<TourSchedule> tourSchedules;
-//    private List<TourImage> tourImages;
+//    private List<TourImage> tourImage;
 
 
     private Long id;
@@ -36,7 +36,7 @@ public class TourDTO {
     private String note;
     private List<LocationDTO> locations;
     private List<TagDTO> tags;
-    private LocationDTO depart_location;
+    private LocationDTO departLocation;
     private List<TourScheduleDTO> tourSchedules;
     private List<TourImageDTO> tourImages;
 }

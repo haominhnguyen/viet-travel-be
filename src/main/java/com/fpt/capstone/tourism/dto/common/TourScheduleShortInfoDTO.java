@@ -12,6 +12,4 @@ public class TourScheduleShortInfoDTO {
     private Long scheduleId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Double sellingPrice;
-    private Double extraHotelCost;
 }

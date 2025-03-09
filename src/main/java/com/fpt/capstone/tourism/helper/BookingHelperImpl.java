@@ -17,7 +17,10 @@ public class BookingHelperImpl implements BookingHelper {
         // Extract last 4 digits of the customer ID (ensuring at least 4 digits)
         String customerPart = "C" + String.format("%04d", customerId % 10000);
 
+
+        String millisPart = String.valueOf(System.currentTimeMillis() % 1000);
+
         // Construct the booking code
-        return String.format("%sVT%dSD%d%s", datePart, tourId, scheduleId, customerPart);
+        return String.format("%sVT%dSD%d%s-%s", datePart, tourId, scheduleId, customerPart, millisPart);
     }
 }
