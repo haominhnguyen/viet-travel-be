@@ -278,7 +278,8 @@ public class TourServiceImpl implements TourService {
 
             // Always filter out deleted tours
             predicates.add(cb.equal(root.get("deleted"), false));
-            predicates.add(cb.equal(root.get("opened"), true));
+            predicates.add(cb.equal(root.get("tourType"), "SIC"));
+            predicates.add(cb.equal(root.get("tourStatus"), "OPENED"));
 
             // Search by tour name OR depart location name
             // Normalize Vietnamese text for search (ignore case and accents)
