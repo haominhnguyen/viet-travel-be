@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +40,7 @@ public class HomepageController {
                                                                                        @RequestParam(value = "budgetFrom", required = false) Double budgetFrom,
                                                                                        @RequestParam(value = "duration", required = false) Integer duration,
                                                                                        @RequestParam(value = "fromDate", required = false)
-                                                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
+                                                                                     @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
                                                                                        @RequestParam(value = "departLocationId", required = false) Long departLocationId){
         return ResponseEntity.ok(homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId));
     }
