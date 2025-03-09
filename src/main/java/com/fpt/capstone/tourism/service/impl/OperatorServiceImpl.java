@@ -133,30 +133,25 @@ public class OperatorServiceImpl implements OperatorService {
 
             Tour tour = tourRepository.findByScheduleId(scheduleId);
 
-            TourPax tourPax = tou
-//            private Long scheduleId;
-//            private String tourName;
-//            private String tourType;
-//            private List<TagDTO> tags;
-//            private Integer numberDays;
-//            private Integer numberNights;
-//            private String departureLocation;
-//            private LocalDateTime startDate;
-//            private LocalDateTime endDate;
-//            private LocalDateTime createdAt;
-//            private String createdBy;
-            private Integer maxPax;
-            private Integer soldSeats;
-            private Integer pendingSeats;
-            private Integer remainingSeats;
-//            private String operatorName;
-//            private LocalTime departureTime;
-//            private String tourGuideName;
-//            private String meetingLocation;
-            private Double totalTourCost;
-            private Double paidTourCost;
-            private Double remainingTourCost;
-            private Double revenueCost;
+            Map<Long, Integer> availableSeatsMap = tourScheduleRepository.findAvailableSeatsByScheduleIds(Collections.singletonList(scheduleId))
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // scheduleId
+                            row -> ((Number) row[1]).intValue()  // soldSeats
+                    ));
+
+            //tìm số tiền đã chi trong tour (đã chi + tạm ứng)
+            Double paidMoney = Optional.ofNullable(
+                    tourScheduleRepository.findPaidTourCostByScheduleId(scheduleId)
+            ).orElse(0.0);
+
+            //tìm doanh thu của tour (đã thu + thu hộ)
+            Double revenueMoney = Optional.ofNullable(
+                    tourScheduleRepository.findRevenueCostByScheduleId(scheduleId)
+            ).orElse(0.0);
+
+            //tìm số tiền còn lại của tour (doanh thu - đã chi)
+            Double remainMoney = revenueMoney - paidMoney;
 
             OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
                     .scheduleId(scheduleId)
@@ -170,10 +165,18 @@ public class OperatorServiceImpl implements OperatorService {
                     .endDate(tourSchedule.getEndDate())
                     .createdAt(tour.getCreatedAt())
                     .createdBy(tour.getCreatedBy().getFullName())
+                    .maxPax(tourSchedule.getTourPax().getMaxPax())
+                    .soldSeats(tourScheduleRepository.findSoldSeatsByScheduleId(scheduleId))
+                    .pendingSeats(tourScheduleRepository.findPendingSeatsByScheduleId(scheduleId))
+                    .remainingSeats(availableSeatsMap.getOrDefault(scheduleId, 0))
                     .operatorName(Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse("null"))
                     .departureTime(tourSchedule.getDepartureTime() != null ? tourSchedule.getDepartureTime() : null)
                     .tourGuideName(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse("null"))
                     .meetingLocation(tourSchedule.getMeetingLocation() != null ? tourSchedule.getMeetingLocation() : "null")
+                    .totalTourCost(tourScheduleRepository.findTotalTourCostByScheduleId(scheduleId))
+                    .paidTourCost(paidMoney)
+                    .remainingTourCost(remainMoney)
+                    .revenueCost(revenueMoney)
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get tour detail successfully", operatorTourDetailDTO);

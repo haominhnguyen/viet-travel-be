@@ -31,8 +31,8 @@ public class OperatorTourDetailDTO {
     private LocalTime departureTime;
     private String tourGuideName;
     private String meetingLocation;
-    private Double totalTourCost;
-    private Double paidTourCost;
-    private Double remainingTourCost;
-    private Double revenueCost;
+    private Double totalTourCost;           //Tổng chi phí tour
+    private Double paidTourCost;            //Đã chi trong tour
+    private Double remainingTourCost;       //Tiền còn lại của tour
+    private Double revenueCost;             //Doanh thu tour (thu được bao tiền trong tour)
 }

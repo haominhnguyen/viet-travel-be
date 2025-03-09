@@ -72,4 +72,46 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     PublicTourScheduleDTO findTourScheduleByTourId(@Param("tourId") Long tourId, @Param("tourScheduleId") Long tourScheduleId);
 
 
+    @Query("""
+    SELECT COALESCE(CAST(SUM(tb.seats) AS integer), 0)
+    FROM TourSchedule ts
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status != "PENDING"
+    WHERE ts.id IN :scheduleId AND ts.deleted = FALSE 
+    GROUP BY ts.id
+""")
+    Integer findSoldSeatsByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("""
+    SELECT COALESCE(CAST(SUM(tb.seats) AS integer), 0)
+    FROM TourSchedule ts
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "PENDING"
+    WHERE ts.id IN :scheduleId AND ts.deleted = FALSE 
+    GROUP BY ts.id
+""")
+    Integer findPendingSeatsByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("""
+    SELECT SUM(COALESCE(tb.sellingPrice, 0) + COALESCE(tb.extraHotelCost, 0))
+     FROM TourBooking tb WHERE tb.tourSchedule.id = :scheduleId
+     AND tb.status != "PENDING"
+""")
+    Double findTotalTourCostByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("""
+    SELECT SUM(COALESCE(t.amount, 0)) 
+    FROM Transaction t 
+    JOIN TourBooking tb ON t.booking.id = tb.id AND tb.tourSchedule.id = :scheduleId
+    WHERE t.category IN (com.fpt.capstone.tourism.model.TransactionType.PAYMENT,\s
+                         com.fpt.capstone.tourism.model.TransactionType.ADVANCED)
+""")
+    Double findPaidTourCostByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("""
+    SELECT SUM(COALESCE(t.amount, 0)) 
+    FROM Transaction t 
+    JOIN TourBooking tb ON t.booking.id = tb.id AND tb.tourSchedule.id = :scheduleId
+    WHERE t.category IN (com.fpt.capstone.tourism.model.TransactionType.RECEIPT,\s
+                         com.fpt.capstone.tourism.model.TransactionType.COLLECTION)
+""")
+    Double findRevenueCostByScheduleId(@Param("scheduleId")Long scheduleId);
 }

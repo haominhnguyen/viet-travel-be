@@ -66,7 +66,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     @Query("""
             SELECT t FROM Tour t
-            JOIN TourSchedule ts ON ts.tour.id = t.id AND ts =: scheduleId
+            JOIN TourSchedule ts ON ts.tour.id = t.id AND ts.id =:scheduleId
             """)
-    Tour findByScheduleId(@Param("scheduleId") Long scheduleId);
+    Tour findByScheduleId(@Param("scheduleId")Long scheduleId);
 }
