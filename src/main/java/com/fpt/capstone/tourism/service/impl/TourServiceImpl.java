@@ -26,6 +26,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -125,7 +127,7 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
             Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
@@ -266,10 +268,10 @@ public class TourServiceImpl implements TourService {
                 .items(tours)
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
     }
 
-    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, Date fromDate, Long departLocationId) {
+    private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -302,20 +304,25 @@ public class TourServiceImpl implements TourService {
                 predicates.add(cb.equal(root.get("numberDays"), duration));
             }
 
+            LocalDate currentDate = LocalDate.now();
+
             // Filter by tour schedule date
+            Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
+            predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), currentDate.plusDays(1)));
             if (fromDate != null) {
-                Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
-                predicates.add(cb.greaterThanOrEqualTo(scheduleJoin.get("startDate"), fromDate));
+                predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), fromDate));
             }
 
             //Filter by price of tour
+            Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
+            Predicate validToPredicate = cb.greaterThan(paxJoin.get("validTo"), currentDate);
+            predicates.add(validToPredicate);
+
             if(budgetFrom != null) {
-                Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
                 predicates.add(cb.greaterThanOrEqualTo(paxJoin.get("sellingPrice"), budgetFrom));
             }
 
             if(budgetTo!= null) {
-                Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
                 predicates.add(cb.lessThanOrEqualTo(paxJoin.get("sellingPrice"), budgetTo));
             }
 
