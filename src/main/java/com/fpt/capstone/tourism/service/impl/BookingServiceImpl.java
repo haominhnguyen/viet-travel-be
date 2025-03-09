@@ -1,12 +1,10 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.BookingConfirmResponse;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
-import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
+import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.AgeType;
@@ -16,7 +14,16 @@ import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
 import com.fpt.capstone.tourism.service.TourService;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -31,16 +38,21 @@ public class BookingServiceImpl implements BookingService {
 
     private final TourRepository tourRepository;
     private final TourBookingRepository tourBookingRepository;
-    private final TourService tourService;
     private final TourScheduleRepository tourScheduleRepository;
+    private final TransactionRepository transactionRepository;
+    private final TourBookingCustomerRepository tourBookingCustomerRepository;
+
+
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
     private final TourBookingCustomerMapper tourBookingCustomerMapper;
-    private final TransactionRepository transactionRepository;
-    private final TourBookingCustomerService tourBookingCustomerService;
+
+
     private final BookingHelper bookingHelper;
     private final BookingMapper bookingMapper;
-    private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final TourHelper tourHelper;
+
+    private final TourBookingCustomerService tourBookingCustomerService;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -193,15 +205,41 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    @Override
-    public GeneralResponse<?> viewListBooking() {
-        try{
-            List<TourBooking> tourBookings = tourBookingRepository.findAll();
-            List<TourBookingDTO> tourBookingsDTOs = tourBookings.stream().map(bookingMapper::toDto).toList();
-            return GeneralResponse.of(tourBookingsDTOs);
-        } catch (Exception ex){
-            throw BusinessException.of("Get data failed", ex);
-        }
 
+
+    @Override
+    public GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection) {
+        try {
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<TourBooking> spec = bookingHelper.buildSearchSpecification(keyword, isDeleted);
+
+            Page<TourBooking> tourBookingPage = tourBookingRepository.findAll(spec, pageable);
+
+            return bookingHelper.buildPagedResponse(tourBookingPage);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<TourDTO>>> getPublicTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection) {
+        try {
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<Tour> spec = tourHelper.buildTourPublicSearchSpecification(keyword, isDeleted, true);
+
+            Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
+            List<TourDTO> tourDTOS = tourPage.getContent().stream()
+                    .map(bookingMapper::toTourDTO)
+                    .toList();
+            return tourHelper.buildPublicTourPagedResponse(tourPage, tourDTOS);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
     }
 }

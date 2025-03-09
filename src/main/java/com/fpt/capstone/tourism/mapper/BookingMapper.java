@@ -1,15 +1,9 @@
 package com.fpt.capstone.tourism.mapper;
 
-import com.fpt.capstone.tourism.dto.common.TourBookingDTO;
-import com.fpt.capstone.tourism.dto.common.TourImageDTO;
-import com.fpt.capstone.tourism.dto.common.TourScheduleShortInfoDTO;
-import com.fpt.capstone.tourism.dto.common.TourShortInfoDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
 import com.fpt.capstone.tourism.mapper.custom.TourImageCustom;
-import com.fpt.capstone.tourism.model.Tour;
-import com.fpt.capstone.tourism.model.TourBooking;
-import com.fpt.capstone.tourism.model.TourImage;
-import com.fpt.capstone.tourism.model.TourSchedule;
+import com.fpt.capstone.tourism.model.*;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -26,9 +20,25 @@ public interface BookingMapper {
 
     TourScheduleShortInfoDTO toTourScheduleShortInfoDTO(TourSchedule tourSchedule);
 
-
-    @Mapping(target = "tour.privacy", ignore = true)
+    @Mapping(target = "tour", expression = "java(mapTourWithoutPrivacy(tourBooking.getTour()))")
     TourBookingDTO toDto(TourBooking tourBooking);
+
+
+    @Mapping(target = "tourSchedules", ignore = true)
+    @Mapping(target = "tourImages", ignore = true)
+    TourDTO toTourDTO(Tour tour);
+
+
+    StaffDTO toStaffDto(User user);
+
+    default TourShortInfoDTO mapTourWithoutPrivacy(Tour tour) {
+        if (tour == null) {
+            return null;
+        }
+        TourShortInfoDTO dto = toTourShortInfoDTO(tour); // ✅ Use existing method
+        dto.setPrivacy(null); // ✅ Manually remove privacy
+        return dto;
+    }
 
 
 }

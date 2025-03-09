@@ -19,9 +19,6 @@ public class TourImageCustom {
 
     @Named("mapFirstImage")
     public  PublicTourImageDTO mapFirstImage(List<TourImage> tourImages) {
-        if (tourImages != null && !tourImages.isEmpty()) {
-            return mapper.toPublicTourImageDTO(tourImages.get(0));
-        }
-        return null;
+        return mapper.toPublicTourImageDTO(tourImages.get(0));
     }
 }

@@ -23,4 +23,7 @@ public interface TourService {
     GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable);
 
     GeneralResponse<TourDetailDTO> getTourDetail(Long id);
+
+
+
 }

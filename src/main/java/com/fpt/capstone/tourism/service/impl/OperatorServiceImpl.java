@@ -156,7 +156,7 @@ public class OperatorServiceImpl implements OperatorService {
             OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
                     .scheduleId(scheduleId)
                     .tourName(tour.getName())
-                    .tourType(tour.isOpened() ? "S.I.C Group" : "Private")
+                    .tourType(tour.getTourType())
                     .tags(tagMapper.toDtoList(tour.getTags()))
                     .numberDays(tour.getNumberDays())
                     .numberNights(tour.getNumberNights())
