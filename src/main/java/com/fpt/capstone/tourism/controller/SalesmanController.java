@@ -1,12 +1,10 @@
 package com.fpt.capstone.tourism.controller;
 
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourBookingDTO;
-import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
-import com.fpt.capstone.tourism.dto.common.TourDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,15 +35,16 @@ public class SalesmanController {
     }
 
 
-    @GetMapping("/tours/list-public")
-    public ResponseEntity<GeneralResponse<PagingDTO<List<TourDTO>>>> getPublicTours(
+    @GetMapping("/tours/list")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>>> getPublicTours(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "20") TourType tourType,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean isDeleted,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-        return ResponseEntity.ok(bookingService.getPublicTours(page, size, keyword, isDeleted, sortField, sortDirection));
+        return ResponseEntity.ok(bookingService.getTours(page, size, keyword, isDeleted, sortField, sortDirection, tourType));
     }
 
 

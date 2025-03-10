@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,6 +35,9 @@ public class CostAccount extends  BaseEntity{
 
     @Column(name = "final_amount")
     private Double finalAmount;
+
+    @Enumerated(EnumType.STRING)
+    private CostAccountStatus status;
 
 
 }
