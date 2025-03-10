@@ -1,21 +1,15 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.OperatorTourDetailDTO;
-import com.fpt.capstone.tourism.dto.common.TagDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TagMapper;
-import com.fpt.capstone.tourism.model.Tour;
-import com.fpt.capstone.tourism.model.TourPax;
-import com.fpt.capstone.tourism.model.TourSchedule;
-import com.fpt.capstone.tourism.model.User;
-import com.fpt.capstone.tourism.repository.TourRepository;
-import com.fpt.capstone.tourism.repository.TourScheduleRepository;
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
+import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -42,6 +36,9 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourRepository tourRepository;
     private final UserRepository userRepository;
+    private final TourBookingRepository tourBookingRepository;
+    private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final TourBookingCustomerFullMapper customerFullMapper;
     private final TagMapper tagMapper;
 
     @Override
@@ -182,6 +179,32 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get tour detail successfully", operatorTourDetailDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Operator get tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<OperatorTourCustomerDTO>> getListCustomerOfTourDetail(Long scheduleId) {
+        try {
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+
+            List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
+                List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
+                        .findByTourBookingId(booking.getId())
+                        .stream()
+                        .map(customerFullMapper::toDto)
+                        .collect(Collectors.toList());
+
+                OperatorTourCustomerDTO responseDTO = OperatorTourCustomerDTO.builder()
+                        .tourBookingId(booking.getId())
+                        .tourBookingCategory(booking.getTourBookingCategory())
+                        .listCustomer(customers)
+                        .build();
+                return responseDTO;
+            }).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list customer of tour detail success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Operator get list customer of tour detail fail", ex);
         }
     }
 

@@ -278,7 +278,8 @@ public class TourServiceImpl implements TourService {
 
             // Always filter out deleted tours
             predicates.add(cb.equal(root.get("deleted"), false));
-            predicates.add(cb.equal(root.get("opened"), true));
+            predicates.add(cb.equal(root.get("tourType"), "SIC"));
+            predicates.add(cb.equal(root.get("tourStatus"), "OPENED"));
 
             // Search by tour name OR depart location name
             // Normalize Vietnamese text for search (ignore case and accents)
@@ -327,7 +328,7 @@ public class TourServiceImpl implements TourService {
             }
 
             if(departLocationId!= null) {
-                predicates.add(cb.equal(root.get("depart_location").get("id"), departLocationId));
+                predicates.add(cb.equal(root.get("departLocation").get("id"), departLocationId));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

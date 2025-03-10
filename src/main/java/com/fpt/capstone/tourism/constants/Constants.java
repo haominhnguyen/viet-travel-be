@@ -175,6 +175,10 @@ public class Constants {
         public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
         public static final String TOUR_DETAIL_LOAD_FAIL = "Tour detail load failed";
 
+        public static final String INVALID_BLOG_TITLE_LENGTH = "Title must be between 5 and 100 characters.";
+        public static final String INVALID_BLOG_DESCRIPTION_LENGTH = "Description must be between 10 and 300 characters.";
+        public static final String INVALID_BLOG_CONTENT_LENGTH = "Content must be between 50 and 5000 characters.";
+
     }
 
 
