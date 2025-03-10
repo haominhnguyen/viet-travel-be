@@ -9,6 +9,8 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TagMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.criteria.Expression;
@@ -205,6 +207,44 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list customer of tour detail success", responseList);
         } catch  (Exception ex) {
             throw BusinessException.of("Operator get list customer of tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<OperatorTourBookingDTO>> getListBookingOfTourDetail(Long scheduleId) {
+        try {
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+
+            List<OperatorTourBookingDTO> responseList = bookings.stream().map(booking -> {
+
+                Integer adultCount = tourBookingRepository.countAdultNumberByBookingId(booking.getId());
+                Integer childCount = tourBookingRepository.countChildNumberByBookingId(booking.getId());
+
+                //Số tiền đã thu
+                Double receiptAmount = tourBookingRepository.findReceiptAmountByBookingId(booking.getId());
+                //Số tiền HDV đã thu hộ
+                Double collectionAmount = tourBookingRepository.findCollectionAmountByBookingId(booking.getId());
+
+                OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
+                        .bookingId(booking.getId())
+                        .bookedBy(booking.getUser().getFullName())
+                        .adultCount(adultCount)
+                        .childCount(childCount)
+                        .customerCount(adultCount + childCount)
+                        .bookingCategory(booking.getTourBookingCategory())
+                        .receiptAmount(receiptAmount)
+                        .remainingAmount(booking.getTotalAmount() - receiptAmount)
+                        .collectionAmount(collectionAmount)
+                        .totalAmount(booking.getTotalAmount())
+                        .bookedAt(booking.getCreatedAt())
+                        .bookingStatus(booking.getStatus())
+                        .build();
+                return responseDTO;
+            }).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Operator get list booking of tour detail fail", ex);
         }
     }
 

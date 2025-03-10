@@ -60,6 +60,9 @@ public class TourBooking extends BaseEntity {
     @Column(name = "extra_hotel_cost")
     private Double extraHotelCost;
 
+    @Column(name = "total_amount")
+    private Double totalAmount;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
