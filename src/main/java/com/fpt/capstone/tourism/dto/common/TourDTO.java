@@ -39,9 +39,6 @@ public class TourDTO {
     private TourType tourType;
     private TourStatus tourStatus;
 
-
-
-
     private List<LocationDTO> locations;
     private List<TagDTO> tags;
     private LocationDTO departLocation;
