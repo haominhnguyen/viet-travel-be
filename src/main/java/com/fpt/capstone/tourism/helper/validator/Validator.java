@@ -229,6 +229,17 @@ public class Validator {
         isNullOrEmpty(title, EMPTY_BLOG_TITLE);
         isNullOrEmpty(description, EMPTY_BLOG_DESCRIPTION);
         isNullOrEmpty(content, EMPTY_BLOG_CONTENT);
+
+        // Length validation
+        validateLength(title, 5, 100, INVALID_BLOG_TITLE_LENGTH);
+        validateLength(description, 10, 300, INVALID_BLOG_DESCRIPTION_LENGTH);
+        validateLength(content, 50, 5000, INVALID_BLOG_CONTENT_LENGTH);
+    }
+
+    private static void validateLength(String value, int min, int max, String errorMessage) {
+        if (value.length() < min || value.length() > max) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, errorMessage);
+        }
     }
 
 
