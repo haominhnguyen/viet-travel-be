@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
@@ -53,7 +54,7 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.getListOperationLogOfTourDetail(scheduleId));
     }
 
-    @GetMapping("/tour-detail/{scheduleId}/create-operation-log")
+    @PostMapping("/tour-detail/{scheduleId}/create-operation-log")
     public ResponseEntity<GeneralResponse<TourOperationLogDTO>> createOperationLog(@PathVariable Long scheduleId,
                                                                                    @RequestBody TourOperationLogRequestDTO logRequestDTO) {
         return ResponseEntity.ok(operatorService.createOperationLog(scheduleId, logRequestDTO));
@@ -62,5 +63,11 @@ public class OperatorController {
     @DeleteMapping("/tour-detail/operation-log/change-status/{logId}")
     public ResponseEntity<GeneralResponse<TourOperationLogDTO>> deleteOperationLog(@PathVariable Long logId) {
         return ResponseEntity.ok(operatorService.deleteOperationLog(logId));
+    }
+
+    @PostMapping("/tour-detail/{scheduleId}/assign-tour-guide")
+    public ResponseEntity<GeneralResponse<OperatorTourDetailDTO>> assignTourGuide(@PathVariable Long scheduleId,
+                                                                                   @RequestBody AssignTourGuideRequestDTO requestDTO) {
+        return ResponseEntity.ok(operatorService.assignTourGuide(scheduleId, requestDTO));
     }
 }

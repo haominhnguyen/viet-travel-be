@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -311,6 +312,11 @@ public class OperatorServiceImpl implements OperatorService {
         } catch (Exception ex){
             throw BusinessException.of("Delete log fail", ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<OperatorTourDetailDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO) {
+        return null;
     }
 
     private Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {

@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -23,4 +24,6 @@ public interface OperatorService {
     GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO);
 
     GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId);
+
+    GeneralResponse<OperatorTourDetailDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO);
 }
