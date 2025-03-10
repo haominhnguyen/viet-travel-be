@@ -258,7 +258,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId) {
         try {
-            List<TourOperationLog> logs = logRepository.findByTourSchedule_Id(scheduleId);
+            List<TourOperationLog> logs = logRepository.findByTourSchedule_IdAndDeletedFalse(scheduleId);
 
             List<TourOperationLogDTO> responseList = logs.stream()
                     .map(logMapper::toDTO).collect(Collectors.toList());
@@ -291,6 +291,25 @@ public class OperatorServiceImpl implements OperatorService {
             throw be;
         } catch (Exception ex){
             throw BusinessException.of("Create log fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId) {
+        try{
+            TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
+                    BusinessException.of("Not found tour log"));
+
+            log.setDeleted(true);
+            log.setUpdatedAt(LocalDateTime.now());
+            logRepository.save(log);
+
+            TourOperationLogDTO logDTO = logMapper.toDTO(log);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Delete log success", logDTO);
+        }catch (BusinessException be){
+            throw be;
+        } catch (Exception ex){
+            throw BusinessException.of("Delete log fail", ex);
         }
     }
 

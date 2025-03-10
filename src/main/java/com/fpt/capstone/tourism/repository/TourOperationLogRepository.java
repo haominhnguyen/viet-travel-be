@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface TourOperationLogRepository  extends JpaRepository<TourOperationLog, Long>, JpaSpecificationExecutor<TourOperationLog> {
-    List<TourOperationLog> findByTourSchedule_Id(Long scheduleId);
+    List<TourOperationLog> findByTourSchedule_IdAndDeletedFalse(Long scheduleId);
 }

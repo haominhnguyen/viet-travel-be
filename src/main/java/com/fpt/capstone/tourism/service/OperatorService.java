@@ -21,4 +21,6 @@ public interface OperatorService {
     GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId);
 
     GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO);
+
+    GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId);
 }

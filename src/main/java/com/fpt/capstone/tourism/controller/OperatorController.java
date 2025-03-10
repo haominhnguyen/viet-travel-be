@@ -58,4 +58,9 @@ public class OperatorController {
                                                                                    @RequestBody TourOperationLogRequestDTO logRequestDTO) {
         return ResponseEntity.ok(operatorService.createOperationLog(scheduleId, logRequestDTO));
     }
+
+    @DeleteMapping("/tour-detail/operation-log/change-status/{logId}")
+    public ResponseEntity<GeneralResponse<TourOperationLogDTO>> deleteOperationLog(@PathVariable Long logId) {
+        return ResponseEntity.ok(operatorService.deleteOperationLog(logId));
+    }
 }
