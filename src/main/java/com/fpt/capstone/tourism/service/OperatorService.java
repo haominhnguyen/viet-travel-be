@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.OperatorTourBookingDTO;
 import com.fpt.capstone.tourism.dto.common.OperatorTourCustomerDTO;
 import com.fpt.capstone.tourism.dto.common.OperatorTourDetailDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
@@ -16,4 +17,6 @@ public interface OperatorService {
     GeneralResponse<OperatorTourDetailDTO> getTourDetail(Long scheduleId);
 
     GeneralResponse<List<OperatorTourCustomerDTO>> getListCustomerOfTourDetail(Long scheduleId);
+
+    GeneralResponse<List<OperatorTourBookingDTO>> getListBookingOfTourDetail(Long scheduleId);
 }

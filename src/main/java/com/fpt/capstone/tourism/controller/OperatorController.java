@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.controller;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.LocationDTO;
-import com.fpt.capstone.tourism.dto.common.OperatorTourCustomerDTO;
-import com.fpt.capstone.tourism.dto.common.OperatorTourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -43,5 +40,10 @@ public class OperatorController {
     @GetMapping("/tour-detail/{scheduleId}/list-customer")
     public ResponseEntity<GeneralResponse<List<OperatorTourCustomerDTO>>> getListCustomerOfTourDetail(@PathVariable Long scheduleId) {
         return ResponseEntity.ok(operatorService.getListCustomerOfTourDetail(scheduleId));
+    }
+
+    @GetMapping("/tour-detail/{scheduleId}/list-booking")
+    public ResponseEntity<GeneralResponse<List<OperatorTourBookingDTO>>> getListBookingOfTourDetail(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListBookingOfTourDetail(scheduleId));
     }
 }
