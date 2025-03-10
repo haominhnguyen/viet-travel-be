@@ -328,7 +328,7 @@ public class TourServiceImpl implements TourService {
             }
 
             if(departLocationId!= null) {
-                predicates.add(cb.equal(root.get("depart_location").get("id"), departLocationId));
+                predicates.add(cb.equal(root.get("departLocation").get("id"), departLocationId));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
