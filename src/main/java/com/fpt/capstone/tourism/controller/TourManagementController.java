@@ -1,9 +1,12 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.TourDayRequestDTO;
+import com.fpt.capstone.tourism.dto.request.TourDayUpdateDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.service.TourDayService;
 import com.fpt.capstone.tourism.service.TourService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,4 +49,12 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<List<TourDayFullDTO>>> getTourDaysByTourId(@PathVariable Long tourId) {
         return ResponseEntity.ok(tourDayService.getTourDayDetail(tourId));
     }
+
+    @PutMapping("/{tourId}/tour-days/update/{tourDayId}")
+    public ResponseEntity<GeneralResponse<TourDayFullDTO>> updateTourDayDetail(
+            @PathVariable Long tourDayId,
+            @RequestBody TourDayUpdateDTO tourDayUpdateDTO) {
+        return ResponseEntity.ok(tourDayService.updateTourDayDetail(tourDayId, tourDayUpdateDTO));
+    }
+
 }
