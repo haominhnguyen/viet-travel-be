@@ -2,11 +2,17 @@ package com.fpt.capstone.tourism.helper;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourDTO;
+import com.fpt.capstone.tourism.dto.common.TourWithNumberBookingDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
+import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -16,9 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class TourHelperImpl implements TourHelper {
+
+
+    private final TourBookingRepository tourBookingRepository;
+    private final BookingMapper bookingMapper;
+
+
     @Override
-    public Specification<Tour> buildTourPublicSearchSpecification(String keyword, Boolean isDeleted,  Boolean isOpened) {
+    public Specification<Tour> buildTourPublicSearchSpecification(String keyword, Boolean isDeleted,  TourType tourType) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -38,19 +51,37 @@ public class TourHelperImpl implements TourHelper {
                 predicates.add(cb.equal(root.get("deleted"), isDeleted));
             }
 
-            predicates.add(cb.equal(root.get("opened"), isOpened));
+            predicates.add(cb.equal(root.get("tourType"), tourType));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourDTO>>> buildPublicTourPagedResponse(Page<Tour> tourPage, List<TourDTO> tourDTOs) {
-        PagingDTO<List<TourDTO>> pagingDTO = PagingDTO.<List<TourDTO>>builder()
+    public GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> buildPublicTourPagedResponse(Page<Tour> tourPage) {
+
+        List<TourWithNumberBookingDTO> tourWithNumberBookingDTOS = new ArrayList<>();
+
+        List<TourBookingStatus> tourBookingStatuses = new ArrayList<>();
+        tourBookingStatuses.add(TourBookingStatus.PENDING);
+
+        for (Tour tour : tourPage.getContent()) {
+            long numberBooking = tourBookingRepository.countByTourAndStatusIn(tour, tourBookingStatuses);
+            TourWithNumberBookingDTO tourWithNumberBookingDTO = TourWithNumberBookingDTO.builder()
+                    .tour(bookingMapper.toTourDTO(tour))
+                    .numberBooking(numberBooking)
+                    .build();
+            tourWithNumberBookingDTOS.add(tourWithNumberBookingDTO);
+        }
+
+
+
+
+        PagingDTO<List<TourWithNumberBookingDTO>> pagingDTO = PagingDTO.<List<TourWithNumberBookingDTO>>builder()
                 .page(tourPage.getNumber())
                 .size(tourPage.getSize())
                 .total(tourPage.getTotalElements())
-                .items(tourDTOs)
+                .items(tourWithNumberBookingDTOS)
                 .build();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
     }

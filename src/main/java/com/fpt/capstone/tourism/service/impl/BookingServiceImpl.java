@@ -10,14 +10,10 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.AgeType;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
-import com.fpt.capstone.tourism.service.TourService;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -225,19 +220,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourDTO>>> getPublicTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection) {
+    public GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection, TourType tourType) {
         try {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<Tour> spec = tourHelper.buildTourPublicSearchSpecification(keyword, isDeleted, true);
+            Specification<Tour> spec = tourHelper.buildTourPublicSearchSpecification(keyword, isDeleted, tourType);
 
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
-            List<TourDTO> tourDTOS = tourPage.getContent().stream()
-                    .map(bookingMapper::toTourDTO)
-                    .toList();
-            return tourHelper.buildPublicTourPagedResponse(tourPage, tourDTOS);
+
+            return tourHelper.buildPublicTourPagedResponse(tourPage);
         } catch (Exception ex) {
             throw BusinessException.of("Get Data failed", ex);
         }
