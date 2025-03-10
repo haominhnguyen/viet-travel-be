@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TagMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
+import com.fpt.capstone.tourism.mapper.TourOperationLogMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
@@ -40,7 +41,9 @@ public class OperatorServiceImpl implements OperatorService {
     private final UserRepository userRepository;
     private final TourBookingRepository tourBookingRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final TourOperationLogRepository logRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
+    private final TourOperationLogMapper logMapper;
     private final TagMapper tagMapper;
 
     @Override
@@ -245,6 +248,20 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
         } catch  (Exception ex) {
             throw BusinessException.of("Operator get list booking of tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId) {
+        try {
+            List<TourOperationLog> logs = logRepository.findByTourSchedule_Id(scheduleId);
+
+            List<TourOperationLogDTO> responseList = logs.stream()
+                    .map(logMapper::toDTO).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list log of tour detail fail", ex);
         }
     }
 

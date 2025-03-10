@@ -46,4 +46,9 @@ public class OperatorController {
     public ResponseEntity<GeneralResponse<List<OperatorTourBookingDTO>>> getListBookingOfTourDetail(@PathVariable Long scheduleId) {
         return ResponseEntity.ok(operatorService.getListBookingOfTourDetail(scheduleId));
     }
+
+    @GetMapping("/tour-detail/{scheduleId}/operation-log")
+    public ResponseEntity<GeneralResponse<List<TourOperationLogDTO>>> getListLogOfTourDetail(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListOperationLogOfTourDetail(scheduleId));
+    }
 }

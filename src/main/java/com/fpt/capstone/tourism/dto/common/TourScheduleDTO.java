@@ -1,13 +1,11 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.model.*;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +23,7 @@ public class TourScheduleDTO {
     private User Operator;
     private String meetingLocation;
     private LocalTime departureTime;
-    private Set<TourOperationLog> operationLogs;
+    private Set<TourOperationLogDTO> operationLogs;
     private List<TourBooking> bookings;
 
 }
