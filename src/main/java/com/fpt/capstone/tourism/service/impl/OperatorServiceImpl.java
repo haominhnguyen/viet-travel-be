@@ -1,11 +1,13 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.TagMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
 import com.fpt.capstone.tourism.mapper.TourOperationLogMapper;
@@ -32,6 +34,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
 @Service
 @RequiredArgsConstructor
@@ -262,6 +266,31 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
         } catch  (Exception ex) {
             throw BusinessException.of("Get list log of tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO) {
+        try{
+            //Validate input data
+            Validator.validateLog(logRequestDTO);
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
+                     BusinessException.of("Not found tour schedule"));
+
+            //Save date to database
+            TourOperationLog log = logMapper.toEntity(logRequestDTO);
+            log.setCreatedAt(LocalDateTime.now());
+            log.setDeleted(false);
+            log.setTourSchedule(tourSchedule);
+            logRepository.save(log);
+
+            TourOperationLogDTO logDTO = logMapper.toDTO(log);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Create log success", logDTO);
+        }catch (BusinessException be){
+            throw be;
+        } catch (Exception ex){
+            throw BusinessException.of("Create log fail", ex);
         }
     }
 
