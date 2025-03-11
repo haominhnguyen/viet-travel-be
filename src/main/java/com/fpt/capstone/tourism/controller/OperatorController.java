@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 import com.fpt.capstone.tourism.service.OperatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -66,8 +67,18 @@ public class OperatorController {
     }
 
     @PostMapping("/tour-detail/{scheduleId}/assign-tour-guide")
-    public ResponseEntity<GeneralResponse<OperatorTourDetailDTO>> assignTourGuide(@PathVariable Long scheduleId,
+    public ResponseEntity<GeneralResponse<AssignTourGuideRequestDTO>> assignTourGuide(@PathVariable Long scheduleId,
                                                                                    @RequestBody AssignTourGuideRequestDTO requestDTO) {
         return ResponseEntity.ok(operatorService.assignTourGuide(scheduleId, requestDTO));
+    }
+
+    @GetMapping("/tour-detail/{scheduleId}/list-available-tour-guide")
+    public ResponseEntity<GeneralResponse<List<UserResponseDTO>>> getListAvailableTourGuide(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListAvailableTourGuide(scheduleId));
+    }
+
+    @GetMapping("/tour-detail/{scheduleId}/list-transaction")
+    public ResponseEntity<GeneralResponse<List<OperatorTransactionDTO>>> getListTransaction(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListTransaction(scheduleId));
     }
 }

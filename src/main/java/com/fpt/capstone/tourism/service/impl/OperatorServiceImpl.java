@@ -3,15 +3,13 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
-import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.TagMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
 import com.fpt.capstone.tourism.mapper.TourOperationLogMapper;
+import com.fpt.capstone.tourism.mapper.UserFullInformationMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
@@ -50,6 +48,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TagMapper tagMapper;
+    private final UserFullInformationMapper userMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -315,7 +314,43 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<OperatorTourDetailDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO) {
+    public GeneralResponse<AssignTourGuideRequestDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO) {
+        try {
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
+                    () -> BusinessException.of("Not found tour schedule"));
+
+            //Find tour guide
+            User tourGuide = userRepository.findById(requestDTO.getTourGuideId()).orElseThrow(
+                    () -> BusinessException.of("Not found tour guide"));
+
+            //Update
+            tourSchedule.setMeetingLocation(requestDTO.getMeetingLocation());
+            tourSchedule.setDepartureTime(requestDTO.getDepartureTime());
+            tourSchedule.setTourGuide(tourGuide);
+
+            //Save to database
+            tourScheduleRepository.save(tourSchedule);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Assign tour guide success", requestDTO);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Assign tour guide fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<UserResponseDTO>> getListAvailableTourGuide(Long scheduleId) {
+        try {
+            List<UserResponseDTO> responseList = userRepository.findAvailableTourGuideByScheduleId(scheduleId).stream()
+                    .map(userMapper::toResponseDTO).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list available tour guide success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list available tour guide fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId) {
         return null;
     }
 

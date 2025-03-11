@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 
 import java.util.List;
 
@@ -25,5 +26,9 @@ public interface OperatorService {
 
     GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId);
 
-    GeneralResponse<OperatorTourDetailDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO);
+    GeneralResponse<AssignTourGuideRequestDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO);
+
+    GeneralResponse<List<UserResponseDTO>> getListAvailableTourGuide(Long scheduleId);
+
+    GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId);
 }
