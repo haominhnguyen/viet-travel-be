@@ -6,10 +6,7 @@ import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
-import com.fpt.capstone.tourism.mapper.TagMapper;
-import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
-import com.fpt.capstone.tourism.mapper.TourOperationLogMapper;
-import com.fpt.capstone.tourism.mapper.UserFullInformationMapper;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
@@ -45,8 +42,10 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingRepository tourBookingRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final TourOperationLogRepository logRepository;
+    private final TransactionRepository transactionRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
+    private final TransactionMapper transactionMapper;
     private final TagMapper tagMapper;
     private final UserFullInformationMapper userMapper;
 
@@ -351,7 +350,16 @@ public class OperatorServiceImpl implements OperatorService {
 
     @Override
     public GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId) {
-        return null;
+        try {
+            List<Transaction> transactions = transactionRepository.findAllByTourScheduleId(scheduleId);
+
+            List<OperatorTransactionDTO> responseList = transactions.stream().map(transactionMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list transaction fail", ex);
+        }
     }
 
     private Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
