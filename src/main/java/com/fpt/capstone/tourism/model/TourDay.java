@@ -37,8 +37,6 @@ public class TourDay extends BaseEntity{
     @JoinColumn(name = "location_id")
     private Location location;
 
-
     @OneToMany(mappedBy = "tourDay")
     private Set<TourDayService> tourDayServices;
-
 }

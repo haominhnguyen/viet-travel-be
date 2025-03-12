@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -28,4 +30,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u JOIN u.userRoles ur WHERE ur.role.id = 10")
     Page<User> findAllTourGuides(Specification<User> spec,Pageable pageable);
+
+    @Query("""
+    SELECT u FROM User u
+        WHERE u.id NOT IN (
+            SELECT ts.tourGuide.id FROM TourSchedule ts
+            WHERE ts.tourGuide IS NOT NULL
+            AND ts.startDate < (SELECT s.endDate FROM TourSchedule s WHERE s.id = :scheduleId)
+            AND ts.endDate > (SELECT s.startDate FROM TourSchedule s WHERE s.id = :scheduleId)
+        )
+        AND u.id IN (
+            SELECT ur.user.id FROM UserRole ur WHERE ur.role.roleName = 'TOUR_GUIDE'
+        )
+        AND u.deleted = FALSE
+""")
+    List<User> findAvailableTourGuideByScheduleId(@Param("scheduleId") Long scheduleId);
 }

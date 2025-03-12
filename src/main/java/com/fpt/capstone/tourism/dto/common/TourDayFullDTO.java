@@ -1,25 +1,25 @@
 package com.fpt.capstone.tourism.dto.common;
 
-
-import com.fpt.capstone.tourism.model.GeoPosition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LocationDTO {
+public class TourDayFullDTO {
     private Long id;
-    private String name;
-    private String description;
-    private String image;
-    private boolean deleted;
-    private GeoPositionDTO geoPosition;
+    private String title;
+    private String content;
+    private String mealPlan;
+    private Long tourId;
+    private LocationDTO location;
+    private List<TourDayServiceFullDTO> tourDayServices;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

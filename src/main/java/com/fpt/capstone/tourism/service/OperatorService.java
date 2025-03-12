@@ -1,11 +1,11 @@
 package com.fpt.capstone.tourism.service;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.OperatorTourBookingDTO;
-import com.fpt.capstone.tourism.dto.common.OperatorTourCustomerDTO;
-import com.fpt.capstone.tourism.dto.common.OperatorTourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
+import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 
 import java.util.List;
 
@@ -19,4 +19,16 @@ public interface OperatorService {
     GeneralResponse<List<OperatorTourCustomerDTO>> getListCustomerOfTourDetail(Long scheduleId);
 
     GeneralResponse<List<OperatorTourBookingDTO>> getListBookingOfTourDetail(Long scheduleId);
+
+    GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId);
+
+    GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO);
+
+    GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId);
+
+    GeneralResponse<AssignTourGuideRequestDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO);
+
+    GeneralResponse<List<UserResponseDTO>> getListAvailableTourGuide(Long scheduleId);
+
+    GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId);
 }

@@ -1,13 +1,12 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
+import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
+import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.mapper.TagMapper;
-import com.fpt.capstone.tourism.mapper.TourBookingCustomerFullMapper;
+import com.fpt.capstone.tourism.helper.validator.Validator;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
@@ -32,6 +31,8 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @Service
 @RequiredArgsConstructor
 public class OperatorServiceImpl implements OperatorService {
@@ -40,8 +41,13 @@ public class OperatorServiceImpl implements OperatorService {
     private final UserRepository userRepository;
     private final TourBookingRepository tourBookingRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final TourOperationLogRepository logRepository;
+    private final TransactionRepository transactionRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
+    private final TourOperationLogMapper logMapper;
+    private final TransactionMapper transactionMapper;
     private final TagMapper tagMapper;
+    private final UserFullInformationMapper userMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -245,6 +251,114 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
         } catch  (Exception ex) {
             throw BusinessException.of("Operator get list booking of tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId) {
+        try {
+            List<TourOperationLog> logs = logRepository.findByTourSchedule_IdAndDeletedFalse(scheduleId);
+
+            List<TourOperationLogDTO> responseList = logs.stream()
+                    .map(logMapper::toDTO).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list log of tour detail fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO) {
+        try{
+            //Validate input data
+            Validator.validateLog(logRequestDTO);
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
+                     BusinessException.of("Not found tour schedule"));
+
+            //Save date to database
+            TourOperationLog log = logMapper.toEntity(logRequestDTO);
+            log.setCreatedAt(LocalDateTime.now());
+            log.setDeleted(false);
+            log.setTourSchedule(tourSchedule);
+            logRepository.save(log);
+
+            TourOperationLogDTO logDTO = logMapper.toDTO(log);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Create log success", logDTO);
+        }catch (BusinessException be){
+            throw be;
+        } catch (Exception ex){
+            throw BusinessException.of("Create log fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId) {
+        try{
+            TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
+                    BusinessException.of("Not found tour log"));
+
+            log.setDeleted(true);
+            log.setUpdatedAt(LocalDateTime.now());
+            logRepository.save(log);
+
+            TourOperationLogDTO logDTO = logMapper.toDTO(log);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Delete log success", logDTO);
+        }catch (BusinessException be){
+            throw be;
+        } catch (Exception ex){
+            throw BusinessException.of("Delete log fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<AssignTourGuideRequestDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO) {
+        try {
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
+                    () -> BusinessException.of("Not found tour schedule"));
+
+            //Find tour guide
+            User tourGuide = userRepository.findById(requestDTO.getTourGuideId()).orElseThrow(
+                    () -> BusinessException.of("Not found tour guide"));
+
+            //Update
+            tourSchedule.setMeetingLocation(requestDTO.getMeetingLocation());
+            tourSchedule.setDepartureTime(requestDTO.getDepartureTime());
+            tourSchedule.setTourGuide(tourGuide);
+
+            //Save to database
+            tourScheduleRepository.save(tourSchedule);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Assign tour guide success", requestDTO);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Assign tour guide fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<UserResponseDTO>> getListAvailableTourGuide(Long scheduleId) {
+        try {
+            List<UserResponseDTO> responseList = userRepository.findAvailableTourGuideByScheduleId(scheduleId).stream()
+                    .map(userMapper::toResponseDTO).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list available tour guide success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list available tour guide fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId) {
+        try {
+            List<Transaction> transactions = transactionRepository.findAllByTourScheduleId(scheduleId);
+
+            List<OperatorTransactionDTO> responseList = transactions.stream().map(transactionMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list transaction fail", ex);
         }
     }
 

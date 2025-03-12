@@ -179,6 +179,17 @@ public class Constants {
         public static final String INVALID_BLOG_DESCRIPTION_LENGTH = "Description must be between 10 and 300 characters.";
         public static final String INVALID_BLOG_CONTENT_LENGTH = "Content must be between 50 and 5000 characters.";
 
+        public static final String TOUR_NOT_FOUND = "Tour not found";
+        public static final String TOUR_DAY_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
+        public static final String TOUR_DAY_DETAIL_LOAD_FAIL = "Tour detail load failed";
+        public static final String NO_TOUR_DAY_FOUND  = "No tour days found for this tour";
+
+        public static final String TOUR_DAY_NOT_FOUND = "Tour day not found";
+        public static final String TOUR_DAY_SERVICE_NOT_FOUND = "Tour day service not found";
+        public static final String LOCATION_NOT_FOUND = "Location not found";
+        public static final String SERVICE_ID_REQUIRED = "Service ID is required for new tour day services";
+        public static final String TOUR_DAY_UPDATE_SUCCESS = "Tour day updated successfully";
+        public static final String TOUR_DAY_UPDATE_FAIL = "Failed to update tour day";
     }
 
 

@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.helper.validator;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
+import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -304,5 +305,10 @@ public class Validator {
         if (nettPrice > sellingPrice) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_PRICE_RANGE);
         }
+    }
+
+    public static void validateLog(TourOperationLogRequestDTO logRequestDTO) {
+        isNullOrEmpty(logRequestDTO.getAction(), "Empty action");
+        isNullOrEmpty(logRequestDTO.getContent(), "Empty content");
     }
 }

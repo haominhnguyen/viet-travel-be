@@ -68,6 +68,10 @@ public class TourBooking extends BaseEntity {
 
     private String reason;
 
+    @ManyToOne
+    @JoinColumn(name = "schedule_service_id")
+    private TourScheduleService tourScheduleService;
+
 
 
 
