@@ -42,6 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         AND u.id IN (
             SELECT ur.user.id FROM UserRole ur WHERE ur.role.roleName = 'TOUR_GUIDE'
         )
+        AND u.deleted = FALSE
 """)
     List<User> findAvailableTourGuideByScheduleId(@Param("scheduleId") Long scheduleId);
 }

@@ -5,10 +5,14 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
+@Builder
 public class OperatorTransactionDTO {
     private Long id;
     private Double amount;
