@@ -57,7 +57,6 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "departure_time", columnDefinition = "TIME")
     private LocalTime departureTime;
 
-
     @OneToMany(mappedBy = "tourSchedule")
     private Set<TourOperationLog> operationLogs;
 

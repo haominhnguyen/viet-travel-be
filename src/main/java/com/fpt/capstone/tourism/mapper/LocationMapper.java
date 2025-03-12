@@ -13,4 +13,6 @@ public interface LocationMapper extends EntityMapper<LocationDTO, Location>{
     Location toEntity(LocationRequestDTO requestDTO);
     PublicLocationDTO toPublicLocationDTO(Location location);
     Location toEntity(PublicLocationDTO publicLocationDTO);
+    Location toEntity(LocationDTO locationDTO);
+    LocationDTO toDTO(Location location);
 }

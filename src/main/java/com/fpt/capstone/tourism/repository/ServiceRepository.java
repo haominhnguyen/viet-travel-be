@@ -50,6 +50,8 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     @Query("SELECT s FROM Service s WHERE s.id = :serviceId AND s.serviceProvider.id = :providerId")
     Optional<Service> findByIdAndServiceProviderId(@Param("serviceId") Long serviceId, @Param("providerId") Long providerId);
 
+    List<Service> findByIdIn(List<Long> ids);
+
     boolean existsByNameAndServiceProviderId(String name, Long providerId);
     boolean existsByNameAndServiceProviderIdAndIdNot(String name, Long providerId, Long serviceId);
 
