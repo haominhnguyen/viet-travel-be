@@ -12,8 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"tourDayServices", "serviceDetails"})
-@EqualsAndHashCode(callSuper = true, exclude = {"tourDayServices", "serviceDetails"})
+//@ToString(exclude = {"tourDayServices", "serviceDetails"})
+//@EqualsAndHashCode(callSuper = true, exclude = {"tourDayServices", "serviceDetails"})
 public class Service extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,6 +50,6 @@ public class Service extends BaseEntity{
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
     private List<TourDayService> tourDayServices;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
-    private Set<ServiceDetail> serviceDetails;
+//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
+//    private Set<ServiceDetail> serviceDetails;
 }
