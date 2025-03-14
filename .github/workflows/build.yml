@@ -1,5 +1,5 @@
 name: Backend Scan Build
-run-name: Start build at branch ${{ github.ref_name }}
+run-name: Start build at branch ${{ github.ref_name }} by @${{ github.actor }}
 
 on:
   push:
