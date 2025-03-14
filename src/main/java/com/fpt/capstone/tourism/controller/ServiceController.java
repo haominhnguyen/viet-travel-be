@@ -59,42 +59,42 @@ public class ServiceController {
     }
 
     @GetMapping("/details/{serviceId}")
-    public ResponseEntity<GeneralResponse<List<ServiceDetailDTO>>> getServiceDetailsByService(
+    public ResponseEntity<GeneralResponse<Object>> getServiceDetailsByService(
             @PathVariable Long serviceId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long providerId = getLoggedInServiceProviderId(userDetails);
         return ResponseEntity.ok(serviceService.getServiceDetailsByServiceId(serviceId, providerId));
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> createService(
-            @Valid @RequestBody ServiceRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            Long providerId = getLoggedInServiceProviderId(userDetails);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(serviceService.createService(requestDTO, providerId));
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception e) {
-            throw BusinessException.of(CREATE_SERVICE_FAIL, e);
-        }
-    }
-
-    @PutMapping("/update/{serviceId}")
-    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> updateService(
-            @PathVariable Long serviceId,
-            @Valid @RequestBody ServiceRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            Long providerId = getLoggedInServiceProviderId(userDetails);
-            return ResponseEntity.ok(serviceService.updateService(serviceId, requestDTO, providerId));
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception e) {
-            throw BusinessException.of(UPDATE_SERVICE_FAIL, e);
-        }
-    }
+//    @PostMapping("/create")
+//    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> createService(
+//            @Valid @RequestBody ServiceRequestDTO requestDTO,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        try {
+//            Long providerId = getLoggedInServiceProviderId(userDetails);
+//            return ResponseEntity.status(HttpStatus.CREATED)
+//                    .body(serviceService.createService(requestDTO, providerId));
+//        } catch (BusinessException be) {
+//            throw be;
+//        } catch (Exception e) {
+//            throw BusinessException.of(CREATE_SERVICE_FAIL, e);
+//        }
+//    }
+//
+//    @PutMapping("/update/{serviceId}")
+//    public ResponseEntity<GeneralResponse<ServiceResponseDTO>> updateService(
+//            @PathVariable Long serviceId,
+//            @Valid @RequestBody ServiceRequestDTO requestDTO,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        try {
+//            Long providerId = getLoggedInServiceProviderId(userDetails);
+//            return ResponseEntity.ok(serviceService.updateService(serviceId, requestDTO, providerId));
+//        } catch (BusinessException be) {
+//            throw be;
+//        } catch (Exception e) {
+//            throw BusinessException.of(UPDATE_SERVICE_FAIL, e);
+//        }
+//    }
 
     @PostMapping("/change-status/{serviceId}")
     public ResponseEntity<GeneralResponse<ServiceResponseDTO>> changeServiceStatus(
@@ -110,7 +110,6 @@ public class ServiceController {
             throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, e);
         }
     }
-
 
     private Long getLoggedInServiceProviderId(UserDetails userDetails) {
         if (userDetails == null) {

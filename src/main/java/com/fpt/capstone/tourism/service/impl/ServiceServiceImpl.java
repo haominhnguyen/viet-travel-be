@@ -7,12 +7,8 @@ import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
-import com.fpt.capstone.tourism.model.Service;
-import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceProvider;
-import com.fpt.capstone.tourism.repository.ServiceCategoryRepository;
-import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
-import com.fpt.capstone.tourism.repository.ServiceRepository;
+import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -44,6 +40,12 @@ public class ServiceServiceImpl implements ServiceService {
     private final TourDayServiceMapper tourDayServiceMapper;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private final RoomRepository roomRepository;
+    private final MealRepository mealRepository;
+    private final TransportRepository transportRepository;
+    private final RoomMapper roomMapper;
+    private final MealMapper mealMapper;
+    private final TransportMapper transportMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> getAllServices(
@@ -89,25 +91,39 @@ public class ServiceServiceImpl implements ServiceService {
         }
     }
 
-    public GeneralResponse<List<ServiceDetailDTO>> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
+    public GeneralResponse<Object> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
         try {
-            // Use a query that specifically fetches the service details to avoid the circular reference issue
-            Service service = serviceRepository.findByIdAndProviderIdWithServiceDetails(serviceId, providerId)
+            // Fetch the service first
+            Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
-            List<ServiceDetailDTO> serviceDetails = service.getServiceDetails()
-                    .stream()
-                    .map(serviceDetailMapper::toDTO)
-                    .collect(Collectors.toList());
+            String categoryName = service.getServiceCategory().getCategoryName();
 
-            return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
+            // Based on category name, fetch the appropriate details
+            if ("Hotel".equalsIgnoreCase(categoryName)) {
+                Room room = roomRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
+                return GeneralResponse.of(roomMapper.toDTO(room), SERVICE_DETAILS_RETRIEVED);
+            }
+            else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+                Meal meal = mealRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
+                return GeneralResponse.of(mealMapper.toDTO(meal), SERVICE_DETAILS_RETRIEVED);
+            }
+            else if ("Transport".equalsIgnoreCase(categoryName)) {
+                Transport transport = transportRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
+                return GeneralResponse.of(transportMapper.toDTO(transport), SERVICE_DETAILS_RETRIEVED);
+            }
+            else {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_CATEGORY_NOT_FOUND);
+            }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_SERVICE_DETAIL_FAIL);
         }
     }
-
 
 
     private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {

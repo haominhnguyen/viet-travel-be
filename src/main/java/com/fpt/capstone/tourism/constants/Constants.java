@@ -190,6 +190,10 @@ public class Constants {
         public static final String SERVICE_ID_REQUIRED = "Service ID is required for new tour day services";
         public static final String TOUR_DAY_UPDATE_SUCCESS = "Tour day updated successfully";
         public static final String TOUR_DAY_UPDATE_FAIL = "Failed to update tour day";
+
+        public static final String ROOM_NOT_FOUND = "Room not found";
+        public static final String MEAL_NOT_FOUND = "Meal not found";
+        public static final String TRANSPORT_NOT_FOUND = "Transport not found";
     }
 
 

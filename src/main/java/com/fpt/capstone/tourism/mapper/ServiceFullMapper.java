@@ -17,7 +17,7 @@ public interface ServiceFullMapper {
 //    @Mapping(target = "createdAt", ignore = true)
 //    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "tourDayServices", ignore = true)
-    @Mapping(target = "serviceDetails", ignore = true)
+    //@Mapping(target = "serviceDetails", ignore = true)
     Service toEntity(ServiceRequestDTO dto);
 
     @Mapping(target = "categoryId", source = "serviceCategory.id")
