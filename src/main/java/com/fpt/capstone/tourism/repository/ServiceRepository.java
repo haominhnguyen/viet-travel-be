@@ -44,8 +44,8 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findOtherServicesByProviderId(@Param("providerId")Long id);
 
 
-    @Query("SELECT s FROM Service s LEFT JOIN FETCH s.serviceDetails WHERE s.id = :serviceId AND s.serviceProvider.id = :providerId")
-    Optional<Service> findByIdAndProviderIdWithServiceDetails(@Param("serviceId") Long serviceId, @Param("providerId") Long providerId);
+//    @Query("SELECT s FROM Service s LEFT JOIN FETCH s.serviceDetails WHERE s.id = :serviceId AND s.serviceProvider.id = :providerId")
+//    Optional<Service> findByIdAndProviderIdWithServiceDetails(@Param("serviceId") Long serviceId, @Param("providerId") Long providerId);
 
     @Query("SELECT s FROM Service s WHERE s.id = :serviceId AND s.serviceProvider.id = :providerId")
     Optional<Service> findByIdAndServiceProviderId(@Param("serviceId") Long serviceId, @Param("providerId") Long providerId);

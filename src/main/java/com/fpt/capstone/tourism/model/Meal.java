@@ -2,9 +2,15 @@ package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.MealType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
 @Table(name = "meal")
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Meal extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -14,7 +14,7 @@ public interface ServiceService {
 
     //GeneralResponse<ServiceFullDTO> getServiceById(Long id, Long providerId);
     GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId);
-    GeneralResponse<List<ServiceDetailDTO>> getServiceDetailsByServiceId(Long serviceId, Long providerId);
+    GeneralResponse<Object> getServiceDetailsByServiceId(Long serviceId, Long providerId);
     GeneralResponse<ServiceResponseDTO> createService(ServiceRequestDTO requestDTO, Long providerId);
     GeneralResponse<ServiceResponseDTO> updateService(Long serviceId, ServiceRequestDTO requestDTO, Long providerId);
     GeneralResponse<ServiceResponseDTO> changeServiceStatus(Long serviceId, Boolean isDeleted, Long providerId);
