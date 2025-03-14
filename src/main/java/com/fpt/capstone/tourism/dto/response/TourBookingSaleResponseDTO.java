@@ -10,6 +10,8 @@ import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class TourBookingSaleResponseDTO {
@@ -19,6 +21,9 @@ public class TourBookingSaleResponseDTO {
     private String bookingCode;
     private TourBookingStatus status;
     private TourBookingCategory tourBookingCategory;
-    private BookedPersonDTO bookedPerson;
     private String reason;
+    private List<TourBookingCustomerDTO> customers;
+    private double paid;
+    private double total;
+    private PaymentMethod paymentMethod;
 }

@@ -10,6 +10,8 @@ import com.fpt.capstone.tourism.model.enums.TourType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -26,4 +28,5 @@ public class TourDetailSaleResponseDTO {
     private List<TagDTO> tags;
     private LocationDTO departLocation;
     private List<TourScheduleSaleResponseDTO> tourSchedules;
+    private LocalDateTime createdAt;
 }

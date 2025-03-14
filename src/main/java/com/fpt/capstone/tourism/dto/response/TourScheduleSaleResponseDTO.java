@@ -17,7 +17,6 @@ public class TourScheduleSaleResponseDTO {
     private Long id;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private TourPaxDTO tourPax;
     private String status;
     private StaffDTO operator;
 }
