@@ -100,17 +100,17 @@ public class ServiceServiceImpl implements ServiceService {
             String categoryName = service.getServiceCategory().getCategoryName();
 
             // Based on category name, fetch the appropriate details
-            if ("Hotel".equalsIgnoreCase(categoryName)) {
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Room room = roomRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
                 return GeneralResponse.of(roomMapper.toDTO(room), SERVICE_DETAILS_RETRIEVED);
             }
-            else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
                 return GeneralResponse.of(mealMapper.toDTO(meal), SERVICE_DETAILS_RETRIEVED);
             }
-            else if ("Transport".equalsIgnoreCase(categoryName)) {
+            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
                 return GeneralResponse.of(transportMapper.toDTO(transport), SERVICE_DETAILS_RETRIEVED);
@@ -168,38 +168,67 @@ public class ServiceServiceImpl implements ServiceService {
             ServiceCategory category = serviceCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND));
 
+            String categoryName = category.getCategoryName();
+
             // Validate service provider
             ServiceProvider provider = serviceProviderRepository.findById(providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_PROVIDER_NOT_FOUND));
 
-            // Validate dates
+            // Validate common fields
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-            //Validate prices
-            Validator.validatePrices(requestDTO.getNettPrice(),requestDTO.getSellingPrice());
+            Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
+            Validator.validateServiceDetails(requestDTO, categoryName);
 
-            // Check if service with the same name exists for this provider
             if (serviceRepository.existsByNameAndServiceProviderId(requestDTO.getName(), providerId)) {
                 throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
             }
-            // Map and set additional fields
+
+            // Create and save the service entity
             Service service = serviceFullMapper.toEntity(requestDTO);
             service.setServiceCategory(category);
             service.setServiceProvider(provider);
             service.setDeleted(false);
             service.setCreatedAt(LocalDateTime.now());
 
-            // Save and return
             Service savedService = serviceRepository.save(service);
-            return GeneralResponse.of(
-                    serviceFullMapper.toResponseDTO(savedService),
-                    SERVICE_CREATED
-            );
+
+            // Handle category-specific details
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Room room = new Room();
+                room.setService(savedService);
+                room.setCapacity(requestDTO.getRoomDetails().getCapacity());
+                room.setAvailableQuantity(requestDTO.getRoomDetails().getAvailableQuantity());
+                room.setFacilities(requestDTO.getRoomDetails().getFacilities());
+                room.setDeleted(false);
+                room.setCreatedAt(LocalDateTime.now());
+                roomRepository.save(room);
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Meal meal = new Meal();
+                meal.setService(savedService);
+                meal.setType(requestDTO.getMealDetails().getType());
+                meal.setMealDetail(requestDTO.getMealDetails().getMealDetail());
+                meal.setDeleted(false);
+                meal.setCreatedAt(LocalDateTime.now());
+                mealRepository.save(meal);
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+                Transport transport = new Transport();
+                transport.setService(savedService);
+                transport.setSeatCapacity(requestDTO.getTransportDetails().getSeatCapacity());
+                transport.setDeleted(false);
+                transport.setCreatedAt(LocalDateTime.now());
+                transportRepository.save(transport);
+            } else {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
+            }
+            ServiceResponseDTO responseDTO = createFullResponseDTO(savedService, categoryName);
+            return GeneralResponse.of(responseDTO, SERVICE_CREATED);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(CREATE_SERVICE_FAIL, ex);
         }
     }
+
 
     @Override
     public GeneralResponse<ServiceResponseDTO> updateService(Long serviceId, ServiceRequestDTO requestDTO, Long providerId) {
@@ -208,14 +237,19 @@ public class ServiceServiceImpl implements ServiceService {
             Service service = serviceRepository.findByIdAndServiceProviderId(serviceId, providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
-            // Validate service category
+            // Get the service category
             ServiceCategory category = serviceCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND));
 
+            String categoryName = category.getCategoryName();
+
             // Validate dates
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-            //Validate prices
-            Validator.validatePrices(requestDTO.getNettPrice(),requestDTO.getSellingPrice());
+            // Validate prices
+            Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
+
+            // Validate service type-specific details
+            Validator.validateServiceDetails(requestDTO, categoryName);
 
             // Check if service with the same name exists (excluding current service)
             if (serviceRepository.existsByNameAndServiceProviderIdAndIdNot(
@@ -223,7 +257,7 @@ public class ServiceServiceImpl implements ServiceService {
                 throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
             }
 
-            // Update fields
+            // Update common fields
             service.setName(requestDTO.getName());
             service.setNettPrice(requestDTO.getNettPrice());
             service.setSellingPrice(requestDTO.getSellingPrice());
@@ -233,17 +267,94 @@ public class ServiceServiceImpl implements ServiceService {
             service.setServiceCategory(category);
             service.setUpdatedAt(LocalDateTime.now());
 
-            // Save and return
+            // Save the updated service
             Service updatedService = serviceRepository.save(service);
-            return GeneralResponse.of(
-                    serviceFullMapper.toResponseDTO(updatedService),
-                    SERVICE_UPDATED
-            );
+
+            // Update specific service details based on category
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Room room = roomRepository.findByServiceId(serviceId)
+                        .orElseGet(() -> {
+                            Room newRoom = new Room();
+                            newRoom.setService(updatedService);
+                            newRoom.setDeleted(false);
+                            newRoom.setCreatedAt(LocalDateTime.now());
+                            return newRoom;
+                        });
+
+                room.setCapacity(requestDTO.getRoomDetails().getCapacity());
+                room.setAvailableQuantity(requestDTO.getRoomDetails().getAvailableQuantity());
+                room.setFacilities(requestDTO.getRoomDetails().getFacilities());
+                room.setUpdatedAt(LocalDateTime.now());
+                roomRepository.save(room);
+            }
+            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Meal meal = mealRepository.findByServiceId(serviceId)
+                        .orElseGet(() -> {
+                            Meal newMeal = new Meal();
+                            newMeal.setService(updatedService);
+                            newMeal.setDeleted(false);
+                            newMeal.setCreatedAt(LocalDateTime.now());
+                            return newMeal;
+                        });
+
+                meal.setType(requestDTO.getMealDetails().getType());
+                meal.setMealDetail(requestDTO.getMealDetails().getMealDetail());
+                meal.setUpdatedAt(LocalDateTime.now());
+                mealRepository.save(meal);
+            }
+            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+                Transport transport = transportRepository.findByServiceId(serviceId)
+                        .orElseGet(() -> {
+                            Transport newTransport = new Transport();
+                            newTransport.setService(updatedService);
+                            newTransport.setDeleted(false);
+                            newTransport.setCreatedAt(LocalDateTime.now());
+                            return newTransport;
+                        });
+
+                transport.setSeatCapacity(requestDTO.getTransportDetails().getSeatCapacity());
+                transport.setUpdatedAt(LocalDateTime.now());
+                transportRepository.save(transport);
+            }
+            else {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
+            }
+
+            // Create a response DTO that includes all details
+            ServiceResponseDTO responseDTO = createFullResponseDTO(updatedService, categoryName);
+
+            return GeneralResponse.of(responseDTO, SERVICE_UPDATED);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(UPDATE_SERVICE_FAIL, ex);
         }
+    }
+
+    // Helper method to create a full response DTO with all details
+    private ServiceResponseDTO createFullResponseDTO(Service service, String categoryName) {
+        ServiceResponseDTO responseDTO = serviceFullMapper.toResponseDTO(service);
+
+        if (HOTEL.equalsIgnoreCase(categoryName)) {
+            Room room = roomRepository.findByServiceId(service.getId()).orElse(null);
+            if (room != null) {
+                responseDTO.setRoomDetails(roomMapper.toDTO(room));
+            }
+        }
+        else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+            Meal meal = mealRepository.findByServiceId(service.getId()).orElse(null);
+            if (meal != null) {
+                responseDTO.setMealDetails(mealMapper.toDTO(meal));
+            }
+        }
+        else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+            Transport transport = transportRepository.findByServiceId(service.getId()).orElse(null);
+            if (transport != null) {
+                responseDTO.setTransportDetails(transportMapper.toDTO(transport));
+            }
+        }
+
+        return responseDTO;
     }
 
     @Override
@@ -253,25 +364,52 @@ public class ServiceServiceImpl implements ServiceService {
             Service service = serviceRepository.findByIdAndServiceProviderId(serviceId, providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
-            // Update status
+            // Get the service category name
+            String categoryName = service.getServiceCategory().getCategoryName();
+
+            // Update service status
             service.setDeleted(isDeleted);
             service.setUpdatedAt(LocalDateTime.now());
-
-            // Save and return
             Service updatedService = serviceRepository.save(service);
+
+            // Update status of associated service details based on category
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Room room = roomRepository.findByServiceId(serviceId).orElse(null);
+                if (room != null) {
+                    room.setDeleted(isDeleted);
+                    room.setUpdatedAt(LocalDateTime.now());
+                    roomRepository.save(room);
+                }
+            }
+            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Meal meal = mealRepository.findByServiceId(serviceId).orElse(null);
+                if (meal != null) {
+                    meal.setDeleted(isDeleted);
+                    meal.setUpdatedAt(LocalDateTime.now());
+                    mealRepository.save(meal);
+                }
+            }
+            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+                Transport transport = transportRepository.findByServiceId(serviceId).orElse(null);
+                if (transport != null) {
+                    transport.setDeleted(isDeleted);
+                    transport.setUpdatedAt(LocalDateTime.now());
+                    transportRepository.save(transport);
+                }
+            }
+
             String messageCode = isDeleted ? SERVICE_DELETED : SERVICE_RESTORED;
 
-            return GeneralResponse.of(
-                    serviceFullMapper.toResponseDTO(updatedService),
-                    messageCode
-            );
+            // Create a response DTO that includes all details
+            ServiceResponseDTO responseDTO = createFullResponseDTO(updatedService, categoryName);
+
+            return GeneralResponse.of(responseDTO, messageCode);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, ex);
         }
     }
-
 
 }
 
