@@ -235,4 +235,41 @@ public class BookingServiceImpl implements BookingService {
             throw BusinessException.of("Get Data failed", ex);
         }
     }
+
+    @Override
+    public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
+
+        try {
+
+
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            TourSchedule tourSchedule;
+            if(scheduleId != null) {
+                tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
+            } else {
+                tourSchedule = tour.getTourSchedules().get(0);
+            }
+
+            List<TourBooking> tourBookings = tourBookingRepository.findAllByTourAndTourSchedule(tour, tourSchedule);
+
+            //List<TourBookingSaleResponseDTO> tourBookingSaleResponseDTOS = tourBookings.stream().map(bookingMapper::toTourBookingSaleResponseDTO).toList();
+
+            List<TourBookingSaleResponseDTO> tourBookingSaleResponseDTOS = bookingHelper.setPaymentStatistics(tourBookings);
+
+            TourDetailSaleResponseDTO tourDetailSaleResponseDTO = bookingMapper.toTourDetailSaleResponseDTO(tour);
+            tourDetailSaleResponseDTO.setCreatedAt(tour.getCreatedAt());
+
+            TourListBookingDTO tourListBookingDTO = TourListBookingDTO.builder()
+                    .bookings(tourBookingSaleResponseDTOS)
+                    .tour(tourDetailSaleResponseDTO)
+                    .build();
+
+
+            return GeneralResponse.of(tourListBookingDTO);
+
+        }  catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+
+    }
 }

@@ -4,10 +4,12 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourBookingDTO;
 import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.TourBookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.TransactionRepository;
@@ -61,18 +63,10 @@ public class BookingHelperImpl implements BookingHelper {
             List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
 
             //Total = sum of transaction amount
-            double totalCost = tourBookingReceipts.stream().mapToDouble(Transaction::getAmount).sum();
+            double totalCost = getTotal(tourBookingReceipts);
 
 
-            double paid = 0;
-
-            //Calculate paid amount by sum cost account in transaction
-            for (Transaction transaction : tourBookingReceipts) {
-                List<CostAccount> costAccounts = transaction.getCostAccount();
-                if(costAccounts != null && !costAccounts.isEmpty()) {
-                    paid = costAccounts.stream().mapToDouble(CostAccount::getFinalAmount).sum();
-                }
-            }
+            double paid = getPaidAmount(tourBookingReceipts);
 
 
             User operator = tourBooking.getTourSchedule().getOperator();
@@ -147,5 +141,45 @@ public class BookingHelperImpl implements BookingHelper {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    @Override
+    public Double getPaidAmount(List<Transaction> tourBookingReceipts) {
+        //Calculate paid amount by sum cost account in transaction
+        for (Transaction transaction : tourBookingReceipts) {
+            List<CostAccount> costAccounts = transaction.getCostAccount();
+            if(costAccounts != null && !costAccounts.isEmpty()) {
+                return costAccounts.stream()
+                        .filter(costAccount -> costAccount.getStatus() == CostAccountStatus.PAID) // Filter only PAID status
+                        .mapToDouble(CostAccount::getAmount) // Assuming getAmount() returns a numeric value
+                        .sum();
+            }
+        }
+        return 0.0;
+    }
+
+    @Override
+    public Double getTotal(List<Transaction> tourBookingReceipts) {
+        return tourBookingReceipts.stream().mapToDouble(Transaction::getAmount).sum();
+    }
+
+    @Override
+    public List<TourBookingSaleResponseDTO> setPaymentStatistics(List<TourBooking> tourBookings) {
+
+        List<TourBookingSaleResponseDTO> tourBookingSaleResponseDTOS = new ArrayList<>();
+
+        for (TourBooking tourBooking : tourBookings) {
+
+            TourBookingSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toTourBookingSaleResponseDTO(tourBooking);
+            List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+            double totalCost = getTotal(tourBookingReceipts);
+            double paid = getPaidAmount(tourBookingReceipts);
+            tourBookingSaleResponseDTO.setPaid(paid);
+            tourBookingSaleResponseDTO.setTotal(totalCost);
+            tourBookingSaleResponseDTOS.add(tourBookingSaleResponseDTO);
+        }
+
+
+        return tourBookingSaleResponseDTOS;
     }
 }
