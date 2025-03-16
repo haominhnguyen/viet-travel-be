@@ -2,6 +2,8 @@ package com.fpt.capstone.tourism.helper.validator;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
@@ -360,4 +362,53 @@ public class Validator {
         validateTransportDetails(requestDTO.getTransportDetails(), categoryName);
     }
 
+    public static void validateTourRequest(TourRequestDTO tourRequestDTO) {
+            if (tourRequestDTO == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_REQUEST_NULL);
+            }
+
+            if (!StringUtils.hasText(tourRequestDTO.getName())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_NAME_EMPTY);
+            }
+
+            if (tourRequestDTO.getNumberDays() == null || tourRequestDTO.getNumberDays() <= 0) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, NUMBER_DAYS_INVALID);
+            }
+
+            if (tourRequestDTO.getNumberNights() == null || tourRequestDTO.getNumberNights() < 0) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, NUMBER_NIGHTS_INVALID);
+            }
+
+            if (tourRequestDTO.getLocationIds() == null || tourRequestDTO.getLocationIds().isEmpty()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_MUST_HAVE_LOCATION);
+            }
+
+            if (tourRequestDTO.getDepartLocationId() == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, DEPART_LOCATION_NOT_FOUND);
+            }
+
+            try {
+                if (tourRequestDTO.getTourType() != null) {
+                    TourType.valueOf(tourRequestDTO.getTourType());
+                } else {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_TYPE_REQUIRED);
+                }
+            } catch (IllegalArgumentException e) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_TYPE_INVALID);
+            }
+
+            try {
+                if (tourRequestDTO.getTourStatus() != null) {
+                    TourStatus.valueOf(tourRequestDTO.getTourStatus());
+                } else {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_STATUS_REQUIRED);
+                }
+            } catch (IllegalArgumentException e) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_STATUS_INVALID);
+            }
+
+            if (tourRequestDTO.getMarkUpPercent() == null || tourRequestDTO.getMarkUpPercent() < 0) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, MARKUP_PERCENT_INVALID);
+            }
+    }
 }
