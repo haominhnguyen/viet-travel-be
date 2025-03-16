@@ -59,5 +59,11 @@ public class SalesmanController {
     }
 
 
+    @GetMapping("/bookings/detail/{tourBookingId}")
+    public ResponseEntity<?> getBookingsDetail(@PathVariable Long tourBookingId) {
+        return ResponseEntity.ok(bookingService.saleViewBookingDetails(tourBookingId));
+    }
+
+
 
 }

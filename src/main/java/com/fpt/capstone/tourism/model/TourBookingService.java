@@ -14,14 +14,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "tour_schedule_service")
-public class TourScheduleService extends BaseEntity{
+@Table(name = "tour_booking_service")
+public class TourBookingService extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "tourScheduleService")
-    private List<TourBooking> bookings;
+    @ManyToOne
+    @JoinColumn(name = "tour_booking_id")
+    private TourBooking booking;
 
     @ManyToOne
     @JoinColumn(name = "service_id")

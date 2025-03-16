@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.helper.IHelper;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TourBookingDetailSaleResponseDTO;
 import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
@@ -19,4 +20,6 @@ public interface BookingHelper {
     Double getPaidAmount(List<Transaction> tourBookingReceipts);
     Double getTotal(List<Transaction> tourBookingReceipts);
     List<TourBookingSaleResponseDTO>  setPaymentStatistics(List<TourBooking> tourBookings);
+    TourBookingSaleResponseDTO setPaymentStatistic(TourBooking tourBooking);
+    TourBookingDetailSaleResponseDTO setPaymentStatisticForBookingDetail(TourBooking tourBooking);
 }

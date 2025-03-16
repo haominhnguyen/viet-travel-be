@@ -18,4 +18,7 @@ public interface BookingService {
 
 
      GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId);
+
+
+     GeneralResponse<?>saleViewBookingDetails(Long bookingId);
 }
