@@ -24,7 +24,7 @@ public class TourManagementController {
     private final TourDayService tourDayService;
 
     @GetMapping("/list")
-    public ResponseEntity<GeneralResponse<PagingDTO<List<TourSimpleDTO>>>> getAllTours(
+    public ResponseEntity<GeneralResponse<PagingDTO<List<TourBasicDTO>>>> getAllTours(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean isDeleted,
             @RequestParam(required = false) Boolean isOpened,

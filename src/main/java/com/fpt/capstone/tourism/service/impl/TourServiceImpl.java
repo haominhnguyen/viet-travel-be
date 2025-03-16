@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TagDTO;
-import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
-import com.fpt.capstone.tourism.dto.common.TourSimpleDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.*;
@@ -27,9 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -205,11 +200,11 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable) {
+    public GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable) {
         Specification<Tour> spec = buildSimpleSearchSpecification(keyword, isDeleted, isOpened);
         Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
-        List<TourSimpleDTO> tourDTOs = tourPage.getContent().stream()
-                .map(this::convertToTourSimpleDTO)
+        List<TourBasicDTO> tourDTOs = tourPage.getContent().stream()
+                .map(this::convertToTourBasicDTO)
                 .collect(Collectors.toList());
         return buildSimplePagedResponse(tourPage, tourDTOs);
     }
@@ -243,8 +238,8 @@ public class TourServiceImpl implements TourService {
         }
     }
 
-    private TourSimpleDTO convertToTourSimpleDTO(Tour tour) {
-        return TourSimpleDTO.builder()
+    private TourBasicDTO convertToTourBasicDTO(Tour tour) {
+        return TourBasicDTO.builder()
                 .id(tour.getId())
                 .name(tour.getName())
                 .highlights(tour.getHighlights())
@@ -252,6 +247,7 @@ public class TourServiceImpl implements TourService {
                 .numberNight(tour.getNumberNights())
                 .note(tour.getNote())
                 .deleted(tour.getDeleted())
+                .tourStatus(tour.getTourStatus())
                 .tourType(tour.getTourType())
                 .markUpPercent(tour.getMarkUpPercent())
                 .privacy(tour.getPrivacy())
@@ -361,8 +357,8 @@ public class TourServiceImpl implements TourService {
         };
     }
 
-    private GeneralResponse<PagingDTO<List<TourSimpleDTO>>> buildSimplePagedResponse(Page<Tour> tourPage, List<TourSimpleDTO> tourDTOs) {
-        PagingDTO<List<TourSimpleDTO>> pagingDTO = PagingDTO.<List<TourSimpleDTO>>builder()
+    private GeneralResponse<PagingDTO<List<TourBasicDTO>>> buildSimplePagedResponse(Page<Tour> tourPage, List<TourBasicDTO> tourDTOs) {
+        PagingDTO<List<TourBasicDTO>> pagingDTO = PagingDTO.<List<TourBasicDTO>>builder()
                 .page(tourPage.getNumber())
                 .size(tourPage.getSize())
                 .total(tourPage.getTotalElements())

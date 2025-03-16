@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 @Data
 @Entity
+@Builder
 @Table(name = "room")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,5 +41,4 @@ public class Room extends BaseEntity{
 
     @Column(columnDefinition = "text")
     private String facilities; // Danh sách các dịch vụ trong phòng (bồn tắm, tủ lạnh, wifi)
-
 }

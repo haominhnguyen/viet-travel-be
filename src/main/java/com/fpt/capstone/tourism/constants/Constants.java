@@ -194,6 +194,23 @@ public class Constants {
         public static final String ROOM_NOT_FOUND = "Room not found";
         public static final String MEAL_NOT_FOUND = "Meal not found";
         public static final String TRANSPORT_NOT_FOUND = "Transport not found";
+        public static final String HOTEL = "Hotel";
+        public static final String RESTAURANT = "Restaurant";
+        public static final String TRANSPORT = "Transport";
+
+        public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
+        public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";
+        public static final String NEGATIVE_AVAILABLE_QUANTITY = "Available quantity must not be negative";
+        public static final String UNEXPECTED_ROOM_DETAILS = "Room details provided for non-hotel service";
+
+        public static final String MEAL_DETAILS_REQUIRED = "Meal details are required for restaurant services";
+        public static final String MEAL_TYPE_REQUIRED = "Meal type must be specified";
+        public static final String UNEXPECTED_MEAL_DETAILS = "Meal details provided for non-restaurant service";
+
+        public static final String TRANSPORT_DETAILS_REQUIRED = "Transport details are required for transport services";
+        public static final String INVALID_SEAT_CAPACITY = "Seat capacity must be greater than zero";
+        public static final String UNEXPECTED_TRANSPORT_DETAILS = "Transport details provided for non-transport service";
+
     }
 
 

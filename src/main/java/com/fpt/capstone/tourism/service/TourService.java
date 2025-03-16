@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TourBasicDTO;
 import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
 import com.fpt.capstone.tourism.dto.common.TourSimpleDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -21,7 +22,7 @@ public interface TourService {
     List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds);
 
 
-    GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable);
+    GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened, Pageable pageable);
 
     GeneralResponse<TourDetailDTO> getTourDetail(Long id);
 
