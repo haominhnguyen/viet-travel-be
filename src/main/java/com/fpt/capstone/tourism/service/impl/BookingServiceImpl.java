@@ -272,4 +272,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
     }
+
+    @Override
+    public GeneralResponse<?> saleViewBookingDetails(Long bookingId) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(bookingId).orElseThrow();
+            return GeneralResponse.of(bookingHelper.setPaymentStatisticForBookingDetail(tourBooking));
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+    }
 }

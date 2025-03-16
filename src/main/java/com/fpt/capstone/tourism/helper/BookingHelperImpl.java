@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.helper;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourBookingDTO;
+import com.fpt.capstone.tourism.dto.common.TourBookingDetailSaleResponseDTO;
 import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
@@ -12,6 +13,7 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.TourBookingCustomerRepository;
+import com.fpt.capstone.tourism.repository.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.TransactionRepository;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -37,6 +39,7 @@ public class BookingHelperImpl implements BookingHelper {
     private final TransactionRepository transactionRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final TourBookingCustomerMapper tourBookingCustomerMapper;
+    private final TourScheduleRepository tourScheduleRepository;
 
     @Override
     public String generateBookingCode(Long tourId, Long scheduleId, Long customerId) {
@@ -169,17 +172,35 @@ public class BookingHelperImpl implements BookingHelper {
         List<TourBookingSaleResponseDTO> tourBookingSaleResponseDTOS = new ArrayList<>();
 
         for (TourBooking tourBooking : tourBookings) {
-
-            TourBookingSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toTourBookingSaleResponseDTO(tourBooking);
-            List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
-            double totalCost = getTotal(tourBookingReceipts);
-            double paid = getPaidAmount(tourBookingReceipts);
-            tourBookingSaleResponseDTO.setPaid(paid);
-            tourBookingSaleResponseDTO.setTotal(totalCost);
+            TourBookingSaleResponseDTO tourBookingSaleResponseDTO = setPaymentStatistic(tourBooking);
             tourBookingSaleResponseDTOS.add(tourBookingSaleResponseDTO);
         }
 
 
         return tourBookingSaleResponseDTOS;
+    }
+
+    @Override
+    public TourBookingSaleResponseDTO setPaymentStatistic(TourBooking tourBooking) {
+        TourBookingSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toTourBookingSaleResponseDTO(tourBooking);
+        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+        double totalCost = getTotal(tourBookingReceipts);
+        double paid = getPaidAmount(tourBookingReceipts);
+        tourBookingSaleResponseDTO.setPaid(paid);
+        tourBookingSaleResponseDTO.setTotal(totalCost);
+        return tourBookingSaleResponseDTO;
+    }
+
+    @Override
+    public TourBookingDetailSaleResponseDTO setPaymentStatisticForBookingDetail(TourBooking tourBooking) {
+        TourBookingDetailSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toBookingDetailSaleResponseDTO(tourBooking);
+        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+        double totalCost = getTotal(tourBookingReceipts);
+        double paid = getPaidAmount(tourBookingReceipts);
+        tourBookingSaleResponseDTO.setPaid(paid);
+        tourBookingSaleResponseDTO.setTotal(totalCost);
+        tourBookingSaleResponseDTO.setSchedule(tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId()));
+        tourBookingSaleResponseDTO.setCreatedAt(tourBooking.getCreatedAt());
+        return tourBookingSaleResponseDTO;
     }
 }

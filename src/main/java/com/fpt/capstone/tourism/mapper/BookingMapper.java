@@ -30,8 +30,17 @@ public interface BookingMapper {
     @Mapping(target = "tourImages", ignore = true)
     TourDTO toTourDTO(Tour tour);
 
-
+    TourBookingDetailSaleResponseDTO toBookingDetailSaleResponseDTO(TourBooking tourBooking);
     TourDetailSaleResponseDTO toTourDetailSaleResponseDTO(Tour tour);
+
+    @Mapping(target = "createdAt", source = "createdAt")
+    TransactionDTO toTransactionDTO(Transaction transaction);
+
+
+    CostAccountDTO toCostAccountDTO(CostAccount costAccount);
+
+    TourSupportInfoDTO toTourSupportInfoDTO(Tour tour);
+
 
     @Mapping(target = "paid", ignore = true)
     @Mapping(target = "total", ignore = true)
