@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.common;
+package com.fpt.capstone.tourism.dto.request;
 
 import lombok.*;
 
@@ -6,11 +6,9 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourDayServiceFullDTO {
+public class TourDayServiceUpdateRequestDTO {
     private Long id;
     private Long serviceId;
-    private String serviceName;
-    private String serviceCategoryName;
     private Integer quantity;
     private Double sellingPrice;
 }

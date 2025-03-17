@@ -1,19 +1,22 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.TourDayAllRequestDTO;
+import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.repository.TagRepository;
-import com.fpt.capstone.tourism.repository.TourImageRepository;
-import com.fpt.capstone.tourism.repository.TourRepository;
-import com.fpt.capstone.tourism.repository.TourScheduleRepository;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,28 +24,31 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
 @RequiredArgsConstructor
-@Service
+@org.springframework.stereotype.Service
 public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
-    private final TourMapper tourMapper;
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
     private final TourImageRepository tourImageRepository;
     private final TagRepository tagRepository;
     private final TagMapper tagMapper;
     private final TourDayMapper tourDayMapper;
+    private final LocationRepository locationRepository;
+    private final TourDayAllMapper tourDayAllMapper;
+    private final TourDayRepository tourDayRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
+    private final ServiceRepository serviceRepository;
+    private final TourDayResponseMapper tourDayResponseMapper;
+    private final TourDayServiceFullMapper tourDayServiceFullMapper;
 
     @Override
     public PublicTourDTO findTopTourOfYear() {
@@ -237,6 +243,296 @@ public class TourServiceImpl implements TourService {
             throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
     }
+
+//    @Override
+//    @Transactional
+//    public GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser) {
+//        try {
+//            // Validate input
+//            Validator.validateTourRequest(tourRequestDTO);
+//
+//            // Create tour entity
+//            Tour tour = new Tour();
+//            tour.setName(tourRequestDTO.getName());
+//            tour.setHighlights(tourRequestDTO.getHighlights());
+//            tour.setNumberDays(tourRequestDTO.getNumberDays());
+//            tour.setNumberNights(tourRequestDTO.getNumberNights());
+//            tour.setNote(tourRequestDTO.getNote());
+//            tour.setDeleted(false);
+//
+//            // Set locations
+//            List<Location> locations = locationRepository.findAllById(tourRequestDTO.getLocationIds());
+//            tour.setLocations(locations);
+//
+//            // Set tags
+//            if (tourRequestDTO.getTagIds() != null && !tourRequestDTO.getTagIds().isEmpty()) {
+//                List<Tag> tags = tagRepository.findAllById(tourRequestDTO.getTagIds());
+//                tour.setTags(tags);
+//            } else {
+//                tour.setTags(new ArrayList<>());
+//            }
+//
+//            // Set tour type and status
+//            tour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
+//            tour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
+//
+//            // Set departure location
+//            Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, DEPART_LOCATION_NOT_FOUND));
+//            tour.setDepartLocation(departLocation);
+//
+//            // Set markup percent and privacy
+//            tour.setMarkUpPercent(tourRequestDTO.getMarkUpPercent());
+//            tour.setPrivacy(tourRequestDTO.getPrivacy());
+//
+//            // Set created by - using the user passed from controller
+//            tour.setCreatedBy(currentUser);
+//
+//            // Save tour
+//            Tour savedTour = tourRepository.save(tour);
+//
+//            // Create and save tour images
+//            if (tourRequestDTO.getTourImages() != null && !tourRequestDTO.getTourImages().isEmpty()) {
+//                List<TourImage> tourImages = tourRequestDTO.getTourImages().stream()
+//                        .map(imageDTO -> {
+//                            TourImage tourImage = new TourImage();
+//                            tourImage.setImageUrl(imageDTO.getImageUrl());
+//                            tourImage.setDeleted(false);
+//                            tourImage.setTour(savedTour);
+//                            return tourImage;
+//                        })
+//                        .collect(Collectors.toList());
+//                savedTour.setTourImages(tourImages);
+//            }
+//
+//            // Create and save tour days
+//            if (tourRequestDTO.getTourDays() != null && !tourRequestDTO.getTourDays().isEmpty()) {
+//                List<TourDay> tourDays = tourRequestDTO.getTourDays().stream()
+//                        .map(dayDTO -> {
+//                            TourDay tourDay = new TourDay();
+//                            tourDay.setTitle(dayDTO.getTitle());
+//                            tourDay.setContent(dayDTO.getContent());
+//                            tourDay.setMealPlan(dayDTO.getMealPlan());
+//                            tourDay.setDeleted(false);
+//                            tourDay.setTour(savedTour);
+//
+//                            // Set location
+//                            Location location = locationRepository.findById(dayDTO.getLocationId())
+//                                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
+//                            tourDay.setLocation(location);
+//
+//                            return tourDay;
+//                        })
+//                        .collect(Collectors.toList());
+//                savedTour.setTourDays(tourDays);
+//            }
+//
+//            // Save tour with relationships
+//            Tour completeTour = tourRepository.save(savedTour);
+//
+//            // Map to response DTO
+//            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(completeTour);
+//
+//            return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_CREATE_SUCCESS, tourResponseDTO);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(TOUR_CREATE_FAIL, ex);
+//        }
+//    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser) {
+        try {
+            // Validate input
+            Validator.validateTourRequest(tourRequestDTO);
+
+            // Create tour entity
+            Tour tour = new Tour();
+            tour.setName(tourRequestDTO.getName());
+            tour.setHighlights(tourRequestDTO.getHighlights());
+            tour.setNumberDays(tourRequestDTO.getNumberDays());
+            tour.setNumberNights(tourRequestDTO.getNumberNights());
+            tour.setNote(tourRequestDTO.getNote());
+            tour.setDeleted(false);
+
+            // Set locations
+            List<Location> locations = locationRepository.findAllById(tourRequestDTO.getLocationIds());
+            tour.setLocations(locations);
+
+            // Set tags
+            if (tourRequestDTO.getTagIds() != null && !tourRequestDTO.getTagIds().isEmpty()) {
+                List<Tag> tags = tagRepository.findAllById(tourRequestDTO.getTagIds());
+                tour.setTags(tags);
+            } else {
+                tour.setTags(new ArrayList<>());
+            }
+
+            // Set tour type and status
+            tour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
+            tour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
+
+            // Set departure location
+            Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, DEPART_LOCATION_NOT_FOUND));
+            tour.setDepartLocation(departLocation);
+
+            // Set markup percent and privacy
+            tour.setMarkUpPercent(tourRequestDTO.getMarkUpPercent());
+            tour.setPrivacy(tourRequestDTO.getPrivacy());
+
+            // Set created by - using the user passed from controller
+            tour.setCreatedBy(currentUser);
+
+            // Save tour first to get ID
+            Tour savedTour = tourRepository.save(tour);
+
+            // Create and save tour images
+            if (tourRequestDTO.getTourImages() != null && !tourRequestDTO.getTourImages().isEmpty()) {
+                List<TourImage> tourImages = tourRequestDTO.getTourImages().stream()
+                        .map(imageDTO -> {
+                            TourImage tourImage = new TourImage();
+                            tourImage.setImageUrl(imageDTO.getImageUrl());
+                            tourImage.setDeleted(false);
+                            tourImage.setTour(savedTour);
+                            return tourImage;
+                        })
+                        .collect(Collectors.toList());
+                tourImageRepository.saveAll(tourImages);
+                savedTour.setTourImages(tourImages);
+            } else {
+                savedTour.setTourImages(new ArrayList<>());
+            }
+            // Map to response DTO
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(savedTour);
+
+            return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_CREATE_SUCCESS, tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(TOUR_CREATE_FAIL, ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO,User currentUser) {
+        try {
+            // Validate input
+            Validator.validateTourRequest(tourRequestDTO);
+
+            // Get existing tour
+            Tour existingTour = tourRepository.findById(id)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,TOUR_NOT_FOUND));
+
+            if (Boolean.TRUE.equals(existingTour.getDeleted())) {
+                throw BusinessException.of(HttpStatus.NOT_FOUND,TOUR_NOT_FOUND);
+            }
+
+            // Update tour entity
+            existingTour.setName(tourRequestDTO.getName());
+            existingTour.setHighlights(tourRequestDTO.getHighlights());
+            existingTour.setNumberDays(tourRequestDTO.getNumberDays());
+            existingTour.setNumberNights(tourRequestDTO.getNumberNights());
+            existingTour.setNote(tourRequestDTO.getNote());
+
+            // Update locations
+            List<Location> locations = locationRepository.findAllById(tourRequestDTO.getLocationIds());
+            existingTour.setLocations(locations);
+
+            // Update tags
+            if (tourRequestDTO.getTagIds() != null && !tourRequestDTO.getTagIds().isEmpty()) {
+                List<Tag> tags = tagRepository.findAllById(tourRequestDTO.getTagIds());
+                existingTour.setTags(tags);
+            } else {
+                existingTour.setTags(new ArrayList<>());
+            }
+
+            // Update tour type and status
+            existingTour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
+            existingTour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
+
+            // Update departure location
+            Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,DEPART_LOCATION_NOT_FOUND));
+            existingTour.setDepartLocation(departLocation);
+
+            // Update markup percent and privacy
+            existingTour.setMarkUpPercent(tourRequestDTO.getMarkUpPercent());
+            existingTour.setPrivacy(tourRequestDTO.getPrivacy());
+
+            // Save updated tour
+            Tour updatedTour = tourRepository.save(existingTour);
+
+            // Update tour images (mark existing as deleted and add new ones)
+            if (tourRequestDTO.getTourImages() != null && !tourRequestDTO.getTourImages().isEmpty()) {
+                // Mark existing images as deleted
+                updatedTour.getTourImages().forEach(image -> image.setDeleted(true));
+
+                // Add new images
+                List<TourImage> newTourImages = tourRequestDTO.getTourImages().stream()
+                        .map(imageDTO -> {
+                            TourImage tourImage = new TourImage();
+                            tourImage.setImageUrl(imageDTO.getImageUrl());
+                            tourImage.setDeleted(false);
+                            tourImage.setTour(updatedTour);
+                            return tourImage;
+                        })
+                        .collect(Collectors.toList());
+                updatedTour.getTourImages().addAll(newTourImages);
+            }
+            // Save tour with updated relationships
+            Tour completeTour = tourRepository.save(updatedTour);
+            // Map to response DTO
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(completeTour);
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_UPDATE_SUCCESS, tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(TOUR_UPDATE_FAIL, ex);
+        }
+    }
+
+    private TourResponseDTO mapToTourResponseDTO(Tour tour) {
+        return TourResponseDTO.builder()
+                .id(tour.getId())
+                .name(tour.getName())
+                .highlights(tour.getHighlights())
+                .numberDays(tour.getNumberDays())
+                .numberNights(tour.getNumberNights())
+                .note(tour.getNote())
+                .locations(tour.getLocations().stream()
+                        .map(locationMapper::toPublicLocationDTO)
+                        .collect(Collectors.toList()))
+                .tags(tour.getTags().stream()
+                        .map(tagMapper::toDTO)
+                        .collect(Collectors.toList()))
+                .tourType(tour.getTourType().name())
+                .tourStatus(tour.getTourStatus().name())
+                .departLocation(locationMapper.toPublicLocationDTO(tour.getDepartLocation()))
+                .markUpPercent(tour.getMarkUpPercent())
+                .privacy(tour.getPrivacy())
+                .createdDate(tour.getCreatedAt())
+                .updatedDate(tour.getUpdatedAt())
+                .createdBy(mapToUserBasicDTO(tour.getCreatedBy()))
+                .tourImages(tour.getTourImages().stream()
+                        .filter(image -> !Boolean.TRUE.equals(image.getDeleted()))
+                        .map(tourImageMapper::toPublicTourImageDTO)
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    private UserBasicDTO mapToUserBasicDTO(User user) {
+        return UserBasicDTO.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .avatarImage(user.getAvatarImage())
+                .build();
+    }
+
 
     private TourBasicDTO convertToTourBasicDTO(Tour tour) {
         return TourBasicDTO.builder()
