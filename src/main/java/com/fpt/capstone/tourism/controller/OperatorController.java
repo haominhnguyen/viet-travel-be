@@ -81,4 +81,9 @@ public class OperatorController {
     public ResponseEntity<GeneralResponse<List<OperatorTransactionDTO>>> getListTransaction(@PathVariable Long scheduleId) {
         return ResponseEntity.ok(operatorService.getListTransaction(scheduleId));
     }
+
+    @GetMapping("/tour-detail/{scheduleId}/list-service")
+    public ResponseEntity<GeneralResponse<OperatorServiceListDTO>> getListService(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListService(scheduleId));
+    }
 }

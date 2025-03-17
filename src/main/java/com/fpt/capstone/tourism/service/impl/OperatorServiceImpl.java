@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -43,6 +44,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final TourOperationLogRepository logRepository;
     private final TransactionRepository transactionRepository;
+    private final TourScheduleServiceRepository scheduleServiceRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -359,6 +361,53 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
         } catch  (Exception ex) {
             throw BusinessException.of("Get list transaction fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId) {
+        try {
+            //Tìm xem với scheduleId này thì có những service gì
+            List<TourScheduleService> scheduleServices = scheduleServiceRepository.findByTourSchedule_Id(scheduleId);
+
+//            List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
+//                List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
+//                        .findByTourBookingId(booking.getId())
+//                        .stream()
+//                        .map(customerFullMapper::toDto)
+//                        .collect(Collectors.toList());
+//
+//                OperatorTourCustomerDTO responseDTO = OperatorTourCustomerDTO.builder()
+//                        .tourBookingId(booking.getId())
+//                        .tourBookingCategory(booking.getTourBookingCategory())
+//                        .listCustomer(customers)
+//                        .build();
+//                return responseDTO;
+
+            //Tìm list tour booking ứng với scheduleId và serviceId
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<OperatorServiceDTO> responseList = scheduleServices.stream()
+                    .map(scheduleService -> {
+
+
+
+                            }
+                    ).collect(Collectors.toList());
+            OperatorServiceDTO.builder()
+                    .serviceId(scheduleService.getService().getId())
+                    .serviceName(scheduleService.getService().getName())
+                    .serviceCategory(scheduleService.getService().getServiceCategory().getCategoryName())
+                    .usingDate(scheduleService.getService().getStartDate())
+                    .requestQuantity(scheduleService.getRequestedQuantity())
+                    .currentQuantity(scheduleService.getCurrentQuantity())
+                    .bookingStatus(scheduleService.getStatus().toString())
+                    .paymentStatus(scheduleServiceRepository.findPaymentStatusByTourBookingId(scheduleService.))
+                    .build()
+
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service success", responseList);
+        } catch  (Exception ex) {
+            throw BusinessException.of("Get list service fail", ex);
         }
     }
 
