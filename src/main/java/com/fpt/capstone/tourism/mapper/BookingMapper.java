@@ -57,5 +57,7 @@ public interface BookingMapper {
         return dto;
     }
 
+    TourBookingCustomerDTO toTourBookingCustomerDTO(TourBookingCustomer customer);
+    TourBookingCustomer toTourBookingCustomer(TourBookingCustomerDTO tourBookingCustomerDTO);
 
 }

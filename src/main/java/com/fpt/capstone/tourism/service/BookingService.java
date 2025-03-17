@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -20,5 +21,12 @@ public interface BookingService {
      GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId);
 
 
-     GeneralResponse<?>saleViewBookingDetails(Long bookingId);
+     GeneralResponse<?> saleViewBookingDetails(Long bookingId);
+
+     GeneralResponse<?> getTourBookingCustomers(Long bookingId);
+
+     GeneralResponse<?> changeCustomerStatus(Long customerId);
+
+
+     GeneralResponse<?> updateCustomers(UpdateCustomersRequestDTO updateCustomersRequestDTO);
 }

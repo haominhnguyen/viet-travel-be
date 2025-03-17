@@ -2,7 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
+import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
@@ -65,5 +65,21 @@ public class SalesmanController {
     }
 
 
+    @GetMapping("/bookings/customers/list/{tourBookingId}")
+    public ResponseEntity<?> getBookingCustomers(@PathVariable Long tourBookingId) {
+        return ResponseEntity.ok(bookingService.getTourBookingCustomers(tourBookingId));
+    }
+
+
+    @PostMapping("/bookings/customers/change-status")
+    public ResponseEntity<?> updateCustomerStatus(@RequestBody Long tourBookingCustomerId) {
+        return ResponseEntity.ok(bookingService.changeCustomerStatus(tourBookingCustomerId));
+    }
+
+
+    @PostMapping("/bookings/customers/update")
+    public ResponseEntity<?> updateCustomers(@RequestBody UpdateCustomersRequestDTO updateCustomersRequestDTO) {
+        return ResponseEntity.ok(bookingService.updateCustomers(updateCustomersRequestDTO));
+    }
 
 }
