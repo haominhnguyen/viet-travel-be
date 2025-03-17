@@ -8,10 +8,7 @@ import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -45,6 +42,26 @@ public class SalesmanController {
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ok(bookingService.getTours(page, size, keyword, isDeleted, sortField, sortDirection, tourType));
+    }
+
+
+    @GetMapping("/tours/list-booking/{tourId}/{scheduleId}")
+    public ResponseEntity<?> getTourListBooking(
+            @PathVariable Long tourId,
+            @PathVariable(required = false) Long scheduleId) {
+        return ResponseEntity.ok(bookingService.getTourListBookings(tourId, scheduleId));
+    }
+
+    @GetMapping("/tours/list-booking/{tourId}")
+    public ResponseEntity<?> getTourListBookingWithoutSchedule(
+            @PathVariable Long tourId) {
+        return ResponseEntity.ok(bookingService.getTourListBookings(tourId, null));
+    }
+
+
+    @GetMapping("/bookings/detail/{tourBookingId}")
+    public ResponseEntity<?> getBookingsDetail(@PathVariable Long tourBookingId) {
+        return ResponseEntity.ok(bookingService.saleViewBookingDetails(tourBookingId));
     }
 
 

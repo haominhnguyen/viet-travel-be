@@ -1,11 +1,16 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TourBasicDTO;
 import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
 import com.fpt.capstone.tourism.dto.common.TourSimpleDTO;
+import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
+import com.fpt.capstone.tourism.model.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -21,10 +26,15 @@ public interface TourService {
     List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds);
 
 
-    GeneralResponse<PagingDTO<List<TourSimpleDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable);
+    GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened, Pageable pageable);
 
     GeneralResponse<TourDetailDTO> getTourDetail(Long id);
 
+    @Transactional
+    GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser);
+
+    @Transactional
+    GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO, User currentUser);
 
 
 }

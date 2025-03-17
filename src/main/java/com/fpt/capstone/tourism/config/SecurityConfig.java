@@ -38,7 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/ceo/**").hasAnyAuthority("CEO")
                         .requestMatchers("/v1/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/v1/marketing/**").hasAnyAuthority("MARKETER")
-                        .requestMatchers("/v1/sales/**").hasAnyAuthority("SALESMAN")
+                        .requestMatchers("/v1/salesman/**").hasAnyAuthority("SALESMAN")
                         .requestMatchers("/v1/operator/**").hasAnyAuthority("OPERATOR")
                         .requestMatchers("/v1/accountant/**").hasAnyAuthority("ACCOUNTANT")
                         .requestMatchers("/v1/service-provider/**").hasAnyAuthority("SERVICE_PROVIDER")

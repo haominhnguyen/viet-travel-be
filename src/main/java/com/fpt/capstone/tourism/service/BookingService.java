@@ -14,4 +14,11 @@ public interface BookingService {
      GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection);
 
      GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection, TourType tourType);
+
+
+
+     GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId);
+
+
+     GeneralResponse<?>saleViewBookingDetails(Long bookingId);
 }

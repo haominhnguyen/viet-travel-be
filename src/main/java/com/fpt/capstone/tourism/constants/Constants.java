@@ -190,6 +190,57 @@ public class Constants {
         public static final String SERVICE_ID_REQUIRED = "Service ID is required for new tour day services";
         public static final String TOUR_DAY_UPDATE_SUCCESS = "Tour day updated successfully";
         public static final String TOUR_DAY_UPDATE_FAIL = "Failed to update tour day";
+
+        public static final String ROOM_NOT_FOUND = "Room not found";
+        public static final String MEAL_NOT_FOUND = "Meal not found";
+        public static final String TRANSPORT_NOT_FOUND = "Transport not found";
+        public static final String HOTEL = "Hotel";
+        public static final String RESTAURANT = "Restaurant";
+        public static final String TRANSPORT = "Transport";
+
+        public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
+        public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";
+        public static final String NEGATIVE_AVAILABLE_QUANTITY = "Available quantity must not be negative";
+        public static final String UNEXPECTED_ROOM_DETAILS = "Room details provided for non-hotel service";
+
+        public static final String MEAL_DETAILS_REQUIRED = "Meal details are required for restaurant services";
+        public static final String MEAL_TYPE_REQUIRED = "Meal type must be specified";
+        public static final String UNEXPECTED_MEAL_DETAILS = "Meal details provided for non-restaurant service";
+
+        public static final String TRANSPORT_DETAILS_REQUIRED = "Transport details are required for transport services";
+        public static final String INVALID_SEAT_CAPACITY = "Seat capacity must be greater than zero";
+        public static final String UNEXPECTED_TRANSPORT_DETAILS = "Transport details provided for non-transport service";
+
+        public static final String INVALID_DAYS_NIGHTS = "Number of days must be greater than number of nights";
+        public static final String TOUR_DAYS_MISMATCH = "Number of tour days must match the specified number of days";
+        public static final String TOUR_CREATE_SUCCESS = "Tour created successfully";
+        public static final String TOUR_UPDATE_SUCCESS = "Tour updated successfully";
+        public static final String TOUR_DELETE_SUCCESS = "Tour deleted successfully";
+        public static final String TOURS_LOAD_SUCCESS = "Tours loaded successfully";
+        public static final String TOURS_SEARCH_SUCCESS = "Tours search completed successfully";
+        public static final String TOUR_CREATE_FAIL = "Failed to create tour";
+        public static final String TOUR_UPDATE_FAIL = "Failed to update tour";
+        public static final String TOURS_LOAD_FAIL = "Failed to load tours";
+        public static final String LOCATION_REQUIRED = "At least one location is required";
+        public static final String DEPART_LOCATION_NOT_FOUND = "Departure location not found";
+        public static final String DEPART_LOCATION_REQUIRED = "Departure location is required";
+        public static final String TAG_NOT_FOUND = "One or more tags not found";
+        public static final String INVALID_TOUR_TYPE = "Invalid tour type";
+        public static final String INVALID_TOUR_STATUS = "Invalid tour status";
+        public static final String TOUR_REQUEST_NULL = "Tour request cannot be null";
+        public static final String TOUR_NAME_EMPTY = "Tour name cannot be empty";
+        public static final String NUMBER_DAYS_INVALID = "Number of days must be greater than 0";
+        public static final String NUMBER_NIGHTS_INVALID = "Number of nights cannot be negative";
+        public static final String TOUR_MUST_HAVE_LOCATION = "Tour must have at least one location";
+        public static final String TOUR_TYPE_REQUIRED = "Tour type is required";
+        public static final String TOUR_TYPE_INVALID = "Invalid tour type";
+        public static final String TOUR_STATUS_REQUIRED = "Tour status is required";
+        public static final String TOUR_STATUS_INVALID = "Invalid tour status";
+        public static final String MARKUP_PERCENT_INVALID = "Markup percent cannot be negative";
+        public static final String NUMBER_DAYS_MISMATCH = "Number of days must match the number of tour day entries";
+        public static final String TOUR_DAY_TITLE_EMPTY = "Tour day title cannot be empty";
+        public static final String TOUR_DAY_LOCATION_REQUIRED = "Tour day location is required";
+
     }
 
 

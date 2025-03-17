@@ -59,7 +59,7 @@ public class ServiceController {
     }
 
     @GetMapping("/details/{serviceId}")
-    public ResponseEntity<GeneralResponse<List<ServiceDetailDTO>>> getServiceDetailsByService(
+    public ResponseEntity<GeneralResponse<Object>> getServiceDetailsByService(
             @PathVariable Long serviceId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long providerId = getLoggedInServiceProviderId(userDetails);
@@ -110,7 +110,6 @@ public class ServiceController {
             throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, e);
         }
     }
-
 
     private Long getLoggedInServiceProviderId(UserDetails userDetails) {
         if (userDetails == null) {

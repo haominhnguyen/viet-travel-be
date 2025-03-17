@@ -1,5 +1,8 @@
 package com.fpt.capstone.tourism.dto.response;
 
+import com.fpt.capstone.tourism.dto.common.MealDTO;
+import com.fpt.capstone.tourism.dto.common.RoomDTO;
+import com.fpt.capstone.tourism.dto.common.TransportDTO;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -22,5 +25,9 @@ public class ServiceResponseDTO {
     private String providerName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private RoomDTO roomDetails;
+    private MealDTO mealDetails;
+    private TransportDTO transportDetails;
 }
 

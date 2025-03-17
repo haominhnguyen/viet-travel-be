@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -68,9 +69,15 @@ public class TourBooking extends BaseEntity {
 
     private String reason;
 
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
+
     @ManyToOne
     @JoinColumn(name = "schedule_service_id")
-    private TourScheduleService tourScheduleService;
+    private TourBookingService tourBookingService;
+
+    @OneToMany(mappedBy = "booking")
+    private List<Transaction> transactions;
 
 
 
