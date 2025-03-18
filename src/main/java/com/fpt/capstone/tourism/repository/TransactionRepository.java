@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -16,11 +15,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findAllByBookingAndCategoryIn(TourBooking tourBooking, List<TransactionType> transactionType);
 
 
-    @Query("""
-            SELECT t FROM Transaction t
-                WHERE t.booking.tourSchedule.id = :scheduleId
-            """)
-    List<Transaction> findAllByTourScheduleId(@Param("scheduleId") Long scheduleId);
+
+    List<Transaction> findAllByBookingIn(List<TourBooking> tourBookings);
 
     List<Transaction> findByBooking_Id(Long bookingId);
 

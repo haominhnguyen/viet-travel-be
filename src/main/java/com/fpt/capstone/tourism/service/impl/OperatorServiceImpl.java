@@ -8,13 +8,9 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
-import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
-import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
 @Service
 @RequiredArgsConstructor
@@ -355,7 +347,8 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId) {
         try {
-            List<Transaction> transactions = transactionRepository.findAllByTourScheduleId(scheduleId);
+            List<TourBooking> tourBookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<Transaction> transactions = transactionRepository.findAllByBookingIn(tourBookings);
 
             List<OperatorTransactionDTO> responseList = transactions.stream().map(transactionMapper::toDTO)
                     .collect(Collectors.toList());
