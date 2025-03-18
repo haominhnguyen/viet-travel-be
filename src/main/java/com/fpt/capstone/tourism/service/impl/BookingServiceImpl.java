@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
@@ -281,6 +282,47 @@ public class BookingServiceImpl implements BookingService {
 
         } catch (Exception ex) {
             throw BusinessException.of("Get Data failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourBookingCustomers(Long bookingId) {
+        try {
+            List<TourBookingCustomer> tourBooking = tourBookingCustomerRepository.findByTourBookingId(bookingId);
+            return GeneralResponse.of(tourBooking.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> changeCustomerStatus(Long customerId) {
+        try {
+            TourBookingCustomer tourBookingCustomer = tourBookingCustomerRepository.findById(customerId).orElseThrow();
+            tourBookingCustomer.setDeleted(!tourBookingCustomer.getDeleted());
+            TourBookingCustomer updatedTourBookingCustomer = tourBookingCustomerRepository.save(tourBookingCustomer);
+
+            return GeneralResponse.of(bookingMapper.toTourBookingCustomerDTO(updatedTourBookingCustomer));
+        } catch (Exception ex) {
+            throw BusinessException.of("Update Customer Status failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> updateCustomers(UpdateCustomersRequestDTO updateCustomersRequestDTO) {
+
+        try {
+            List<TourBookingCustomer> tourBookingCustomers = updateCustomersRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
+            TourBooking tourBooking = TourBooking.builder().id(updateCustomersRequestDTO.getBookingId()).build();
+            for (TourBookingCustomer customer : tourBookingCustomers) {
+                customer.setTourBooking(tourBooking);
+            }
+            List<TourBookingCustomer> updatedTourBookingCustomers = tourBookingCustomerRepository.saveAll(tourBookingCustomers);
+
+            return GeneralResponse.of(updatedTourBookingCustomers.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
+        } catch (Exception ex) {
+            throw BusinessException.of("Update Customer Status failed", ex);
         }
     }
 }

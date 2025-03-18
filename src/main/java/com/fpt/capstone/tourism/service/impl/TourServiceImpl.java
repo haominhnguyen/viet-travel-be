@@ -533,7 +533,6 @@ public class TourServiceImpl implements TourService {
                 .build();
     }
 
-
     private TourBasicDTO convertToTourBasicDTO(Tour tour) {
         return TourBasicDTO.builder()
                 .id(tour.getId())
@@ -589,9 +588,6 @@ public class TourServiceImpl implements TourService {
                 // Combine both conditions
                 predicates.add(cb.or(tourNamePredicate, locationNamePredicate));
             }
-
-
-
             // Filter by duration (number of days)
             if (duration != null && duration > 0) {
                 predicates.add(cb.equal(root.get("numberDays"), duration));
