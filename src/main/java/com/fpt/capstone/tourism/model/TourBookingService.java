@@ -2,9 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.TourScheduleServiceStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +11,8 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 @Table(name = "tour_booking_service")
 public class TourBookingService extends BaseEntity{
@@ -27,6 +27,10 @@ public class TourBookingService extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "service_id")
     private Service service;
+
+    @ManyToOne
+    @JoinColumn(name = "schedule_id")
+    private TourSchedule tourSchedule;
 
     @Column(name = "current_quantity")
     private int currentQuantity;
@@ -44,6 +48,6 @@ public class TourBookingService extends BaseEntity{
     private String reason;
 
     @Enumerated(EnumType.STRING)
-    private TourScheduleServiceStatus status; //(e.g., Pending, Approved, Rejected, Wait Confirmed).
+    private TourScheduleServiceStatus status; //(e.g., Pending, Approved, Rejected).
 
 }

@@ -31,4 +31,6 @@ public interface OperatorService {
     GeneralResponse<List<UserResponseDTO>> getListAvailableTourGuide(Long scheduleId);
 
     GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId);
+
+    GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId);
 }

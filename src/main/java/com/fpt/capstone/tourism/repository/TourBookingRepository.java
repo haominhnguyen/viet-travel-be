@@ -18,6 +18,15 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
 
     List<TourBooking> findByTourSchedule_Id(Long scheduleId);
 
+    @Query("""
+    SELECT tb FROM TourBooking tb
+    JOIN TourBookingService tbs ON tb.id = tbs.booking.id
+    WHERE tb.tourSchedule.id = :scheduleId
+    AND tbs.service.id = :serviceId
+""")
+    List<TourBooking> findByTourScheduleIdAndServiceId(@Param("scheduleId") Long scheduleId, @Param("serviceId") Long serviceId);
+
+
     @Query(value = """
     SELECT COALESCE(count(tb.id), 0) FROM TourBooking tb
     JOIN TourBookingCustomer tbc ON tb.id = tbc.tourBooking.id
@@ -53,4 +62,10 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
 
     List<TourBooking> findAllByTourAndTourSchedule(Tour tour, TourSchedule tourSchedule);
 
+    @Query("""
+        SELECT tb.id FROM TourBooking tb
+        JOIN TourBookingService tbs on tb.id = tbs.booking.id
+        WHERE tbs.service.id = :serviceId
+    """)
+    Long findByServiceId(Long serviceId);
 }

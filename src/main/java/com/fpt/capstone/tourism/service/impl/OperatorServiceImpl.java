@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
@@ -26,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -43,6 +45,8 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final TourOperationLogRepository logRepository;
     private final TransactionRepository transactionRepository;
+    private final TourScheduleServiceRepository scheduleServiceRepository;
+    private final CostAccountRepository costAccountRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -77,7 +81,7 @@ public class OperatorServiceImpl implements OperatorService {
                             tourSchedule.getId(),
                             tourSchedule.getStartDate(),
                             tourSchedule.getEndDate(),
-                            tourSchedule.getStatus(),
+                            tourSchedule.getStatus().toString(),
                             tourSchedule.getTour().getName(),
                             Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null),
                             Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse(null),
@@ -118,7 +122,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .scheduleId(tourSchedule.getId())
                     .startDate(tourSchedule.getStartDate())
                     .endDate(tourSchedule.getEndDate())
-                    .status(tourSchedule.getStatus())
+                    .status(tourSchedule.getStatus().toString())
                     .tourName(tourSchedule.getTour().getName())
                     .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
                     .operator(user.getFullName())
@@ -361,6 +365,91 @@ public class OperatorServiceImpl implements OperatorService {
             throw BusinessException.of("Get list transaction fail", ex);
         }
     }
+
+    @Override
+    public GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId) {
+        try {
+            // Tìm danh sách tất cả dịch vụ liên quan đến scheduleId
+            List<TourBookingService> bookingServices = scheduleServiceRepository.findByTourSchedule_Id(scheduleId);
+            // Danh sách DTO kết quả
+            List<OperatorServiceDTO> serviceDTOList = new ArrayList<>();
+
+            // Tổng hợp số tiền
+            double totalPaid = 0.0; // Tổng số tiền đã trả cho nhà cung cấp
+            double totalAmountToPay = 0.0; // Tổng số tiền cần trả cho nhà cung cấp
+
+            for (TourBookingService bookingService : bookingServices) {
+                System.out.println(bookingServices.size());
+                System.out.println(bookingService.getService().getName());
+                System.out.println(bookingService.getCurrentQuantity());
+                // Tìm danh sách tour booking ứng với scheduleId và serviceId
+//                Long bookingId = tourBookingRepository.findByServiceId(bookingService.getService().getId());
+//                TourBooking booking = tourBookingRepository.findById(64L).orElse(null);
+//                List<TourBooking> bookings = tourBookingRepository.findByTourScheduleIdAndServiceId(scheduleId, bookingService.getService().getId());
+//                for (TourBooking booking : bookings) {
+                    // Tìm danh sách Transaction có category = PAYMENT
+//                    List<Transaction> transactions = transactionRepository.findByBooking_Id(bookingService.getBooking().getId())
+//                            .stream()
+//                            .filter(transaction -> transaction.getCategory() == TransactionType.PAYMENT)
+//                            .collect(Collectors.toList());
+//
+//                    // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
+//                    double paidForBooking = transactions.stream()
+//                            .flatMap(transaction -> costAccountRepository.findByTransaction_Id(transaction.getId()).stream())
+//                            .filter(costAccount -> costAccount.getStatus() == CostAccountStatus.PAID)
+//                            .mapToDouble(CostAccount::getFinalAmount) // Tính tổng số tiền đã chi
+//                            .sum();
+//
+                    double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
+
+                    // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
+                    double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+
+                    // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
+                    totalPaid += paidForBooking;
+                    totalAmountToPay += amountToPayForBooking;
+
+                    // Xác định trạng thái thanh toán của booking
+                    String paymentStatus;
+                    if (paidForBooking >= amountToPayForBooking) {
+                        paymentStatus = "PAID"; // Đã thanh toán đủ
+                    } else if (paidForBooking > 0) {
+                        paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
+                    } else {
+                        paymentStatus = "UNPAID"; // Chưa thanh toán
+                    }
+
+                    // Thêm vào danh sách DTO
+                    serviceDTOList.add(OperatorServiceDTO.builder()
+                            .serviceId(bookingService.getService().getId())
+                            .bookingId(bookingService.getBooking().getId())
+                            .serviceName(bookingService.getService().getName())
+                            .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
+                            .usingDate(bookingService.getTourSchedule().getStartDate())
+                            .requestQuantity(bookingService.getRequestedQuantity())
+                            .currentQuantity(bookingService.getCurrentQuantity())
+                            .bookingStatus(bookingService.getStatus().toString())
+                            .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
+                            .build());
+                }
+//            }
+
+            // Tạo DTO tổng hợp kết quả
+            OperatorServiceListDTO resultDTO = OperatorServiceListDTO.builder()
+                    .services(serviceDTOList) // Danh sách dịch vụ theo booking
+                    .totalNumOfService((int) serviceDTOList.stream().map(OperatorServiceDTO::getServiceId).count()) // Đếm số lượng dịch vụ
+                    .paidAmount(totalPaid) // Tổng số tiền đã trả
+                    .remainingAmount(totalAmountToPay - totalPaid) // Số tiền còn lại phải trả
+                    .totalAmount(totalAmountToPay) // Tổng số tiền phải trả
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service success", resultDTO);
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Get list service fail", ex);
+        }
+    }
+
 
     private Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
         return (root, query, cb) -> {
