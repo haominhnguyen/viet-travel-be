@@ -28,7 +28,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     FROM TourSchedule ts
     JOIN ts.tour t
     JOIN ts.tourPax tp
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status != "PENDING"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
     WHERE t.id = :tourId
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
@@ -41,7 +41,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     SELECT ts.id, (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0))
     FROM TourSchedule ts
     JOIN ts.tourPax tp
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status != "PENDING"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
     WHERE ts.id IN :scheduleIds AND ts.deleted = FALSE 
     GROUP BY ts.id, tp.maxPax
 """)
@@ -75,7 +75,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("""
     SELECT COALESCE(CAST(SUM(tb.seats) AS integer), 0)
     FROM TourSchedule ts
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status != "PENDING"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
     WHERE ts.id IN :scheduleId AND ts.deleted = FALSE 
     GROUP BY ts.id
 """)
@@ -93,7 +93,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("""
     SELECT SUM(COALESCE(tb.sellingPrice, 0) + COALESCE(tb.extraHotelCost, 0))
      FROM TourBooking tb WHERE tb.tourSchedule.id = :scheduleId
-     AND tb.status != "PENDING"
+     AND tb.status = "CONFIRMED"
 """)
     Double findTotalTourCostByScheduleId(@Param("scheduleId")Long scheduleId);
 

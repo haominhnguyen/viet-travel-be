@@ -77,7 +77,7 @@ public class OperatorServiceImpl implements OperatorService {
                             tourSchedule.getId(),
                             tourSchedule.getStartDate(),
                             tourSchedule.getEndDate(),
-                            tourSchedule.getStatus(),
+                            tourSchedule.getStatus().toString(),
                             tourSchedule.getTour().getName(),
                             Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null),
                             Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse(null),
@@ -118,7 +118,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .scheduleId(tourSchedule.getId())
                     .startDate(tourSchedule.getStartDate())
                     .endDate(tourSchedule.getEndDate())
-                    .status(tourSchedule.getStatus())
+                    .status(tourSchedule.getStatus().toString())
                     .tourName(tourSchedule.getTour().getName())
                     .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
                     .operator(user.getFullName())

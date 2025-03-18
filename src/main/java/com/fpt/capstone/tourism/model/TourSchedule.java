@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +38,9 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    private String status;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private TourScheduleStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
