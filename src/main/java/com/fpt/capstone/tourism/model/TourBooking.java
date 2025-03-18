@@ -72,9 +72,8 @@ public class TourBooking extends BaseEntity {
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
 
-    @ManyToOne
-    @JoinColumn(name = "booking_service_id")
-    private TourBookingService tourBookingService;
+    @OneToMany(mappedBy = "booking")
+    private List<TourBookingService> tourBookingServices;
 
     @OneToMany(mappedBy = "booking")
     private List<Transaction> transactions;
