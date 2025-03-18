@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findAllByBookingAndCategory(TourBooking tourBooking, TransactionType transactionType);
+    List<Transaction> findAllByBookingAndCategoryIn(TourBooking tourBooking, List<TransactionType> transactionType);
 
 
     @Query("""

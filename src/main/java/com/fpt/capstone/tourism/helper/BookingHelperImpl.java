@@ -41,6 +41,10 @@ public class BookingHelperImpl implements BookingHelper {
     private final TourBookingCustomerMapper tourBookingCustomerMapper;
     private final TourScheduleRepository tourScheduleRepository;
 
+
+    private final List<TransactionType> transactionTypes = List.of(TransactionType.RECEIPT, TransactionType.COLLECTION);
+
+
     @Override
     public String generateBookingCode(Long tourId, Long scheduleId, Long customerId) {
         // Get current date in DDMMYY format
@@ -63,7 +67,7 @@ public class BookingHelperImpl implements BookingHelper {
         //Loop used to iterate through tour booking list
         for (TourBooking tourBooking : tourBookingPage.getContent()) {
             TourBookingDTO tourBookingDTO = bookingMapper.toDto(tourBooking);
-            List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+            List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
 
             //Total = sum of transaction amount
             double totalCost = getTotal(tourBookingReceipts);
@@ -183,7 +187,7 @@ public class BookingHelperImpl implements BookingHelper {
     @Override
     public TourBookingSaleResponseDTO setPaymentStatistic(TourBooking tourBooking) {
         TourBookingSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toTourBookingSaleResponseDTO(tourBooking);
-        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
         double totalCost = getTotal(tourBookingReceipts);
         double paid = getPaidAmount(tourBookingReceipts);
         tourBookingSaleResponseDTO.setPaid(paid);
@@ -194,13 +198,14 @@ public class BookingHelperImpl implements BookingHelper {
     @Override
     public TourBookingDetailSaleResponseDTO setPaymentStatisticForBookingDetail(TourBooking tourBooking) {
         TourBookingDetailSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toBookingDetailSaleResponseDTO(tourBooking);
-        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategory(tourBooking, TransactionType.RECEIPT);
+        List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
         double totalCost = getTotal(tourBookingReceipts);
         double paid = getPaidAmount(tourBookingReceipts);
         tourBookingSaleResponseDTO.setPaid(paid);
         tourBookingSaleResponseDTO.setTotal(totalCost);
         tourBookingSaleResponseDTO.setSchedule(tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId()));
         tourBookingSaleResponseDTO.setCreatedAt(tourBooking.getCreatedAt());
+        tourBookingSaleResponseDTO.setTransactions(tourBookingReceipts.stream().map(bookingMapper::toTransactionDTO).toList());
         return tourBookingSaleResponseDTO;
     }
 }
