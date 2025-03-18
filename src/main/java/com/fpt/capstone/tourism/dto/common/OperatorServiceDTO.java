@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 public class OperatorServiceDTO {
     private Long serviceId;
+    private Long bookingId;
     private String serviceName;
     private String serviceCategory;
     private LocalDateTime usingDate;
