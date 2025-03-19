@@ -229,6 +229,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
                         .bookingId(booking.getId())
+                        .bookingCode(booking.getBookingCode())
                         .bookedBy(booking.getUser().getFullName())
                         .adultCount(adultCount)
                         .childCount(childCount)
@@ -407,6 +408,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 // Thêm vào danh sách DTO
                 serviceDTOList.add(OperatorServiceDTO.builder()
+                        .bookingId(bookingService.getBooking().getId())
                         .serviceId(bookingService.getService().getId())
                         .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
@@ -415,6 +417,8 @@ public class OperatorServiceImpl implements OperatorService {
                         .requestQuantity(bookingService.getRequestedQuantity())
                         .currentQuantity(bookingService.getCurrentQuantity())
                         .bookingStatus(bookingService.getStatus().toString())
+                        .paidForBooking(paidForBooking)
+                        .amountToPayForBooking(amountToPayForBooking)
                         .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }

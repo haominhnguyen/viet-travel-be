@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 @Builder
 public class OperatorServiceDTO {
+    private Long bookingId;
     private Long serviceId;
     private String bookingCode;
     private String serviceName;
@@ -20,5 +21,7 @@ public class OperatorServiceDTO {
     private Integer requestQuantity;
     private Integer currentQuantity;
     private String bookingStatus;
+    private Double paidForBooking; //Số tiền đã trả cho nhà cung cấp
+    private Double amountToPayForBooking; //Số tiền phải trả cho nhà cung cấp
     private String paymentStatus;
 }
