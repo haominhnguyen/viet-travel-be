@@ -23,4 +23,5 @@ public class OperatorTransactionDTO {
     private String notes;
     private LocalDateTime createdAt;
     private List<OperatorCostAccountDTO> costAccount;
+    private String paymentStatus;
 }

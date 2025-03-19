@@ -408,7 +408,7 @@ public class OperatorServiceImpl implements OperatorService {
                 // Thêm vào danh sách DTO
                 serviceDTOList.add(OperatorServiceDTO.builder()
                         .serviceId(bookingService.getService().getId())
-                        .bookingId(bookingService.getBooking().getId())
+                        .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
                         .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
                         .usingDate(bookingService.getTourSchedule().getStartDate())
