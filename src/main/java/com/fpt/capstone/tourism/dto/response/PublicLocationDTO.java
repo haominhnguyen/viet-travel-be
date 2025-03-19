@@ -13,4 +13,5 @@ public class PublicLocationDTO {
     private String name;
     private String description;
     private String image;
+    private GeoPositionDTO geoPosition;
 }
