@@ -172,6 +172,14 @@ public class LocationServiceImpl implements LocationService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<PublicLocationDTO> findRecommendedLocations(int numberLocation, Long locationId) {
+        List<Location> randomLocations = locationRepository.findRandomLocation(numberLocation, locationId);
+        return randomLocations.stream()
+                .map(locationMapper::toPublicLocationDTO)
+                .collect(Collectors.toList());
+    }
+
     private Specification<Location> buildSearchSpecification(String keyword, Boolean isDeleted) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

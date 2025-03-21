@@ -17,4 +17,8 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
     @Query(value = "SELECT * FROM location WHERE is_deleted = FALSE ORDER BY RANDOM() LIMIT :numberLocation", nativeQuery = true)
     List<Location> findRandomLocation(int numberLocation);
 
+    @Query(value = "SELECT * FROM location WHERE is_deleted = FALSE AND location.id != :locationId ORDER BY RANDOM() LIMIT :numberLocation", nativeQuery = true)
+    List<Location> findRandomLocation(int numberLocation, Long locationId);
+
+    List<Location> findByDeletedFalse();
 }
