@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -56,6 +57,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
+    private final GeoPositionRepository geoPositionRepository;
     private final EmailConfirmationService emailConfirmationService;
     private final UserService userService;
     private final PasswordGenerateImpl passwordGenerate;
@@ -160,6 +162,9 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(serviceProviderDTO.getStar() != serviceProvider.getStar()){
                 serviceProvider.setStar(serviceProviderDTO.getStar());
             }
+            if(!serviceProviderDTO.getName().equals(serviceProvider.getName())){
+                serviceProvider.setName(serviceProviderDTO.getName());
+            }
             if(!serviceProviderDTO.getEmail().equals(serviceProvider.getEmail())){
                 //Check duplicate email
                 if(serviceProviderRepository.findByEmail(serviceProviderDTO.getEmail()) != null){
@@ -176,18 +181,45 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(!serviceProviderDTO.getAddress().equals(serviceProvider.getAddress())){
                 serviceProvider.setAddress(serviceProviderDTO.getAddress());
             }
-            System.out.println(serviceProviderDTO.getId());
 
-            if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
-                GeoPosition geoPosition = GeoPosition.builder()
-                        .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
-                        .longitude(serviceProviderDTO.getGeoPosition().getLongitude()).build() ;
-                serviceProvider.setGeoPosition(geoPosition);
+//            if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
+//                GeoPosition geoPosition = GeoPosition.builder()
+//                        .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
+//                        .longitude(serviceProviderDTO.getGeoPosition().getLongitude()).build() ;
+//                serviceProvider.setGeoPosition(geoPosition);
+//            }
+            if (serviceProviderDTO.getGeoPosition() != null) {
+                Double newLatitude = serviceProviderDTO.getGeoPosition().getLatitude();
+                Double newLongitude = serviceProviderDTO.getGeoPosition().getLongitude();
+
+                // Kiểm tra nếu tọa độ thay đổi
+                if (!newLatitude.equals(serviceProvider.getGeoPosition().getLatitude()) ||
+                        !newLongitude.equals(serviceProvider.getGeoPosition().getLongitude())) {
+
+                    // Kiểm tra xem GeoPosition đã tồn tại trong DB chưa
+                    Optional<GeoPosition> existingGeo = geoPositionRepository.findByLatitudeAndLongitude(newLatitude, newLongitude);
+
+                    GeoPosition geoPosition;
+                    if (existingGeo.isPresent()) {
+                        geoPosition = existingGeo.get(); // Nếu đã có, lấy ra dùng
+                    } else {
+                        geoPosition = GeoPosition.builder()
+                                .latitude(newLatitude)
+                                .longitude(newLongitude)
+                                .build();
+                        geoPosition = geoPositionRepository.save(geoPosition); // Lưu mới vào DB
+                    }
+
+                    serviceProvider.setGeoPosition(geoPosition);
+                }
             }
 
-            if(!serviceProviderDTO.getLocation().getId().equals(serviceProvider.getLocation().getId())) {
-                Location location = locationRepository.findById(serviceProviderDTO.getLocation().getId()).orElseThrow();
-                serviceProvider.setLocation(location);
+            String normalizedName = removeAccents(serviceProviderDTO.getLocationName().toLowerCase());
+            List<Location> location = locationRepository.findAll().stream()
+                    .filter(loc -> removeAccents(loc.getName().toLowerCase()).contains(normalizedName)).collect(Collectors.toList());
+
+            if(location.get(0) != null && (!location.get(0).getName().equals(serviceProvider.getLocation().getName()))) {
+                serviceProvider.setLocation(location.get(0));
             }
             serviceProvider.setServiceCategories(serviceProviderDTO.getServiceCategories()
                     .stream().map(serviceCategoryMapper::toEntity).collect(Collectors.toList()));
@@ -366,8 +398,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         if (text == null) {
             return null;
         }
-        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{M}"); // Removes diacritics (accents)
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);//Chuyển chữ có dấu thành ký tự gốc + dấu (ví dụ: Đà → Da + dấu huyền).
+        Pattern pattern = Pattern.compile("\\p{M}"); //  Xóa tất cả các dấu khỏi ký tự.
         return pattern.matcher(normalized).replaceAll("");
     }
 

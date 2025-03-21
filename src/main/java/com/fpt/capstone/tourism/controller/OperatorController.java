@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
+import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -86,4 +87,9 @@ public class OperatorController {
     public ResponseEntity<GeneralResponse<OperatorServiceListDTO>> getListService(@PathVariable Long scheduleId) {
         return ResponseEntity.ok(operatorService.getListService(scheduleId));
     }
+
+//    @PostMapping("/pay-service")
+//    public ResponseEntity<GeneralResponse<OperatorTransactionDTO>> payService(@RequestBody PayServiceRequestDTO requestDTO) {
+//        return ResponseEntity.ok(operatorService.payService(requestDTO));
+//    }
 }

@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.common;
+package com.fpt.capstone.tourism.dto.request;
 
 import com.fpt.capstone.tourism.model.CostAccount;
 import com.fpt.capstone.tourism.model.TourBooking;
@@ -8,20 +8,17 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
-public class OperatorTransactionDTO {
-    private Long id;
+public class PayServiceRequestDTO {
+    private Long bookingId;
     private Double amount;
-    private TransactionType category;
+//    private TransactionType category; // receipt hoặc payment
     private String paidBy;
     private String receivedBy;
     private PaymentMethod paymentMethod;
     private String notes;
-    private LocalDateTime createdAt;
-    private List<OperatorCostAccountDTO> costAccount;
-    private String paymentStatus;
+    private Long serviceId;
 }

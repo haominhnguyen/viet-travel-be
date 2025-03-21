@@ -207,7 +207,7 @@ public class OperatorServiceImpl implements OperatorService {
             }).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list customer of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Operator get list customer of tour detail fail", ex);
         }
     }
@@ -229,6 +229,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
                         .bookingId(booking.getId())
+                        .bookingCode(booking.getBookingCode())
                         .bookedBy(booking.getUser().getFullName())
                         .adultCount(adultCount)
                         .childCount(childCount)
@@ -245,7 +246,7 @@ public class OperatorServiceImpl implements OperatorService {
             }).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Operator get list booking of tour detail fail", ex);
         }
     }
@@ -259,18 +260,18 @@ public class OperatorServiceImpl implements OperatorService {
                     .map(logMapper::toDTO).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list log of tour detail fail", ex);
         }
     }
 
     @Override
     public GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO) {
-        try{
+        try {
             //Validate input data
             Validator.validateLog(logRequestDTO);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
-                     BusinessException.of("Not found tour schedule"));
+                    BusinessException.of("Not found tour schedule"));
 
             //Save date to database
             TourOperationLog log = logMapper.toEntity(logRequestDTO);
@@ -282,16 +283,16 @@ public class OperatorServiceImpl implements OperatorService {
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Create log success", logDTO);
-        }catch (BusinessException be){
+        } catch (BusinessException be) {
             throw be;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Create log fail", ex);
         }
     }
 
     @Override
     public GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId) {
-        try{
+        try {
             TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
                     BusinessException.of("Not found tour log"));
 
@@ -301,9 +302,9 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Delete log success", logDTO);
-        }catch (BusinessException be){
+        } catch (BusinessException be) {
             throw be;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Delete log fail", ex);
         }
     }
@@ -327,7 +328,7 @@ public class OperatorServiceImpl implements OperatorService {
             tourScheduleRepository.save(tourSchedule);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Assign tour guide success", requestDTO);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Assign tour guide fail", ex);
         }
     }
@@ -339,7 +340,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .map(userMapper::toResponseDTO).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list available tour guide success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list available tour guide fail", ex);
         }
     }
@@ -354,7 +355,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list transaction fail", ex);
         }
     }
@@ -372,15 +373,7 @@ public class OperatorServiceImpl implements OperatorService {
             double totalAmountToPay = 0.0; // Tổng số tiền cần trả cho nhà cung cấp
 
             for (TourBookingService bookingService : bookingServices) {
-                System.out.println(bookingServices.size());
-                System.out.println(bookingService.getService().getName());
-                System.out.println(bookingService.getCurrentQuantity());
-                // Tìm danh sách tour booking ứng với scheduleId và serviceId
-//                Long bookingId = tourBookingRepository.findByServiceId(bookingService.getService().getId());
-//                TourBooking booking = tourBookingRepository.findById(64L).orElse(null);
-//                List<TourBooking> bookings = tourBookingRepository.findByTourScheduleIdAndServiceId(scheduleId, bookingService.getService().getId());
-//                for (TourBooking booking : bookings) {
-                    // Tìm danh sách Transaction có category = PAYMENT
+                // Tìm danh sách Transaction có category = PAYMENT
 //                    List<Transaction> transactions = transactionRepository.findByBooking_Id(bookingService.getBooking().getId())
 //                            .stream()
 //                            .filter(transaction -> transaction.getCategory() == TransactionType.PAYMENT)
@@ -393,39 +386,42 @@ public class OperatorServiceImpl implements OperatorService {
 //                            .mapToDouble(CostAccount::getFinalAmount) // Tính tổng số tiền đã chi
 //                            .sum();
 //
-                    double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
+                // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
+                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
 
-                    // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
-                    double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
+                double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
 
-                    // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
-                    totalPaid += paidForBooking;
-                    totalAmountToPay += amountToPayForBooking;
+                // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
+                totalPaid += paidForBooking;
+                totalAmountToPay += amountToPayForBooking;
 
-                    // Xác định trạng thái thanh toán của booking
-                    String paymentStatus;
-                    if (paidForBooking >= amountToPayForBooking) {
-                        paymentStatus = "PAID"; // Đã thanh toán đủ
-                    } else if (paidForBooking > 0) {
-                        paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
-                    } else {
-                        paymentStatus = "UNPAID"; // Chưa thanh toán
-                    }
-
-                    // Thêm vào danh sách DTO
-                    serviceDTOList.add(OperatorServiceDTO.builder()
-                            .serviceId(bookingService.getService().getId())
-                            .bookingId(bookingService.getBooking().getId())
-                            .serviceName(bookingService.getService().getName())
-                            .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
-                            .usingDate(bookingService.getTourSchedule().getStartDate())
-                            .requestQuantity(bookingService.getRequestedQuantity())
-                            .currentQuantity(bookingService.getCurrentQuantity())
-                            .bookingStatus(bookingService.getStatus().toString())
-                            .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
-                            .build());
+                // Xác định trạng thái thanh toán của booking
+                String paymentStatus;
+                if (paidForBooking >= amountToPayForBooking) {
+                    paymentStatus = "PAID"; // Đã thanh toán đủ
+                } else if (paidForBooking > 0) {
+                    paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
+                } else {
+                    paymentStatus = "UNPAID"; // Chưa thanh toán
                 }
-//            }
+
+                // Thêm vào danh sách DTO
+                serviceDTOList.add(OperatorServiceDTO.builder()
+                        .bookingId(bookingService.getBooking().getId())
+                        .serviceId(bookingService.getService().getId())
+                        .bookingCode(bookingService.getBooking().getBookingCode())
+                        .serviceName(bookingService.getService().getName())
+                        .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
+                        .usingDate(bookingService.getTourSchedule().getStartDate())
+                        .requestQuantity(bookingService.getRequestedQuantity())
+                        .currentQuantity(bookingService.getCurrentQuantity())
+                        .bookingStatus(bookingService.getStatus().toString())
+                        .paidForBooking(paidForBooking)
+                        .amountToPayForBooking(amountToPayForBooking)
+                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
+                        .build());
+            }
 
             // Tạo DTO tổng hợp kết quả
             OperatorServiceListDTO resultDTO = OperatorServiceListDTO.builder()
