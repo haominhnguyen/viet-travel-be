@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -92,6 +93,11 @@ public class SalesmanController {
     @GetMapping("/bookings/create/customers")
     public ResponseEntity<?> updateCustomers(@RequestParam(defaultValue = "", required = false) String customerName) {
         return ResponseEntity.ok(bookingService.getCustomersByName(customerName));
+    }
+
+    @PostMapping("/bookings/create")
+    public ResponseEntity<?> createPublicBooking(@RequestBody CreatePublicBookingRequestDTO bookingRequestDTO) {
+        return ResponseEntity.ok(bookingService.createBooking(bookingRequestDTO));
     }
 
 }

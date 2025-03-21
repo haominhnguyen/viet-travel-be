@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.dto.response;
 
-import com.fpt.capstone.tourism.dto.common.BookedPersonDTO;
-import com.fpt.capstone.tourism.dto.common.TourBookingCustomerDTO;
-import com.fpt.capstone.tourism.dto.common.TourScheduleShortInfoDTO;
-import com.fpt.capstone.tourism.dto.common.TourShortInfoDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
@@ -26,4 +23,5 @@ public class TourBookingSaleResponseDTO {
     private double paid;
     private double total;
     private PaymentMethod paymentMethod;
+    private StaffDTO sale;
 }

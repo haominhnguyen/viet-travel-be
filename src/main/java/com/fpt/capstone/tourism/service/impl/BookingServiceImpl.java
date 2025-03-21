@@ -9,10 +9,7 @@ import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.AgeType;
-import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
-import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
-import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
@@ -130,28 +127,7 @@ public class BookingServiceImpl implements BookingService {
 
             tourBookingCustomerService.saveAll(allCustomers);
 
-            CostAccount costAccount = CostAccount.builder()
-                    .amount(bookingRequestDTO.getTotal())
-                    .content("Customer pay for Booking Code: " + result.getBookingCode())
-                    .discount(0)
-                    .finalAmount(bookingRequestDTO.getTotal())
-                    .quantity(1)
-                    .build();
-
-            List<CostAccount> costAccountList = new ArrayList<>();
-            costAccountList.add(costAccount);
-
-            Transaction transaction = Transaction.builder()
-                    .booking(temp)
-                    .amount(costAccount.getAmount())
-                    .paymentMethod(bookingRequestDTO.getPaymentMethod())
-                    .category(TransactionType.RECEIPT)
-                    .costAccount(costAccountList)
-                    .paidBy(bookingRequestDTO.getFullName())
-                    .receivedBy("Viet Travel")
-                    .build();
-
-            transactionRepository.save(transaction);
+            createReceiptBookingTransaction(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
 
 
         return GeneralResponse.of(result.getBookingCode());
@@ -241,23 +217,60 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO) {
-        List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
 
-        TourBooking tourBooking = TourBooking.builder()
-                .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
-                .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
-                .seats(bookingRequestDTO.getCustomers().size())
-                .note(bookingRequestDTO.getNote())
-                .deleted(false)
-                .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
-                .user(User.builder().id(bookingRequestDTO.getUserId()).build())
-                .status(TourBookingStatus.PENDING)
-                .sellingPrice(bookingRequestDTO.getSellingPrice())
-                .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
-                .tourBookingCategory(TourBookingCategory.SALE)
-                .paymentMethod(bookingRequestDTO.getPaymentMethod())
-                .build();
-        return null;
+
+        try {
+            List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
+
+            TourBooking tourBooking = TourBooking.builder()
+                    .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
+                    .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
+                    .seats(bookingRequestDTO.getCustomers().size())
+                    .note(bookingRequestDTO.getNote())
+                    .deleted(false)
+                    .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
+                    .user(User.builder().id(bookingRequestDTO.getUserId()).build())
+                    .status(TourBookingStatus.SUCCESS)
+                    .sellingPrice(bookingRequestDTO.getSellingPrice())
+                    .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
+                    .tourBookingCategory(TourBookingCategory.SALE)
+                    .paymentMethod(bookingRequestDTO.getPaymentMethod())
+                    .sale(User.builder().id(bookingRequestDTO.getSaleId()).build())
+                    .expiredAt(bookingRequestDTO.getExpiredAt())
+                    .totalAmount(bookingRequestDTO.getTotalAmount())
+                    .build();
+
+
+
+            TourBooking result = tourBookingRepository.save(tourBooking);
+
+            TourBookingCustomer bookedPerson = TourBookingCustomer.builder()
+                    .ageType(AgeType.ADULT)
+                    .fullName(bookingRequestDTO.getFullName())
+                    .email(bookingRequestDTO.getEmail())
+                    .phoneNumber(bookingRequestDTO.getPhone())
+                    .deleted(false)
+                    .bookedPerson(true)
+                    .tourBooking(result)
+                    .address(bookingRequestDTO.getAddress())
+                    .build();
+
+            // Save booking customers
+            for (TourBookingCustomer customer : customers) {
+                customer.setTourBooking(result);
+            }
+
+
+            tourBookingCustomerRepository.saveAll(customers);
+            tourBookingCustomerRepository.save(bookedPerson);
+
+            //Create transaction for booking
+            createReceiptBookingTransaction(tourBooking, bookingRequestDTO.getTotalAmount(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
+
+            return GeneralResponse.of(bookingMapper.toBookingDetailSaleResponseDTO(result));
+        } catch (Exception ex) {
+            throw BusinessException.of("Create Public Booking failed!", ex);
+        }
     }
 
     @Override
@@ -385,5 +398,40 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Get customers for sale failed", ex);
         }
+    }
+
+    @Override
+    public Transaction createReceiptBookingTransaction(TourBooking tourBooking, Double total, String fullName, PaymentMethod paymentMethod) {
+        CostAccount costAccount = CostAccount.builder()
+                .amount(total)
+                .content("Customer pay for Booking Code: " + tourBooking.getBookingCode())
+                .discount(0)
+                .finalAmount(total)
+                .quantity(1)
+                .status(CostAccountStatus.PENDING)
+                .build();
+
+        List<CostAccount> costAccountList = new ArrayList<>();
+        costAccountList.add(costAccount);
+
+        Transaction transaction = Transaction.builder()
+                .booking(tourBooking)
+                .amount(costAccount.getAmount())
+                .paymentMethod(paymentMethod)
+                .category(TransactionType.RECEIPT)
+                .costAccount(costAccountList)
+                .paidBy(fullName)
+                .transactionStatus(TransactionStatus.PENDING)
+                .receivedBy("Viet Travel")
+                .build();
+
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    public void saveTourBookingService(TourBooking tourBooking) {
+        Tour tour = tourBooking.getTour();
+        List<TourDay> tourDays = tour.getTourDays();
+
     }
 }

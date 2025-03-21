@@ -1,9 +1,8 @@
 package com.fpt.capstone.tourism.model.enums;
 
-public enum TourBookingStatus {
+public enum TransactionStatus {
+    PAID,
     PENDING,
-    CONFIRMED,
     CANCELLED,
-    COMPLETED,
-    SUCCESS
+    COMPLETED
 }
