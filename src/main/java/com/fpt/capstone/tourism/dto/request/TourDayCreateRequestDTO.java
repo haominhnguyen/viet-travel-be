@@ -12,7 +12,6 @@ public class TourDayCreateRequestDTO {
     private String title;
     private String content;
     private String mealPlan;
-    private Long tourId;
     private Long locationId;
-    private List<TourDayServiceManageRequestDTO> tourDayServices;
+    private List<String> serviceCategories;
 }

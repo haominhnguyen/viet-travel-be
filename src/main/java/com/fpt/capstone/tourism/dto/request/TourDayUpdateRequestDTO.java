@@ -9,10 +9,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourDayUpdateRequestDTO {
+    private Integer dayNumber;
     private String title;
     private String content;
     private String mealPlan;
-    private Long tourId;
     private Long locationId;
-    private List<TourDayServiceUpdateRequestDTO> tourDayServices;
+    private List<String> serviceCategories;;
 }
