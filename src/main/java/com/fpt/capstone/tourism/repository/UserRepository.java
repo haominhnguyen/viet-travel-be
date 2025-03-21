@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -27,6 +29,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByPhone(String phone);
     Page<User> findAll(Specification<User> spec, Pageable pageable);
 
+
+    @Query("SELECT u FROM User u JOIN u.userRoles ur " +
+            "WHERE ur.role.roleName = :roleName " +
+            "AND (u.deleted IS NULL OR u.deleted = false) " +
+            "AND (ur.deleted IS NULL OR ur.deleted = false) " +
+            "AND (ur.role.deleted IS NULL OR ur.role.deleted = false) " +
+            "AND (:fullName IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%')))")
+    List<User> findUsersByRoleNameAndFullNameLike(
+            @Param("roleName") String userRole,
+            @Param("fullName") String fullName
+    );
 
     @Query("SELECT u FROM User u JOIN u.userRoles ur WHERE ur.role.id = 10")
     Page<User> findAllTourGuides(Specification<User> spec,Pageable pageable);

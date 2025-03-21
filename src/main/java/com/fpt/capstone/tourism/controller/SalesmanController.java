@@ -82,4 +82,16 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.updateCustomers(updateCustomersRequestDTO));
     }
 
+
+    @GetMapping("/bookings/create/tour/{tourId}/{scheduleId}")
+    public ResponseEntity<?> updateCustomers(@PathVariable("tourId") Long tourId, @PathVariable("scheduleId") Long scheduleId) {
+        return ResponseEntity.ok(bookingService.getTourDetails(tourId, scheduleId));
+    }
+
+
+    @GetMapping("/bookings/create/customers")
+    public ResponseEntity<?> updateCustomers(@RequestParam(defaultValue = "", required = false) String customerName) {
+        return ResponseEntity.ok(bookingService.getCustomersByName(customerName));
+    }
+
 }

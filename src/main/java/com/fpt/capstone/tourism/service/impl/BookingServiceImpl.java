@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -37,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TransactionRepository transactionRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final UserRepository userRepository;
 
 
     private final LocationMapper locationMapper;
@@ -238,6 +240,27 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO) {
+        List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
+
+        TourBooking tourBooking = TourBooking.builder()
+                .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
+                .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
+                .seats(bookingRequestDTO.getCustomers().size())
+                .note(bookingRequestDTO.getNote())
+                .deleted(false)
+                .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
+                .user(User.builder().id(bookingRequestDTO.getUserId()).build())
+                .status(TourBookingStatus.PENDING)
+                .sellingPrice(bookingRequestDTO.getSellingPrice())
+                .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
+                .tourBookingCategory(TourBookingCategory.SALE)
+                .paymentMethod(bookingRequestDTO.getPaymentMethod())
+                .build();
+        return null;
+    }
+
+    @Override
     public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
 
         try {
@@ -323,6 +346,44 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(updatedTourBookingCustomers.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
         } catch (Exception ex) {
             throw BusinessException.of("Update Customer Status failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourDetails(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            TourDetailSaleResponseDTO tourDetailSaleResponseDTO = bookingMapper.toTourDetailSaleResponseDTO(tour);
+            return GeneralResponse.of(tourDetailSaleResponseDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour details for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourDetails(Long tourId, Long scheduleId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            CreateBookingTourDTO tourDetailSaleResponseDTO = bookingMapper.toCreateBookingTourDTO(tour);
+            PublicTourScheduleDTO scheduleDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
+            tourDetailSaleResponseDTO.setTourSchedule(scheduleDTO);
+            return GeneralResponse.of(tourDetailSaleResponseDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour details for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getCustomersByName(String name) {
+        try {
+
+            List<User> users = userRepository.findUsersByRoleNameAndFullNameLike("CUSTOMER", name);
+
+            List<BookedCustomerDTO> customers = users.stream().map(bookingMapper::toBookedPersonDTO).toList();
+
+            return GeneralResponse.of(customers);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get customers for sale failed", ex);
         }
     }
 }
