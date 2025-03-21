@@ -2,9 +2,11 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
+import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 
 import java.util.List;
@@ -33,4 +35,8 @@ public interface OperatorService {
     GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId);
 
     GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId);
+
+    GeneralResponse<PublicServiceProviderDTO> chooseServiceToPay(Long serviceId);
+
+    GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO);
 }

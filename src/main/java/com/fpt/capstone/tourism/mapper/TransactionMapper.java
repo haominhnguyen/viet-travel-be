@@ -23,10 +23,13 @@ public interface TransactionMapper extends EntityMapper<OperatorTransactionDTO, 
                 .filter(cost -> cost.getStatus() == CostAccountStatus.PAID)
                 .toList();
 
-        // Tính tổng tiền đã trả
-        double totalPaid = paidCostAccounts.stream()
-                .mapToDouble(CostAccount::getFinalAmount)
-                .sum();
+        double totalPaid = 0.0;
+        if(!paidCostAccounts.isEmpty()){
+            // Tính tổng tiền đã trả
+            totalPaid = paidCostAccounts.stream()
+                    .mapToDouble(CostAccount::getFinalAmount)
+                    .sum();
+        }
 
         // Xác định trạng thái thanh toán
         if (totalPaid >= transaction.getAmount()) {

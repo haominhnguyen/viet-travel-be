@@ -2,14 +2,19 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
+import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -21,14 +26,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
+@org.springframework.stereotype.Service
 public class OperatorServiceImpl implements OperatorService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourRepository tourRepository;
@@ -39,11 +44,14 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransactionRepository transactionRepository;
     private final TourScheduleServiceRepository scheduleServiceRepository;
     private final CostAccountRepository costAccountRepository;
+    private final ServiceRepository serviceRepository;
+    private final ServiceProviderRepository providerRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
     private final TagMapper tagMapper;
     private final UserFullInformationMapper userMapper;
+    private final ServiceProviderMapper providerMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -436,6 +444,67 @@ public class OperatorServiceImpl implements OperatorService {
 
         } catch (Exception ex) {
             throw BusinessException.of("Get list service fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PublicServiceProviderDTO> chooseServiceToPay(Long serviceId) {
+        try {
+            Service service = serviceRepository.findById(serviceId).orElseThrow(
+                    () -> BusinessException.of("Service not found"));
+            ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                    () -> BusinessException.of("Service provider not found")
+            );
+            PublicServiceProviderDTO resultDTO = providerMapper.toPublicServiceProviderDTO(serviceProvider);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Choose service success", resultDTO);
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Choose service fail", ex);
+        }
+    }
+
+    @Transactional
+    @Override
+    public GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
+                    () -> BusinessException.of("Booking not found")
+            );
+
+            Transaction transaction = Transaction.builder()
+                    .booking(tourBooking)
+                    .amount(requestDTO.getAmount())
+                    .category(TransactionType.PAYMENT)
+                    .paidBy(requestDTO.getPaidBy())
+                    .receivedBy(requestDTO.getReceivedBy())
+                    .paymentMethod(requestDTO.getPaymentMethod())
+                    .notes(requestDTO.getNotes())
+                    .build();
+
+            Transaction transaction1 = transactionRepository.save(transaction);
+
+            Service service = serviceRepository.findById(requestDTO.getServiceId()).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+            List<CostAccount> costAccounts = new ArrayList<>();
+            costAccounts.add(CostAccount.builder()
+                    .transaction(transaction1)
+                    .amount(service.getNettPrice())
+                    .discount(0)
+                    .content(requestDTO.getNotes())
+                    .quantity(requestDTO.getQuantity())
+                    .finalAmount(service.getNettPrice() * requestDTO.getQuantity())
+                    .status(CostAccountStatus.PENDING)
+                    .build());
+
+            List<CostAccount> newList = costAccountRepository.saveAll(costAccounts);
+            transaction1.setCostAccount(newList);
+
+            OperatorTransactionDTO resultDTO = transactionMapper.toDTO(transaction1);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Pay service success", resultDTO);
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Pay service fail", ex);
         }
     }
 

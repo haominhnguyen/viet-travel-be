@@ -5,10 +5,7 @@ import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
-import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -88,8 +85,13 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.getListService(scheduleId));
     }
 
-//    @PostMapping("/pay-service")
-//    public ResponseEntity<GeneralResponse<OperatorTransactionDTO>> payService(@RequestBody PayServiceRequestDTO requestDTO) {
-//        return ResponseEntity.ok(operatorService.payService(requestDTO));
-//    }
+    @GetMapping("/choose-service-to-pay/{serviceId}")
+    public ResponseEntity<GeneralResponse<PublicServiceProviderDTO>> chooseServiceToPay(@PathVariable Long serviceId) {
+        return ResponseEntity.ok(operatorService.chooseServiceToPay(serviceId));
+    }
+
+    @PostMapping("/pay-service")
+    public ResponseEntity<GeneralResponse<OperatorTransactionDTO>> payService(@RequestBody PayServiceRequestDTO requestDTO) {
+        return ResponseEntity.ok(operatorService.payService(requestDTO));
+    }
 }
