@@ -240,6 +240,10 @@ public class Constants {
         public static final String NUMBER_DAYS_MISMATCH = "Number of days must match the number of tour day entries";
         public static final String TOUR_DAY_TITLE_EMPTY = "Tour day title cannot be empty";
         public static final String TOUR_DAY_LOCATION_REQUIRED = "Tour day location is required";
+        public static final String CANNOT_MODIFY_OPENED_TOUR = "Cannot modify an opened tour";
+        public static final String CANNOT_ADD_DELETED_SERVICE = "Cannot add a deleted service";
+        public static final String SERVICE_ALREADY_ADDED = "This service is already added to this tour day";
+        public static final String SERVICE_ADD_SUCCESS = "Service added to tour day successfully";
 
     }
 

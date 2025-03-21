@@ -4,6 +4,8 @@ import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import lombok.*;
 
+import java.util.List;
+
 
 @Data
 @Builder
@@ -23,4 +25,5 @@ public class TourBasicDTO {
     private String privacy;
     private Long createdUserId;
     private String createdUserName;
+    private List<TourImageFullDTO> tourImages;
 }
