@@ -48,9 +48,9 @@ public class TourManagementController {
         return ResponseEntity.ok(tourService.getAllTours(keyword, isDeleted, isOpened,pageable));
     }
 
-    @GetMapping("/detail/{id}")
-    public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourById(@PathVariable Long id) {
-        return ResponseEntity.ok(tourService.getTourDetail(id));
+        @GetMapping("/detail/{id}")
+        public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourById(@PathVariable Long id) {
+            return ResponseEntity.ok(tourService.getTourDetail(id));
     }
 
     @GetMapping("/{tourId}/list-tour-days")
