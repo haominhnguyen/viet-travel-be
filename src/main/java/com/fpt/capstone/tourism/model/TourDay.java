@@ -16,6 +16,8 @@ public class TourDay extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "day_number")
+    private Integer dayNumber;
 
     @Column(name = "day_title")
     private String title;

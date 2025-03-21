@@ -534,6 +534,15 @@ public class TourServiceImpl implements TourService {
     }
 
     private TourBasicDTO convertToTourBasicDTO(Tour tour) {
+        List<TourImageFullDTO> tourImageDTOs = tour.getTourImages().stream()
+                .filter(image -> image.getDeleted() == null || !image.getDeleted())
+                .map(image -> TourImageFullDTO.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .deleted(false)
+                        .build())
+                .collect(Collectors.toList());
+
         return TourBasicDTO.builder()
                 .id(tour.getId())
                 .name(tour.getName())
@@ -548,6 +557,7 @@ public class TourServiceImpl implements TourService {
                 .privacy(tour.getPrivacy())
                 .createdUserId(tour.getCreatedBy().getId())
                 .createdUserName(tour.getCreatedBy().getFullName())
+                .tourImages(tourImageDTOs)
                 .build();
     }
 

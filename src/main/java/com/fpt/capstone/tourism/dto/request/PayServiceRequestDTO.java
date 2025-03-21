@@ -15,10 +15,10 @@ import java.util.List;
 public class PayServiceRequestDTO {
     private Long bookingId;
     private Double amount;
-//    private TransactionType category; // receipt hoặc payment
     private String paidBy;
     private String receivedBy;
     private PaymentMethod paymentMethod;
     private String notes;
     private Long serviceId;
+    private Integer quantity;
 }
