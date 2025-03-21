@@ -147,7 +147,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .stream().map(activityMapper::toPublicActivityDTO).collect(Collectors.toList());
 
             //Find other locations
-            List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(6);
+            List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(6, id);
 
             //Find hotel related to the location
             List<PublicServiceProviderDTO> hotels = serviceProviderRepository.getHotelByLocationId(id)

@@ -46,12 +46,14 @@ public class OperatorServiceImpl implements OperatorService {
     private final CostAccountRepository costAccountRepository;
     private final ServiceRepository serviceRepository;
     private final ServiceProviderRepository providerRepository;
+    private final LocationRepository locationRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
     private final TagMapper tagMapper;
     private final UserFullInformationMapper userMapper;
     private final ServiceProviderMapper providerMapper;
+    private final ServiceMapper serviceMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -505,6 +507,43 @@ public class OperatorServiceImpl implements OperatorService {
 
         } catch (Exception ex) {
             throw BusinessException.of("Pay service fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<Map<Long, String>> getListLocation() {
+        try {
+            List<Location> locations = locationRepository.findByDeletedFalse();
+            Map<Long, String> resultDTO = locations.stream()
+                    .collect(Collectors.toMap(Location::getId, Location::getName));
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list location success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get list location fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId) {
+        try {
+            List<ServiceProvider> providers = providerRepository.findByLocationIdAndDeletedFalse(locationId);
+            Map<Long, String> resultDTO = providers.stream()
+                    .collect(Collectors.toMap(ServiceProvider::getId, ServiceProvider::getName));
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list provider by location success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get list provider by location fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId) {
+        try {
+            List<Service> services = serviceRepository.findByServiceProviderIdAndDeletedFalse(serviceProviderId);
+            List<ServiceSimpleDTO> resultDTO = services.stream()
+                    .map(serviceMapper::toSimpleDTO)
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service by provider success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get list service by provider fail", ex);
         }
     }
 
