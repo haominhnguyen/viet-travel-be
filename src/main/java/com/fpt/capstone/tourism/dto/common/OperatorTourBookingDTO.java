@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class OperatorTourBookingDTO {
     private Long bookingId;
+    private String bookingCode;
     private String bookedBy;                      //Tên khách hàng đứng ra book tour
     private Integer adultCount;                   //Số lượng kháck người lớn trong tour
     private Integer childCount;                   //Số lượng khách trẻ em trong tour

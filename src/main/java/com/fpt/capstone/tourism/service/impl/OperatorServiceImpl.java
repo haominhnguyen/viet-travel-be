@@ -2,14 +2,19 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
+import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -21,14 +26,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
+@org.springframework.stereotype.Service
 public class OperatorServiceImpl implements OperatorService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourRepository tourRepository;
@@ -39,11 +44,14 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransactionRepository transactionRepository;
     private final TourScheduleServiceRepository scheduleServiceRepository;
     private final CostAccountRepository costAccountRepository;
+    private final ServiceRepository serviceRepository;
+    private final ServiceProviderRepository providerRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
     private final TagMapper tagMapper;
     private final UserFullInformationMapper userMapper;
+    private final ServiceProviderMapper providerMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -207,7 +215,7 @@ public class OperatorServiceImpl implements OperatorService {
             }).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list customer of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Operator get list customer of tour detail fail", ex);
         }
     }
@@ -229,6 +237,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
                         .bookingId(booking.getId())
+                        .bookingCode(booking.getBookingCode())
                         .bookedBy(booking.getUser().getFullName())
                         .adultCount(adultCount)
                         .childCount(childCount)
@@ -245,7 +254,7 @@ public class OperatorServiceImpl implements OperatorService {
             }).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Operator get list booking of tour detail fail", ex);
         }
     }
@@ -259,18 +268,18 @@ public class OperatorServiceImpl implements OperatorService {
                     .map(logMapper::toDTO).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list log of tour detail fail", ex);
         }
     }
 
     @Override
     public GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO) {
-        try{
+        try {
             //Validate input data
             Validator.validateLog(logRequestDTO);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
-                     BusinessException.of("Not found tour schedule"));
+                    BusinessException.of("Not found tour schedule"));
 
             //Save date to database
             TourOperationLog log = logMapper.toEntity(logRequestDTO);
@@ -282,16 +291,16 @@ public class OperatorServiceImpl implements OperatorService {
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Create log success", logDTO);
-        }catch (BusinessException be){
+        } catch (BusinessException be) {
             throw be;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Create log fail", ex);
         }
     }
 
     @Override
     public GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId) {
-        try{
+        try {
             TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
                     BusinessException.of("Not found tour log"));
 
@@ -301,9 +310,9 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Delete log success", logDTO);
-        }catch (BusinessException be){
+        } catch (BusinessException be) {
             throw be;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Delete log fail", ex);
         }
     }
@@ -327,7 +336,7 @@ public class OperatorServiceImpl implements OperatorService {
             tourScheduleRepository.save(tourSchedule);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Assign tour guide success", requestDTO);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Assign tour guide fail", ex);
         }
     }
@@ -339,7 +348,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .map(userMapper::toResponseDTO).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list available tour guide success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list available tour guide fail", ex);
         }
     }
@@ -354,7 +363,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
-        } catch  (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get list transaction fail", ex);
         }
     }
@@ -372,15 +381,7 @@ public class OperatorServiceImpl implements OperatorService {
             double totalAmountToPay = 0.0; // Tổng số tiền cần trả cho nhà cung cấp
 
             for (TourBookingService bookingService : bookingServices) {
-                System.out.println(bookingServices.size());
-                System.out.println(bookingService.getService().getName());
-                System.out.println(bookingService.getCurrentQuantity());
-                // Tìm danh sách tour booking ứng với scheduleId và serviceId
-//                Long bookingId = tourBookingRepository.findByServiceId(bookingService.getService().getId());
-//                TourBooking booking = tourBookingRepository.findById(64L).orElse(null);
-//                List<TourBooking> bookings = tourBookingRepository.findByTourScheduleIdAndServiceId(scheduleId, bookingService.getService().getId());
-//                for (TourBooking booking : bookings) {
-                    // Tìm danh sách Transaction có category = PAYMENT
+                // Tìm danh sách Transaction có category = PAYMENT
 //                    List<Transaction> transactions = transactionRepository.findByBooking_Id(bookingService.getBooking().getId())
 //                            .stream()
 //                            .filter(transaction -> transaction.getCategory() == TransactionType.PAYMENT)
@@ -393,39 +394,42 @@ public class OperatorServiceImpl implements OperatorService {
 //                            .mapToDouble(CostAccount::getFinalAmount) // Tính tổng số tiền đã chi
 //                            .sum();
 //
-                    double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
+                // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
+                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
 
-                    // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
-                    double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
+                double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
 
-                    // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
-                    totalPaid += paidForBooking;
-                    totalAmountToPay += amountToPayForBooking;
+                // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
+                totalPaid += paidForBooking;
+                totalAmountToPay += amountToPayForBooking;
 
-                    // Xác định trạng thái thanh toán của booking
-                    String paymentStatus;
-                    if (paidForBooking >= amountToPayForBooking) {
-                        paymentStatus = "PAID"; // Đã thanh toán đủ
-                    } else if (paidForBooking > 0) {
-                        paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
-                    } else {
-                        paymentStatus = "UNPAID"; // Chưa thanh toán
-                    }
-
-                    // Thêm vào danh sách DTO
-                    serviceDTOList.add(OperatorServiceDTO.builder()
-                            .serviceId(bookingService.getService().getId())
-                            .bookingId(bookingService.getBooking().getId())
-                            .serviceName(bookingService.getService().getName())
-                            .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
-                            .usingDate(bookingService.getTourSchedule().getStartDate())
-                            .requestQuantity(bookingService.getRequestedQuantity())
-                            .currentQuantity(bookingService.getCurrentQuantity())
-                            .bookingStatus(bookingService.getStatus().toString())
-                            .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
-                            .build());
+                // Xác định trạng thái thanh toán của booking
+                String paymentStatus;
+                if (paidForBooking >= amountToPayForBooking) {
+                    paymentStatus = "PAID"; // Đã thanh toán đủ
+                } else if (paidForBooking > 0) {
+                    paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
+                } else {
+                    paymentStatus = "UNPAID"; // Chưa thanh toán
                 }
-//            }
+
+                // Thêm vào danh sách DTO
+                serviceDTOList.add(OperatorServiceDTO.builder()
+                        .bookingId(bookingService.getBooking().getId())
+                        .serviceId(bookingService.getService().getId())
+                        .bookingCode(bookingService.getBooking().getBookingCode())
+                        .serviceName(bookingService.getService().getName())
+                        .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
+                        .usingDate(bookingService.getTourSchedule().getStartDate())
+                        .requestQuantity(bookingService.getRequestedQuantity())
+                        .currentQuantity(bookingService.getCurrentQuantity())
+                        .bookingStatus(bookingService.getStatus().toString())
+                        .paidForBooking(paidForBooking)
+                        .amountToPayForBooking(amountToPayForBooking)
+                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
+                        .build());
+            }
 
             // Tạo DTO tổng hợp kết quả
             OperatorServiceListDTO resultDTO = OperatorServiceListDTO.builder()
@@ -440,6 +444,67 @@ public class OperatorServiceImpl implements OperatorService {
 
         } catch (Exception ex) {
             throw BusinessException.of("Get list service fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PublicServiceProviderDTO> chooseServiceToPay(Long serviceId) {
+        try {
+            Service service = serviceRepository.findById(serviceId).orElseThrow(
+                    () -> BusinessException.of("Service not found"));
+            ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                    () -> BusinessException.of("Service provider not found")
+            );
+            PublicServiceProviderDTO resultDTO = providerMapper.toPublicServiceProviderDTO(serviceProvider);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Choose service success", resultDTO);
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Choose service fail", ex);
+        }
+    }
+
+    @Transactional
+    @Override
+    public GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
+                    () -> BusinessException.of("Booking not found")
+            );
+
+            Transaction transaction = Transaction.builder()
+                    .booking(tourBooking)
+                    .amount(requestDTO.getAmount())
+                    .category(TransactionType.PAYMENT)
+                    .paidBy(requestDTO.getPaidBy())
+                    .receivedBy(requestDTO.getReceivedBy())
+                    .paymentMethod(requestDTO.getPaymentMethod())
+                    .notes(requestDTO.getNotes())
+                    .build();
+
+            Transaction transaction1 = transactionRepository.save(transaction);
+
+            Service service = serviceRepository.findById(requestDTO.getServiceId()).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+            List<CostAccount> costAccounts = new ArrayList<>();
+            costAccounts.add(CostAccount.builder()
+                    .transaction(transaction1)
+                    .amount(service.getNettPrice())
+                    .discount(0)
+                    .content(requestDTO.getNotes())
+                    .quantity(requestDTO.getQuantity())
+                    .finalAmount(service.getNettPrice() * requestDTO.getQuantity())
+                    .status(CostAccountStatus.PENDING)
+                    .build());
+
+            List<CostAccount> newList = costAccountRepository.saveAll(costAccounts);
+            transaction1.setCostAccount(newList);
+
+            OperatorTransactionDTO resultDTO = transactionMapper.toDTO(transaction1);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Pay service success", resultDTO);
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Pay service fail", ex);
         }
     }
 
