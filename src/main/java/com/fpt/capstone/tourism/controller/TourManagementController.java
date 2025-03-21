@@ -1,11 +1,9 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourDayUpdateDTO;
-import com.fpt.capstone.tourism.dto.request.TourDayUpdateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.TourDayServiceResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
@@ -100,5 +98,16 @@ public class TourManagementController {
         User user = getLoggedInUser(userDetails);
         GeneralResponse<TourResponseDTO> response = tourService.updateTour(id, tourRequestDTO,user);
         return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    @PostMapping("/{tourId}/tour-days/{tourDayId}/services/add")
+    public ResponseEntity<GeneralResponse<TourDayServiceResponseDTO>> addServiceToTourDay(
+            @PathVariable Long tourId,
+            @PathVariable Long tourDayId,
+            @RequestBody TourDayServiceRequestDTO requestDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getLoggedInUser(userDetails);
+        requestDTO.setId(tourDayId);
+        return ResponseEntity.ok(tourDayServiceI.addServiceToTourDay(requestDTO, user));
     }
 }
