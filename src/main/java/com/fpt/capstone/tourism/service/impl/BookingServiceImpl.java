@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -8,13 +9,11 @@ import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.AgeType;
-import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
-import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
-import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +37,8 @@ public class BookingServiceImpl implements BookingService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TransactionRepository transactionRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
+    private final UserRepository userRepository;
+    private final TourBookingServiceRepository tourBookingServiceRepository;
 
 
     private final LocationMapper locationMapper;
@@ -49,6 +51,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourHelper tourHelper;
 
     private final TourBookingCustomerService tourBookingCustomerService;
+    private final CostAccountRepository costAccountRepository;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -75,6 +78,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public GeneralResponse<?> createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
             List<TourBookingCustomer> adults = tourBookingCustomerMapper.toAdultEntity(bookingRequestDTO.getAdults());
@@ -105,6 +109,7 @@ public class BookingServiceImpl implements BookingService {
 
             TourBooking result = tourBookingRepository.save(tourBooking);
 
+            saveTourBookingService(result);
 
             TourBooking temp = TourBooking.builder().id(result.getId()).build();
 
@@ -128,28 +133,7 @@ public class BookingServiceImpl implements BookingService {
 
             tourBookingCustomerService.saveAll(allCustomers);
 
-            CostAccount costAccount = CostAccount.builder()
-                    .amount(bookingRequestDTO.getTotal())
-                    .content("Customer pay for Booking Code: " + result.getBookingCode())
-                    .discount(0)
-                    .finalAmount(bookingRequestDTO.getTotal())
-                    .quantity(1)
-                    .build();
-
-            List<CostAccount> costAccountList = new ArrayList<>();
-            costAccountList.add(costAccount);
-
-            Transaction transaction = Transaction.builder()
-                    .booking(temp)
-                    .amount(costAccount.getAmount())
-                    .paymentMethod(bookingRequestDTO.getPaymentMethod())
-                    .category(TransactionType.RECEIPT)
-                    .costAccount(costAccountList)
-                    .paidBy(bookingRequestDTO.getFullName())
-                    .receivedBy("Viet Travel")
-                    .build();
-
-            transactionRepository.save(transaction);
+            createReceiptBookingTransaction(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
 
 
         return GeneralResponse.of(result.getBookingCode());
@@ -238,6 +222,66 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO) {
+
+
+        try {
+            List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
+
+            TourBooking tourBooking = TourBooking.builder()
+                    .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
+                    .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
+                    .seats(bookingRequestDTO.getCustomers().size())
+                    .note(bookingRequestDTO.getNote())
+                    .deleted(false)
+                    .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
+                    .user(User.builder().id(bookingRequestDTO.getUserId()).build())
+                    .status(TourBookingStatus.SUCCESS)
+                    .sellingPrice(bookingRequestDTO.getSellingPrice())
+                    .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
+                    .tourBookingCategory(TourBookingCategory.SALE)
+                    .paymentMethod(bookingRequestDTO.getPaymentMethod())
+                    .sale(User.builder().id(bookingRequestDTO.getSaleId()).build())
+                    .expiredAt(bookingRequestDTO.getExpiredAt())
+                    .totalAmount(bookingRequestDTO.getTotalAmount())
+                    .build();
+
+
+
+            TourBooking result = tourBookingRepository.save(tourBooking);
+
+            saveTourBookingService(result);
+
+            TourBookingCustomer bookedPerson = TourBookingCustomer.builder()
+                    .ageType(AgeType.ADULT)
+                    .fullName(bookingRequestDTO.getFullName())
+                    .email(bookingRequestDTO.getEmail())
+                    .phoneNumber(bookingRequestDTO.getPhone())
+                    .deleted(false)
+                    .bookedPerson(true)
+                    .tourBooking(result)
+                    .address(bookingRequestDTO.getAddress())
+                    .build();
+
+            // Save booking customers
+            for (TourBookingCustomer customer : customers) {
+                customer.setTourBooking(result);
+            }
+
+
+            tourBookingCustomerRepository.saveAll(customers);
+            tourBookingCustomerRepository.save(bookedPerson);
+
+            //Create transaction for booking
+            createReceiptBookingTransaction(result, bookingRequestDTO.getTotalAmount(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
+
+            return GeneralResponse.of(bookingMapper.toBookingDetailSaleResponseDTO(result));
+        } catch (Exception ex) {
+            throw BusinessException.of("Create Public Booking failed!", ex);
+        }
+    }
+
+    @Override
     public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
 
         try {
@@ -303,6 +347,12 @@ public class BookingServiceImpl implements BookingService {
             tourBookingCustomer.setDeleted(!tourBookingCustomer.getDeleted());
             TourBookingCustomer updatedTourBookingCustomer = tourBookingCustomerRepository.save(tourBookingCustomer);
 
+            int modifiedQuantity = tourBookingCustomer.getDeleted() ? -1 : 1;
+
+            TourBooking tourBooking = tourBookingRepository.findById(tourBookingCustomer.getTourBooking().getId()).orElseThrow();
+            tourBooking.setSeats(tourBooking.getSeats() + modifiedQuantity);
+            tourBookingRepository.save(tourBooking);
+
             return GeneralResponse.of(bookingMapper.toTourBookingCustomerDTO(updatedTourBookingCustomer));
         } catch (Exception ex) {
             throw BusinessException.of("Update Customer Status failed", ex);
@@ -314,15 +364,115 @@ public class BookingServiceImpl implements BookingService {
 
         try {
             List<TourBookingCustomer> tourBookingCustomers = updateCustomersRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
-            TourBooking tourBooking = TourBooking.builder().id(updateCustomersRequestDTO.getBookingId()).build();
+            TourBooking tourBooking = tourBookingRepository.findById(updateCustomersRequestDTO.getBookingId()).orElseThrow();
+
+            int totalCustomer = 0;
+
             for (TourBookingCustomer customer : tourBookingCustomers) {
                 customer.setTourBooking(tourBooking);
+                if(!customer.getDeleted()) {
+                    totalCustomer++;
+                }
             }
+
+            tourBooking.setSeats(totalCustomer);
+
+            tourBookingRepository.save(tourBooking);
+
             List<TourBookingCustomer> updatedTourBookingCustomers = tourBookingCustomerRepository.saveAll(tourBookingCustomers);
 
             return GeneralResponse.of(updatedTourBookingCustomers.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
         } catch (Exception ex) {
             throw BusinessException.of("Update Customer Status failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourDetails(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            TourDetailSaleResponseDTO tourDetailSaleResponseDTO = bookingMapper.toTourDetailSaleResponseDTO(tour);
+            return GeneralResponse.of(tourDetailSaleResponseDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour details for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourDetails(Long tourId, Long scheduleId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            CreateBookingTourDTO tourDetailSaleResponseDTO = bookingMapper.toCreateBookingTourDTO(tour);
+            PublicTourScheduleDTO scheduleDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
+            tourDetailSaleResponseDTO.setTourSchedule(scheduleDTO);
+            return GeneralResponse.of(tourDetailSaleResponseDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour details for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getCustomersByName(String name) {
+        try {
+
+            List<User> users = userRepository.findUsersByRoleNameAndFullNameLike("CUSTOMER", name);
+
+            List<BookedCustomerDTO> customers = users.stream().map(bookingMapper::toBookedPersonDTO).toList();
+
+            return GeneralResponse.of(customers);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get customers for sale failed", ex);
+        }
+    }
+
+    @Override
+    public Transaction createReceiptBookingTransaction(TourBooking tourBooking, Double total, String fullName, PaymentMethod paymentMethod) {
+
+        Transaction transaction = Transaction.builder()
+                .booking(tourBooking)
+                .amount(total)
+                .paymentMethod(paymentMethod)
+                .category(TransactionType.RECEIPT)
+                .paidBy(fullName)
+                .transactionStatus(TransactionStatus.MISSING)
+                .receivedBy("Viet Travel")
+                .build();
+
+        Transaction result = transactionRepository.save(transaction);
+
+        CostAccount costAccount = CostAccount.builder()
+                .amount(total)
+                .transaction(result)
+                .content("Customer pay for Booking Code: " + tourBooking.getBookingCode())
+                .discount(0)
+                .finalAmount(total)
+                .quantity(1)
+                .status(CostAccountStatus.PENDING)
+                .build();
+
+        costAccountRepository.save(costAccount);
+
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    public void saveTourBookingService(TourBooking tourBooking) {
+        Tour tour = tourBooking.getTour();
+        List<TourDay> tourDays = tour.getTourDays();
+
+        for(TourDay tourDay : tourDays) {
+            List<TourDayService> dayServices = tourDay.getTourDayServices();
+            for(TourDayService dayService : dayServices) {
+                TourBookingService tourBookingService = TourBookingService.builder()
+                        .booking(tourBooking)
+                        .currentQuantity(0)
+                        .tourDay(tourDay)
+                        .service(dayService.getService())
+                        .deleted(false)
+                        .status(TourBookingServiceStatus.NOT_ORDERED)
+                        .build();
+                tourBookingServiceRepository.save(tourBookingService);
+            }
         }
     }
 }

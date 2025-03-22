@@ -206,6 +206,11 @@ public class BookingHelperImpl implements BookingHelper {
         tourBookingSaleResponseDTO.setSchedule(tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId()));
         tourBookingSaleResponseDTO.setCreatedAt(tourBooking.getCreatedAt());
         tourBookingSaleResponseDTO.setTransactions(tourBookingReceipts.stream().map(bookingMapper::toTransactionDTO).toList());
+
+
+        List<TourBookingService> tourBookingServices = tourBooking.getTourBookingServices();
+
+
         return tourBookingSaleResponseDTO;
     }
 }

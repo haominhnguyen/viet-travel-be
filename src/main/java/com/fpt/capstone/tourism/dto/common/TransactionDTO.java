@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.model.CostAccount;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -24,4 +25,5 @@ public class TransactionDTO {
     private String notes;
     private List<CostAccountDTO> costAccount;
     private LocalDateTime createdAt;
+    private TransactionStatus transactionStatus;
 }

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourBookingService;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,5 +12,6 @@ import java.util.List;
 
 @Repository
 public interface TourScheduleServiceRepository  extends JpaRepository<TourBookingService, Long>, JpaSpecificationExecutor<TourBookingService> {
-    List<TourBookingService> findByTourSchedule_Id(Long scheduleId);
+
+    List<TourBookingService> findAllByBookingIn(List<TourBooking> bookings);
 }

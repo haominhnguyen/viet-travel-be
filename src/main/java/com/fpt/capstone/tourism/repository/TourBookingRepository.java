@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
+import com.fpt.capstone.tourism.model.TourBookingService;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,4 +69,5 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
         WHERE tbs.service.id = :serviceId
     """)
     Long findByServiceId(Long serviceId);
+
 }

@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
-import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
-import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import lombok.RequiredArgsConstructor;
@@ -109,6 +106,21 @@ public class OperatorController {
     @GetMapping("/tour-service/{serviceProviderId}/list-service")
     public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId) {
         return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId));
+    }
+
+    @GetMapping("/tour-service/{serviceId}/service-detail")
+    public ResponseEntity<GeneralResponse<?>> getServiceDetail(@PathVariable Long serviceId) {
+        return ResponseEntity.ok(operatorService.getServiceDetail(serviceId));
+    }
+
+    @PostMapping("/add-service")
+    public ResponseEntity<GeneralResponse<?>> addService(@RequestBody AddServiceRequestDTO requestDTO) {
+        return ResponseEntity.ok(operatorService.addService(requestDTO));
+    }
+
+    @PostMapping("/send-mail-to-provider")
+    public ResponseEntity<GeneralResponse<?>> sendMailToProvider(@RequestBody MailServiceDTO mailServiceDTO) {
+        return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));
     }
 
 }

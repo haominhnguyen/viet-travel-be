@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,4 +48,7 @@ public class Transaction extends BaseEntity{
 
     @OneToMany(mappedBy = "transaction")
     private List<CostAccount> costAccount;
+
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus transactionStatus;
 }

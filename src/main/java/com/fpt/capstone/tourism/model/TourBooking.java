@@ -34,9 +34,13 @@ public class TourBooking extends BaseEntity {
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "sale_id")
+    private User sale;
 
     @ManyToOne
     @JoinColumn(name = "tour_id")
