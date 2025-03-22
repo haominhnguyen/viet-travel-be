@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.mapper;
 import com.fpt.capstone.tourism.dto.common.MealDTO;
+import com.fpt.capstone.tourism.dto.common.MealSimpleDTO;
 import com.fpt.capstone.tourism.model.Meal;
 import com.fpt.capstone.tourism.model.Service;
 import org.mapstruct.*;
@@ -11,5 +12,6 @@ public interface MealMapper {
     @Mapping(source = "service.id", target = "serviceId")
     MealDTO toDTO(Meal entity);
 
+    MealSimpleDTO toSimpleDTO(Meal entity);
 
 }

@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
-import com.fpt.capstone.tourism.model.enums.TourScheduleServiceStatus;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,10 +32,6 @@ public class TourBookingService extends BaseEntity{
     @JoinColumn(name = "tour_day_id")
     private TourDay tourDay;
 
-    @ManyToOne
-    @JoinColumn(name = "schedule_id")
-    private TourSchedule tourSchedule;
-
     @Column(name = "current_quantity")
     private int currentQuantity;
 
@@ -52,6 +48,6 @@ public class TourBookingService extends BaseEntity{
     private String reason;
 
     @Enumerated(EnumType.STRING)
-    private TourScheduleServiceStatus status; //(e.g., Pending, Approved, Rejected).
+    private TourBookingServiceStatus status; //(e.g., Pending, Approved, Rejected).
 
 }

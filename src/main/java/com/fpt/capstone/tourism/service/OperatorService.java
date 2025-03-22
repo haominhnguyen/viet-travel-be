@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AddServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
@@ -43,4 +44,8 @@ public interface OperatorService {
     GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId);
 
     GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId);
+
+    GeneralResponse<?> getServiceDetail(Long serviceId);
+
+    GeneralResponse<?> addService(AddServiceRequestDTO requestDTO);
 }
