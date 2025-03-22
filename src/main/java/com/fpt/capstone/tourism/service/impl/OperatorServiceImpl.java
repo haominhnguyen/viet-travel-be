@@ -13,7 +13,6 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.Service;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
-import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.*;
@@ -599,10 +598,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(bookingId, serviceId);
 
-            //Dịch vụ chưa được đặt => update
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)){
-
-            }
+//            if(bookingService.getStatus().equals(B))
 
 
             OperatorServiceDetailDTO resultDTO = OperatorServiceDetailDTO.builder()
