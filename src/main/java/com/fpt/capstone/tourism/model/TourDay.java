@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -40,5 +41,5 @@ public class TourDay extends BaseEntity{
     private Location location;
 
     @OneToMany(mappedBy = "tourDay")
-    private Set<TourDayService> tourDayServices;
+    private List<TourDayService> tourDayServices;
 }

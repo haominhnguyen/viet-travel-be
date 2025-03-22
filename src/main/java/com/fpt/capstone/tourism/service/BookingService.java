@@ -47,4 +47,6 @@ public interface BookingService {
 
      void saveTourBookingService(TourBooking tourBooking);
 
+     //GeneralResponse<?> getTourBookingServices(L);
+
 }

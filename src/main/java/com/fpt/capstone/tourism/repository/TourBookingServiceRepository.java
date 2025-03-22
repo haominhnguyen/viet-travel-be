@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface TourBookingServiceRepository extends JpaRepository<TourBookingService, Long>, JpaSpecificationExecutor<TourBookingService> {
 
     TourBookingService findByBookingIdAndServiceIdAndDeletedFalse(Long bookingId, Long serviceId);
+
+
+
 }

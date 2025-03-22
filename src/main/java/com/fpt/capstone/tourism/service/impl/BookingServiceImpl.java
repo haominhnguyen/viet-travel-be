@@ -13,6 +13,7 @@ import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final TransactionRepository transactionRepository;
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final UserRepository userRepository;
+    private final TourBookingServiceRepository tourBookingServiceRepository;
 
 
     private final LocationMapper locationMapper;
@@ -75,6 +78,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public GeneralResponse<?> createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
             List<TourBookingCustomer> adults = tourBookingCustomerMapper.toAdultEntity(bookingRequestDTO.getAdults());
@@ -105,6 +109,7 @@ public class BookingServiceImpl implements BookingService {
 
             TourBooking result = tourBookingRepository.save(tourBooking);
 
+            saveTourBookingService(result);
 
             TourBooking temp = TourBooking.builder().id(result.getId()).build();
 
@@ -244,6 +249,8 @@ public class BookingServiceImpl implements BookingService {
 
 
             TourBooking result = tourBookingRepository.save(tourBooking);
+
+            saveTourBookingService(result);
 
             TourBookingCustomer bookedPerson = TourBookingCustomer.builder()
                     .ageType(AgeType.ADULT)
@@ -421,9 +428,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Transaction createReceiptBookingTransaction(TourBooking tourBooking, Double total, String fullName, PaymentMethod paymentMethod) {
 
-
-
-
         Transaction transaction = Transaction.builder()
                 .booking(tourBooking)
                 .amount(total)
@@ -455,10 +459,20 @@ public class BookingServiceImpl implements BookingService {
     public void saveTourBookingService(TourBooking tourBooking) {
         Tour tour = tourBooking.getTour();
         List<TourDay> tourDays = tour.getTourDays();
-        List<com.fpt.capstone.tourism.model.Service> services = new ArrayList<>();
 
         for(TourDay tourDay : tourDays) {
-
+            List<TourDayService> dayServices = tourDay.getTourDayServices();
+            for(TourDayService dayService : dayServices) {
+                TourBookingService tourBookingService = TourBookingService.builder()
+                        .booking(tourBooking)
+                        .currentQuantity(0)
+                        .tourDay(tourDay)
+                        .service(dayService.getService())
+                        .deleted(false)
+                        .status(TourBookingServiceStatus.NOT_ORDERED)
+                        .build();
+                tourBookingServiceRepository.save(tourBookingService);
+            }
         }
     }
 }
