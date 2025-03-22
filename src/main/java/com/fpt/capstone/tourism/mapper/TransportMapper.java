@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.mapper;
 import com.fpt.capstone.tourism.dto.common.TransportDTO;
+import com.fpt.capstone.tourism.dto.common.TransportSimpleDTO;
 import com.fpt.capstone.tourism.model.Transport;
 import org.mapstruct.*;
 
@@ -9,4 +10,6 @@ public interface TransportMapper extends EntityMapper<TransportDTO, Transport> {
     @Mapping(source = "updatedAt", target = "updatedAt")
     //@Mapping(source = "service.id", target = "serviceId")
     TransportDTO toDTO(Transport entity);
+
+    TransportSimpleDTO toSimpleDTO(Transport entity);
 }

@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.AddServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
@@ -12,6 +13,7 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.Service;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.*;
@@ -47,6 +49,10 @@ public class OperatorServiceImpl implements OperatorService {
     private final ServiceRepository serviceRepository;
     private final ServiceProviderRepository providerRepository;
     private final LocationRepository locationRepository;
+    private final RoomRepository roomRepository;
+    private final MealRepository mealRepository;
+    private final TransportRepository transportRepository;
+    private final TourBookingServiceRepository bookingServiceRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -54,6 +60,9 @@ public class OperatorServiceImpl implements OperatorService {
     private final UserFullInformationMapper userMapper;
     private final ServiceProviderMapper providerMapper;
     private final ServiceMapper serviceMapper;
+    private final RoomMapper roomMapper;
+    private final MealMapper mealMapper;
+    private final TransportMapper transportMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -423,7 +432,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
                         .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
-                        .usingDate(bookingService.getTourSchedule().getStartDate())
+//                        .usingDate(bookingService.getTourSchedule().getStartDate())
                         .requestQuantity(bookingService.getRequestedQuantity())
                         .currentQuantity(bookingService.getCurrentQuantity())
                         .bookingStatus(bookingService.getStatus().toString())
@@ -544,6 +553,76 @@ public class OperatorServiceImpl implements OperatorService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service by provider success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Get list service by provider fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getServiceDetail(Long serviceId) {
+        try {
+            Service service = serviceRepository.findById(serviceId).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+            RoomSimpleDTO roomDTO = roomRepository.findByServiceId(serviceId)
+                    .map(roomMapper::toSimpleDTO).orElse(null);
+            MealSimpleDTO mealDTO = mealRepository.findByServiceId(serviceId)
+                    .map(mealMapper::toSimpleDTO).orElse(null);
+            TransportSimpleDTO transportDTO = transportRepository.findByServiceId(serviceId)
+                    .map(transportMapper::toSimpleDTO).orElse(null);
+
+
+            OperatorServiceDetailDTO resultDTO = OperatorServiceDetailDTO.builder()
+                    .id(serviceId)
+                    .name(service.getName())
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .imageUrl(service.getImageUrl())
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .serviceCategory(service.getServiceCategory().getCategoryName())
+                    .serviceProvider(service.getServiceProvider().getName())
+                    .room(roomDTO)
+                    .meal(mealDTO)
+                    .transport(transportDTO)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
+        try {
+            Long serviceId = requestDTO.getServiceId();
+            Long bookingId = requestDTO.getBookingId();
+
+            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(bookingId, serviceId);
+
+            //Dịch vụ chưa được đặt => update
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)){
+
+            }
+
+
+            OperatorServiceDetailDTO resultDTO = OperatorServiceDetailDTO.builder()
+                    .id(serviceId)
+//                    .name(service.getName())
+//                    .nettPrice(service.getNettPrice())
+//                    .sellingPrice(service.getSellingPrice())
+//                    .imageUrl(service.getImageUrl())
+//                    .startDate(service.getStartDate())
+//                    .endDate(service.getEndDate())
+//                    .serviceCategory(service.getServiceCategory().getCategoryName())
+//                    .serviceProvider(service.getServiceProvider().getName())
+//                    .room(roomDTO)
+//                    .meal(mealDTO)
+//                    .transport(transportDTO)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
         }
     }
 
