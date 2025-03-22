@@ -205,19 +205,33 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             tourDay = tourDayRepository.save(tourDay);
 
-            // Get service categories
+            // Get service categories and create TourDayService entries
             List<ServiceCategory> serviceCategories = new ArrayList<>();
+            List<com.fpt.capstone.tourism.model.TourDayService> createdTourDayServices = new ArrayList<>();
+
             for (String categoryName : request.getServiceCategories()) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
+
+                // Find a default service for this category to create a TourDayService entry
+                List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+                if (!servicesForCategory.isEmpty()) {
+                    Service defaultService = servicesForCategory.get(0); // Get the most recently added service
+
+                    // Create and save a TourDayService entry
+                    com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+                    tourDayService.setTourDay(tourDay);
+                    tourDayService.setService(defaultService);
+                    tourDayService.setQuantity(1); // Default quantity
+                    tourDayService.setSellingPrice(defaultService.getSellingPrice()); // Use service's selling price
+
+                    tourDayService = tourDayServiceRepository.save(tourDayService);
+                    createdTourDayServices.add(tourDayService);
+                }
             }
 
-            // Get list of service IDs from TourDayService table
-            List<Long> serviceIds = tourDayServiceRepository.findServiceIdsByTourDayId(tourDay.getId());
-
-            // Get services by IDs
-            List<Service> services = serviceRepository.findByIdIn(serviceIds);
+            // Get all tour day services for this tour day
             List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
 
             List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
@@ -241,7 +255,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     })
                     .collect(Collectors.toList());
 
-            // Extract service category names for response
             List<String> categoryNames = serviceCategories.stream()
                     .map(ServiceCategory::getCategoryName)
                     .collect(Collectors.toList());
@@ -256,10 +269,10 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .location(locationMapper.toDTO(location))
                     .tourDayServices(tourDayServices)
                     .serviceCategories(categoryNames)
+                    .deleted(false)
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
                     .build();
-
             return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_DAY_CREATED_SUCCESS, tourDayDTO);
         } catch (BusinessException ex) {
             throw ex;
@@ -306,22 +319,62 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             tourDay = tourDayRepository.save(tourDay);
 
-            // Get service categories
+            // Get requested service categories
+            Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
             List<ServiceCategory> serviceCategories = new ArrayList<>();
-            for (String categoryName : request.getServiceCategories()) {
+
+            for (String categoryName : requestedCategories) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
             }
 
-            // Get list of service IDs from TourDayService table
-            List<Long> serviceIds = tourDayServiceRepository.findServiceIdsByTourDayId(tourDay.getId());
+            // Get existing tour day services
+            List<com.fpt.capstone.tourism.model.TourDayService> existingTourDayServices =
+                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
 
-            // Get services by IDs
-            List<Service> services = serviceRepository.findByIdIn(serviceIds);
-            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
+            // Track existing categories
+            Set<Long> existingCategoryIds = existingTourDayServices.stream()
+                    .map(tds -> tds.getService().getServiceCategory().getId())
+                    .collect(Collectors.toSet());
 
-            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
+            // Add new service categories that don't exist yet
+            for (ServiceCategory category : serviceCategories) {
+                if (!existingCategoryIds.contains(category.getId())) {
+                    // Find a default service for this category
+                    List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+                    if (!servicesForCategory.isEmpty()) {
+                        Service defaultService = servicesForCategory.get(0);
+
+                        // Create and save a TourDayService entry
+                        com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+                        tourDayService.setTourDay(tourDay);
+                        tourDayService.setService(defaultService);
+                        tourDayService.setQuantity(1); // Default quantity
+                        tourDayService.setSellingPrice(defaultService.getSellingPrice());
+
+                        tourDayServiceRepository.save(tourDayService);
+                    }
+                }
+            }
+
+            // Remove tour day services for categories that are no longer in the request
+            Set<Long> requestedCategoryIds = serviceCategories.stream()
+                    .map(ServiceCategory::getId)
+                    .collect(Collectors.toSet());
+
+            for (com.fpt.capstone.tourism.model.TourDayService tds : existingTourDayServices) {
+                Long categoryId = tds.getService().getServiceCategory().getId();
+                if (!requestedCategoryIds.contains(categoryId)) {
+                    tourDayServiceRepository.delete(tds);
+                }
+            }
+
+            // Get updated tour day services after modifications
+            List<com.fpt.capstone.tourism.model.TourDayService> updatedTourDayServices =
+                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
+
+            List<TourDayServiceFullDTO> tourDayServices = updatedTourDayServices.stream()
                     .map(tourDayService -> {
                         Service service = tourDayService.getService();
                         String categoryName = null;
@@ -357,6 +410,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .tourDayServices(tourDayServices)
                     .location(locationMapper.toDTO(location))
                     .serviceCategories(categoryNames)
+                    .deleted(false)
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
                     .build();
