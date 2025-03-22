@@ -13,7 +13,9 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.Service;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
+import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
@@ -62,6 +64,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final RoomMapper roomMapper;
     private final MealMapper mealMapper;
     private final TransportMapper transportMapper;
+    private final EmailConfirmationService emailService;
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -382,7 +385,8 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId) {
         try {
             // Tìm danh sách tất cả dịch vụ liên quan đến scheduleId
-            List<TourBookingService> bookingServices = scheduleServiceRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBookingService> bookingServices = scheduleServiceRepository.findAllByBookingIn(bookings);
             // Danh sách DTO kết quả
             List<OperatorServiceDTO> serviceDTOList = new ArrayList<>();
 
@@ -431,7 +435,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
                         .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
-//                        .usingDate(bookingService.getTourSchedule().getStartDate())
+                        .usingDate(bookingService.getRequestDate())
                         .requestQuantity(bookingService.getRequestedQuantity())
                         .currentQuantity(bookingService.getCurrentQuantity())
                         .bookingStatus(bookingService.getStatus().toString())
@@ -593,30 +597,75 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
         try {
-            Long serviceId = requestDTO.getServiceId();
-            Long bookingId = requestDTO.getBookingId();
+            Service service = serviceRepository.findById(requestDTO.getServiceId()).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+            TourBooking booking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
+                    () -> BusinessException.of("Tour booking not found")
+            );
 
-            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(bookingId, serviceId);
+            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId());
 
-//            if(bookingService.getStatus().equals(B))
+            //Dịch vụ chưa được đặt => update số lượng
+            if (bookingService != null && bookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)) {
+                bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
+                bookingService.setRequestDate(requestDTO.getRequestDate());
+                bookingServiceRepository.save(bookingService);
+            } else {
+                //dịch vụ chưa có thì add vào db
+                if (bookingService == null) {
+                    bookingService = TourBookingService.builder()
+                            .booking(booking)
+                            .service(service)
+                            .currentQuantity(requestDTO.getAddQuantity())
+                            .requestDate(requestDTO.getRequestDate())
+                            .deleted(Boolean.FALSE)
+                            .reason(requestDTO.getReason())
+                            .status(TourBookingServiceStatus.PENDING)
+                            .build();
+                    bookingServiceRepository.save(bookingService);
+                }
+                if (bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
+                    bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
+                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                    bookingServiceRepository.save(bookingService);
+                }
 
+                ServiceProvider provider = service.getServiceProvider();
 
-            OperatorServiceDetailDTO resultDTO = OperatorServiceDetailDTO.builder()
-                    .id(serviceId)
-//                    .name(service.getName())
-//                    .nettPrice(service.getNettPrice())
-//                    .sellingPrice(service.getSellingPrice())
-//                    .imageUrl(service.getImageUrl())
-//                    .startDate(service.getStartDate())
-//                    .endDate(service.getEndDate())
-//                    .serviceCategory(service.getServiceCategory().getCategoryName())
-//                    .serviceProvider(service.getServiceProvider().getName())
-//                    .room(roomDTO)
-//                    .meal(mealDTO)
-//                    .transport(transportDTO)
-                    .build();
+                String emailSubject = "[Viet Travel - " + provider.getId() + "] - Thông tin đặt hàng dịch vụ.";
+                String emailContent = "Kính gửi: " + provider.getName() + ",\n\n"
+                        + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
+                        + "Dịch vụ: " + service.getName() + "\n"
+                        + "Số lượng: " + requestDTO.getAddQuantity() + "\n"
+                        + "Ngày yêu cầu: " + requestDTO.getRequestDate() + ".\n\n"
+                        + "Tổng số tiền: " + requestDTO.getAddQuantity() * service.getNettPrice() + "(đ)\n\n"
+                        + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
+                        + "Best Regards,\n"
+                        + "Viet Travel";
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .providerId(provider.getId())
+                        .providerName(provider.getName())
+                        .providerEmail(provider.getEmail())
+                        .emailSubject(emailSubject)
+                        .emailContent(emailContent)
+                        .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Need confirm", mailServiceDTO);
+
+            }
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", "Update quantity successfully");
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
+        try {
+            emailService.sendMailServiceProvider(mailServiceDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }

@@ -118,4 +118,9 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.addService(requestDTO));
     }
 
+    @PostMapping("/send-mail-to-provider")
+    public ResponseEntity<GeneralResponse<?>> sendMailToProvider(@RequestBody MailServiceDTO mailServiceDTO) {
+        return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));
+    }
+
 }

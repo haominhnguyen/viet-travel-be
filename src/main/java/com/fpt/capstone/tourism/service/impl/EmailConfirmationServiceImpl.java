@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
+import com.fpt.capstone.tourism.dto.common.MailServiceDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.Token;
 import com.fpt.capstone.tourism.model.User;
@@ -112,7 +113,17 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
             emailService.sendEmail(user.getEmail(), subject, content);
 
         } catch (Exception e) {
-            throw BusinessException.of(Constants.Message.TOKEN_ENCRYPTION_FAILED_MESSAGE, e);
+            throw BusinessException.of("Send email account fail", e);
+        }
+    }
+
+    @Override
+    public void sendMailServiceProvider(MailServiceDTO mailServiceDTO) {
+        try {
+            emailService.sendEmail(mailServiceDTO.getProviderEmail(), mailServiceDTO.getEmailSubject(), mailServiceDTO.getEmailContent());
+
+        } catch (Exception e) {
+            throw BusinessException.of("Send email order service fail", e);
         }
     }
 

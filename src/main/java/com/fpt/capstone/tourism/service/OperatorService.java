@@ -48,4 +48,6 @@ public interface OperatorService {
     GeneralResponse<?> getServiceDetail(Long serviceId);
 
     GeneralResponse<?> addService(AddServiceRequestDTO requestDTO);
+
+    GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO);
 }
