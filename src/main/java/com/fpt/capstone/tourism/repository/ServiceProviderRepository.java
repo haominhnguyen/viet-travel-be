@@ -48,5 +48,11 @@ SELECT s.serviceProvider.id, MIN(s.sellingPrice)
     List<Object[]> findMinRoomPricesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 
     List<ServiceProvider> findByLocationIdAndDeletedFalse(@Param("locationId") Long locationId);
+
+    @Query("SELECT COUNT(sp) > 0 FROM ServiceProvider sp " +
+            "JOIN sp.serviceCategories sc " +
+            "WHERE sp.location.id = :locationId AND sc.categoryName = :categoryName " +
+            "AND (sp.deleted = false OR sp.deleted IS NULL)")
+    boolean existsByLocationIdAndCategoryName(@Param("locationId") Long locationId, @Param("categoryName") String categoryName);
 }
 

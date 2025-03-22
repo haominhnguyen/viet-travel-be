@@ -1,0 +1,23 @@
+package com.fpt.capstone.tourism.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "tour_day_service_category")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TourDayServiceCategory {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "tour_day_id")
+    private Long tourDayId;
+
+    @Column(name = "service_category_id")
+    private Long serviceCategoryId;
+}

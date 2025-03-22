@@ -21,7 +21,6 @@ public class TourDayFullDTO {
     private Long tourId;
     private LocationDTO location;
     private Boolean deleted;
-    private List<TourDayServiceFullDTO> tourDayServices;
     private List<String> serviceCategories;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -2,16 +2,12 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourDayFullDTO;
-import com.fpt.capstone.tourism.dto.common.TourDayServiceFullDTO;
 import com.fpt.capstone.tourism.dto.request.*;
-import com.fpt.capstone.tourism.dto.response.TourDayServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.mapper.TourDayFullMapper;
 import com.fpt.capstone.tourism.mapper.TourDayServiceMapper;
 import com.fpt.capstone.tourism.mapper.TourDayServiceResponseMapper;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourDayServiceI;
 import jakarta.transaction.Transactional;
@@ -26,9 +22,9 @@ import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class TourDayServiceIImpl implements TourDayServiceI {
+
     private final TourDayRepository tourDayRepository;
     private final TourRepository tourRepository;
-    private final TourDayFullMapper tourDayFullMapper;
     private final TourDayServiceMapper tourDayServiceMapper;
     private final LocationMapper locationMapper;
     private final TourDayServiceRepository tourDayServiceRepository;
@@ -36,6 +32,8 @@ public class TourDayServiceIImpl implements TourDayServiceI {
     private final LocationRepository locationRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceResponseMapper tourDayServiceResponseMapper;
+    private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
 
     @Override
     public GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId, Boolean isDeleted) {
@@ -57,40 +55,8 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             // Map list of TourDay to list of TourDayFullDTO
             List<TourDayFullDTO> tourDayDTOs = tourDays.stream().map(tourDay -> {
-                // Get list of service IDs from TourDayService table
-                List<Long> serviceIds = tourDayServiceRepository.findServiceIdsByTourDayId(tourDay.getId());
-
-                // Get services by IDs
-                List<Service> services = serviceRepository.findByIdIn(serviceIds);
-                List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
-
-                List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
-                        .map(tourDayService -> {
-                            Service service = tourDayService.getService();
-                            String categoryName = null;
-
-                            // Get the category name if service and category exist
-                            if (service != null && service.getServiceCategory() != null) {
-                                categoryName = service.getServiceCategory().getCategoryName();
-                            }
-
-                            return TourDayServiceFullDTO.builder()
-                                    .id(tourDayService.getId())
-                                    .serviceId(service != null ? service.getId() : null)
-                                    .serviceName(service != null ? service.getName() : null)
-                                    .serviceCategoryName(categoryName)
-                                    .quantity(tourDayService.getQuantity())
-                                    .sellingPrice(tourDayService.getSellingPrice())
-                                    .build();
-                        })
-                        .collect(Collectors.toList());
-
-                // Extract distinct service categories from services
-                List<String> serviceCategories = tourDayServices.stream()
-                        .map(TourDayServiceFullDTO::getServiceCategoryName)
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .collect(Collectors.toList());
+                // Get service categories for this tour day using the new approach
+                List<String> serviceCategories = getServiceCategoriesForTourDay(tourDay.getId());
 
                 return TourDayFullDTO.builder()
                         .id(tourDay.getId())
@@ -100,72 +66,14 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         .mealPlan(tourDay.getMealPlan())
                         .tourId(tour.getId())
                         .location(locationMapper.toDTO(tourDay.getLocation()))
-                        .tourDayServices(tourDayServices)
                         .serviceCategories(serviceCategories)
+                        .deleted(tourDay.getDeleted())
                         .createdAt(tourDay.getCreatedAt())
                         .updatedAt(tourDay.getUpdatedAt())
-                        .deleted(tourDay.getDeleted())
                         .build();
             }).collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_DETAIL_LOAD_SUCCESS, tourDayDTOs);
-        } catch (BusinessException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw BusinessException.of(TOUR_DAY_DETAIL_LOAD_FAIL, ex);
-        }
-    }
-
-    @Override
-    public GeneralResponse<TourDayFullDTO> getTourDayById(Long id, Long tourId) {
-        try {
-            Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
-
-            TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
-
-            // Get list of service IDs from TourDayService table
-            List<Long> serviceIds = tourDayServiceRepository.findServiceIdsByTourDayId(tourDay.getId());
-
-            // Get services by IDs
-            List<Service> services = serviceRepository.findByIdIn(serviceIds);
-            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
-
-            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
-                    .map(tourDayService -> {
-                        Service service = tourDayService.getService();
-                        String categoryName = null;
-
-                        // Get the category name if service and category exist
-                        if (service != null && service.getServiceCategory() != null) {
-                            categoryName = service.getServiceCategory().getCategoryName();
-                        }
-
-                        return TourDayServiceFullDTO.builder()
-                                .id(tourDayService.getId())
-                                .serviceId(service != null ? service.getId() : null)
-                                .serviceName(service != null ? service.getName() : null)
-                                .serviceCategoryName(categoryName)
-                                .quantity(tourDayService.getQuantity())
-                                .sellingPrice(tourDayService.getSellingPrice())
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-
-            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
-                    .id(tourDay.getId())
-                    .title(tourDay.getTitle())
-                    .dayNumber(tourDay.getDayNumber())
-                    .content(tourDay.getContent())
-                    .mealPlan(tourDay.getMealPlan())
-                    .tourId(tour.getId())
-                    .location(locationMapper.toDTO(tourDay.getLocation()))
-                    .tourDayServices(tourDayServices)
-                    .createdAt(tourDay.getCreatedAt())
-                    .updatedAt(tourDay.getUpdatedAt())
-                    .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_DETAIL_LOAD_SUCCESS, tourDayDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -187,11 +95,22 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             if (request.getLocationId() != null) {
                 location = locationRepository.findById(request.getLocationId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+
+                // Only verify that categories are available in this location
+                // but don't create any TourDayService entries yet
+                verifyServiceCategoriesAvailableInLocation(request.getServiceCategories(), location.getId());
             }
+
+            Integer maxDays = Math.max(tour.getNumberDays(), tour.getNumberNights());
 
             Integer dayNumber = tourDayRepository.findMaxDayNumberByTourId(tourId)
                     .map(maxDay -> maxDay + 1)
                     .orElse(1);
+
+            if (dayNumber > maxDays) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                        "Cannot create more days than the maximum defined in the tour (" + maxDays + " days/nights)");
+            }
 
             TourDay tourDay = TourDay.builder()
                     .dayNumber(dayNumber)
@@ -205,56 +124,20 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             tourDay = tourDayRepository.save(tourDay);
 
-            // Get service categories and create TourDayService entries
+            // Get service categories but DON'T create TourDayService entries yet
             List<ServiceCategory> serviceCategories = new ArrayList<>();
-            List<com.fpt.capstone.tourism.model.TourDayService> createdTourDayServices = new ArrayList<>();
 
             for (String categoryName : request.getServiceCategories()) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
 
-                // Find a default service for this category to create a TourDayService entry
-                List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
-                if (!servicesForCategory.isEmpty()) {
-                    Service defaultService = servicesForCategory.get(0); // Get the most recently added service
-
-                    // Create and save a TourDayService entry
-                    com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
-                    tourDayService.setTourDay(tourDay);
-                    tourDayService.setService(defaultService);
-                    tourDayService.setQuantity(1); // Default quantity
-                    tourDayService.setSellingPrice(defaultService.getSellingPrice()); // Use service's selling price
-
-                    tourDayService = tourDayServiceRepository.save(tourDayService);
-                    createdTourDayServices.add(tourDayService);
-                }
+                // Store the association between tour day and service category
+                // in a separate table or through another mechanism if needed
+                saveTourDayServiceCategory(tourDay.getId(), category.getId());
             }
 
-            // Get all tour day services for this tour day
-            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
-
-            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
-                    .map(tourDayService -> {
-                        Service service = tourDayService.getService();
-                        String categoryName = null;
-
-                        // Get the category name if service and category exist
-                        if (service != null && service.getServiceCategory() != null) {
-                            categoryName = service.getServiceCategory().getCategoryName();
-                        }
-
-                        return TourDayServiceFullDTO.builder()
-                                .id(tourDayService.getId())
-                                .serviceId(service != null ? service.getId() : null)
-                                .serviceName(service != null ? service.getName() : null)
-                                .serviceCategoryName(categoryName)
-                                .quantity(tourDayService.getQuantity())
-                                .sellingPrice(tourDayService.getSellingPrice())
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-
+            // Extract category names for response
             List<String> categoryNames = serviceCategories.stream()
                     .map(ServiceCategory::getCategoryName)
                     .collect(Collectors.toList());
@@ -267,7 +150,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .mealPlan(tourDay.getMealPlan())
                     .tourId(tour.getId())
                     .location(locationMapper.toDTO(location))
-                    .tourDayServices(tourDayServices)
                     .serviceCategories(categoryNames)
                     .deleted(false)
                     .createdAt(tourDay.getCreatedAt())
@@ -281,6 +163,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
         }
     }
 
+
     @Override
     @Transactional
     public GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request) {
@@ -288,25 +171,38 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             // Validate service categories
             validateServiceCategories(request.getServiceCategories());
 
-            Location location = null;
-            if (request.getLocationId() != null) {
-                location = locationRepository.findById(request.getLocationId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
-            }
-
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
             TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
 
+            Location location = null;
+
+            if (request.getLocationId() != null) {
+                location = locationRepository.findById(request.getLocationId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+
+                // Only verify that categories are available in this location
+                // but don't create any TourDayService entries yet
+                verifyServiceCategoriesAvailableInLocation(request.getServiceCategories(), location.getId());
+            }
+
             // Check if the day number already exists for another tour day in the same tour
             if (request.getDayNumber() != null && !request.getDayNumber().equals(tourDay.getDayNumber())) {
+                // Check if the day number already exists for another tour day in the same tour
                 boolean dayNumberExists = tourDayRepository.existsByTourIdAndDayNumberAndIdNot(
                         tourId, request.getDayNumber(), id);
                 if (dayNumberExists) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST,
                             "Day number " + request.getDayNumber() + " already exists for this tour");
+                }
+
+                // Validate against max days/nights
+                Integer maxDays = Math.max(tour.getNumberDays(), tour.getNumberNights());
+                if (request.getDayNumber() > maxDays) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Day number cannot exceed the maximum defined in the tour (" + maxDays + " days/nights)");
                 }
             }
 
@@ -319,83 +215,24 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             tourDay = tourDayRepository.save(tourDay);
 
-            // Get requested service categories
+            // Get requested service categories but DON'T create TourDayService entries
             Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
             List<ServiceCategory> serviceCategories = new ArrayList<>();
 
+            // Delete all existing tour day service category associations first
+            deleteTourDayServiceCategories(tourDay.getId());
+
+            // Then add the new ones
             for (String categoryName : requestedCategories) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
+
+                // Store the association between tour day and service category
+                saveTourDayServiceCategory(tourDay.getId(), category.getId());
             }
 
-            // Get existing tour day services
-            List<com.fpt.capstone.tourism.model.TourDayService> existingTourDayServices =
-                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
-
-            // Track existing categories
-            Set<Long> existingCategoryIds = existingTourDayServices.stream()
-                    .map(tds -> tds.getService().getServiceCategory().getId())
-                    .collect(Collectors.toSet());
-
-            // Add new service categories that don't exist yet
-            for (ServiceCategory category : serviceCategories) {
-                if (!existingCategoryIds.contains(category.getId())) {
-                    // Find a default service for this category
-                    List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
-                    if (!servicesForCategory.isEmpty()) {
-                        Service defaultService = servicesForCategory.get(0);
-
-                        // Create and save a TourDayService entry
-                        com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
-                        tourDayService.setTourDay(tourDay);
-                        tourDayService.setService(defaultService);
-                        tourDayService.setQuantity(1); // Default quantity
-                        tourDayService.setSellingPrice(defaultService.getSellingPrice());
-
-                        tourDayServiceRepository.save(tourDayService);
-                    }
-                }
-            }
-
-            // Remove tour day services for categories that are no longer in the request
-            Set<Long> requestedCategoryIds = serviceCategories.stream()
-                    .map(ServiceCategory::getId)
-                    .collect(Collectors.toSet());
-
-            for (com.fpt.capstone.tourism.model.TourDayService tds : existingTourDayServices) {
-                Long categoryId = tds.getService().getServiceCategory().getId();
-                if (!requestedCategoryIds.contains(categoryId)) {
-                    tourDayServiceRepository.delete(tds);
-                }
-            }
-
-            // Get updated tour day services after modifications
-            List<com.fpt.capstone.tourism.model.TourDayService> updatedTourDayServices =
-                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
-
-            List<TourDayServiceFullDTO> tourDayServices = updatedTourDayServices.stream()
-                    .map(tourDayService -> {
-                        Service service = tourDayService.getService();
-                        String categoryName = null;
-
-                        // Get the category name if service and category exist
-                        if (service != null && service.getServiceCategory() != null) {
-                            categoryName = service.getServiceCategory().getCategoryName();
-                        }
-
-                        return TourDayServiceFullDTO.builder()
-                                .id(tourDayService.getId())
-                                .serviceId(service != null ? service.getId() : null)
-                                .serviceName(service != null ? service.getName() : null)
-                                .serviceCategoryName(categoryName)
-                                .quantity(tourDayService.getQuantity())
-                                .sellingPrice(tourDayService.getSellingPrice())
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-
-            // Extract service category names for response
+            // Extract category names for response
             List<String> categoryNames = serviceCategories.stream()
                     .map(ServiceCategory::getCategoryName)
                     .collect(Collectors.toList());
@@ -407,10 +244,9 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .content(tourDay.getContent())
                     .mealPlan(tourDay.getMealPlan())
                     .tourId(tour.getId())
-                    .tourDayServices(tourDayServices)
                     .location(locationMapper.toDTO(location))
-                    .serviceCategories(categoryNames)
-                    .deleted(false)
+                    .serviceCategories(categoryNames) // Just the category names, no services yet
+                    .deleted(tourDay.getDeleted())
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
                     .build();
@@ -421,6 +257,253 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update tour day", ex);
         }
     }
+
+//    @Override
+//    @Transactional
+//    public GeneralResponse<TourDayFullDTO> createTourDay(Long tourId, TourDayCreateRequestDTO request) {
+//        try {
+//            // Validate service categories
+//            validateServiceCategories(request.getServiceCategories());
+//
+//            Tour tour = tourRepository.findById(tourId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+//
+//            Location location = null;
+//            if (request.getLocationId() != null) {
+//                location = locationRepository.findById(request.getLocationId())
+//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+//            }
+//
+//            Integer dayNumber = tourDayRepository.findMaxDayNumberByTourId(tourId)
+//                    .map(maxDay -> maxDay + 1)
+//                    .orElse(1);
+//
+//            TourDay tourDay = TourDay.builder()
+//                    .dayNumber(dayNumber)
+//                    .title(request.getTitle())
+//                    .content(request.getContent())
+//                    .mealPlan(request.getMealPlan())
+//                    .deleted(false)
+//                    .tour(tour)
+//                    .location(location)
+//                    .build();
+//
+//            tourDay = tourDayRepository.save(tourDay);
+//
+//            // Get service categories and create TourDayService entries
+//            List<ServiceCategory> serviceCategories = new ArrayList<>();
+//            List<com.fpt.capstone.tourism.model.TourDayService> createdTourDayServices = new ArrayList<>();
+//
+//            for (String categoryName : request.getServiceCategories()) {
+//                ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+//                serviceCategories.add(category);
+//
+//                // Find a default service for this category to create a TourDayService entry
+//                List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+//                if (!servicesForCategory.isEmpty()) {
+//                    Service defaultService = servicesForCategory.get(0);
+//                    // Create and save a TourDayService entry
+//                    com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+//                    tourDayService.setTourDay(tourDay);
+//                    tourDayService.setService(defaultService);
+//                    tourDayService.setQuantity(1);
+//                    tourDayService.setSellingPrice(defaultService.getSellingPrice());
+//                    tourDayService = tourDayServiceRepository.save(tourDayService);
+//                    createdTourDayServices.add(tourDayService);
+//                }
+//            }
+//
+//            // Get all tour day services for this tour day
+//            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
+//
+//            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
+//                    .map(tourDayService -> {
+//                        Service service = tourDayService.getService();
+//                        String categoryName = null;
+//
+//                        // Get the category name if service and category exist
+//                        if (service != null && service.getServiceCategory() != null) {
+//                            categoryName = service.getServiceCategory().getCategoryName();
+//                        }
+//
+//                        return TourDayServiceFullDTO.builder()
+//                                .id(tourDayService.getId())
+//                                .serviceId(service != null ? service.getId() : null)
+//                                .serviceName(service != null ? service.getName() : null)
+//                                .serviceCategoryName(categoryName)
+//                                .quantity(tourDayService.getQuantity())
+//                                .sellingPrice(tourDayService.getSellingPrice())
+//                                .build();
+//                    })
+//                    .collect(Collectors.toList());
+//
+//            List<String> categoryNames = serviceCategories.stream()
+//                    .map(ServiceCategory::getCategoryName)
+//                    .collect(Collectors.toList());
+//
+//            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
+//                    .id(tourDay.getId())
+//                    .title(tourDay.getTitle())
+//                    .dayNumber(tourDay.getDayNumber())
+//                    .content(tourDay.getContent())
+//                    .mealPlan(tourDay.getMealPlan())
+//                    .tourId(tour.getId())
+//                    .location(locationMapper.toDTO(location))
+//                    .tourDayServices(tourDayServices)
+//                    .serviceCategories(categoryNames)
+//                    .deleted(false)
+//                    .createdAt(tourDay.getCreatedAt())
+//                    .updatedAt(tourDay.getUpdatedAt())
+//                    .build();
+//            return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_DAY_CREATED_SUCCESS, tourDayDTO);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create tour day", ex);
+//        }
+//    }
+//
+//    @Override
+//    @Transactional
+//    public GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request) {
+//        try {
+//            // Validate service categories
+//            validateServiceCategories(request.getServiceCategories());
+//
+//            Location location = null;
+//            if (request.getLocationId() != null) {
+//                location = locationRepository.findById(request.getLocationId())
+//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+//            }
+//
+//            Tour tour = tourRepository.findById(tourId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+//
+//            TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
+//
+//            // Check if the day number already exists for another tour day in the same tour
+//            if (request.getDayNumber() != null && !request.getDayNumber().equals(tourDay.getDayNumber())) {
+//                boolean dayNumberExists = tourDayRepository.existsByTourIdAndDayNumberAndIdNot(
+//                        tourId, request.getDayNumber(), id);
+//                if (dayNumberExists) {
+//                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+//                            "Day number " + request.getDayNumber() + " already exists for this tour");
+//                }
+//            }
+//
+//            // Update tour day
+//            tourDay.setDayNumber(request.getDayNumber());
+//            tourDay.setTitle(request.getTitle());
+//            tourDay.setContent(request.getContent());
+//            tourDay.setMealPlan(request.getMealPlan());
+//            tourDay.setLocation(location);
+//
+//            tourDay = tourDayRepository.save(tourDay);
+//
+//            // Get requested service categories
+//            Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
+//            List<ServiceCategory> serviceCategories = new ArrayList<>();
+//
+//            for (String categoryName : requestedCategories) {
+//                ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+//                serviceCategories.add(category);
+//            }
+//
+//            // Get existing tour day services
+//            List<com.fpt.capstone.tourism.model.TourDayService> existingTourDayServices =
+//                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
+//
+//            // Track existing categories
+//            Set<Long> existingCategoryIds = existingTourDayServices.stream()
+//                    .map(tds -> tds.getService().getServiceCategory().getId())
+//                    .collect(Collectors.toSet());
+//
+//            // Add new service categories that don't exist yet
+//            for (ServiceCategory category : serviceCategories) {
+//                if (!existingCategoryIds.contains(category.getId())) {
+//                    // Find a default service for this category
+//                    List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+//                    if (!servicesForCategory.isEmpty()) {
+//                        Service defaultService = servicesForCategory.get(0);
+//
+//                        // Create and save a TourDayService entry
+//                        com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+//                        tourDayService.setTourDay(tourDay);
+//                        tourDayService.setService(defaultService);
+//                        tourDayService.setQuantity(1); // Default quantity
+//                        tourDayService.setSellingPrice(defaultService.getSellingPrice());
+//
+//                        tourDayServiceRepository.save(tourDayService);
+//                    }
+//                }
+//            }
+//
+//            // Remove tour day services for categories that are no longer in the request
+//            Set<Long> requestedCategoryIds = serviceCategories.stream()
+//                    .map(ServiceCategory::getId)
+//                    .collect(Collectors.toSet());
+//
+//            for (com.fpt.capstone.tourism.model.TourDayService tds : existingTourDayServices) {
+//                Long categoryId = tds.getService().getServiceCategory().getId();
+//                if (!requestedCategoryIds.contains(categoryId)) {
+//                    tourDayServiceRepository.delete(tds);
+//                }
+//            }
+//
+//            // Get updated tour day services after modifications
+//            List<com.fpt.capstone.tourism.model.TourDayService> updatedTourDayServices =
+//                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
+//
+//            List<TourDayServiceFullDTO> tourDayServices = updatedTourDayServices.stream()
+//                    .map(tourDayService -> {
+//                        Service service = tourDayService.getService();
+//                        String categoryName = null;
+//
+//                        // Get the category name if service and category exist
+//                        if (service != null && service.getServiceCategory() != null) {
+//                            categoryName = service.getServiceCategory().getCategoryName();
+//                        }
+//
+//                        return TourDayServiceFullDTO.builder()
+//                                .id(tourDayService.getId())
+//                                .serviceId(service != null ? service.getId() : null)
+//                                .serviceName(service != null ? service.getName() : null)
+//                                .serviceCategoryName(categoryName)
+//                                .quantity(tourDayService.getQuantity())
+//                                .sellingPrice(tourDayService.getSellingPrice())
+//                                .build();
+//                    })
+//                    .collect(Collectors.toList());
+//
+//            // Extract service category names for response
+//            List<String> categoryNames = serviceCategories.stream()
+//                    .map(ServiceCategory::getCategoryName)
+//                    .collect(Collectors.toList());
+//
+//            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
+//                    .id(tourDay.getId())
+//                    .title(tourDay.getTitle())
+//                    .dayNumber(tourDay.getDayNumber())
+//                    .content(tourDay.getContent())
+//                    .mealPlan(tourDay.getMealPlan())
+//                    .tourId(tour.getId())
+//                    .tourDayServices(tourDayServices)
+//                    .location(locationMapper.toDTO(location))
+//                    .serviceCategories(categoryNames)
+//                    .deleted(false)
+//                    .createdAt(tourDay.getCreatedAt())
+//                    .updatedAt(tourDay.getUpdatedAt())
+//                    .build();
+//            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_UPDATED_SUCCESS, tourDayDTO);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update tour day", ex);
+//        }
+//    }
 
     @Override
     @Transactional
@@ -462,6 +545,41 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_SERVICE_CATEGORY);
             }
         }
+    }
+
+    private void verifyServiceCategoriesAvailableInLocation(List<String> categories, Long locationId) {
+        for (String category : categories) {
+            boolean isAvailable = serviceProviderRepository.existsByLocationIdAndCategoryName(locationId, category);
+            if (!isAvailable) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                        String.format("No service provider available for category %s in the selected location", category));
+            }
+        }
+    }
+
+    private void saveTourDayServiceCategory(Long tourDayId, Long categoryId) {
+        TourDayServiceCategory association = new TourDayServiceCategory();
+        association.setTourDayId(tourDayId);
+        association.setServiceCategoryId(categoryId);
+        tourDayServiceCategoryRepository.save(association);
+    }
+
+    private void deleteTourDayServiceCategories(Long tourDayId) {
+        tourDayServiceCategoryRepository.deleteByTourDayId(tourDayId);
+    }
+
+    private List<String> getServiceCategoriesForTourDay(Long tourDayId) {
+        List<TourDayServiceCategory> associations = tourDayServiceCategoryRepository.findByTourDayId(tourDayId);
+
+        if (associations.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> categoryIds = associations.stream()
+                .map(TourDayServiceCategory::getServiceCategoryId)
+                .collect(Collectors.toList());
+
+        return serviceCategoryRepository.findCategoryNamesByIds(categoryIds);
     }
 }
 
