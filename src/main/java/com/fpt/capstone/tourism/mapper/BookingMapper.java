@@ -1,14 +1,12 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
+import com.fpt.capstone.tourism.dto.response.CreateBookingTourDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TourDetailSaleResponseDTO;
 import com.fpt.capstone.tourism.mapper.custom.TourImageCustom;
 import com.fpt.capstone.tourism.model.*;
 import org.mapstruct.*;
-
-import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {
         LocationMapper.class,
@@ -37,10 +35,15 @@ public interface BookingMapper {
     TransactionDTO toTransactionDTO(Transaction transaction);
 
 
+    TourPaxDTO toTourPaxDTO(TourPax tourPax);
+
     CostAccountDTO toCostAccountDTO(CostAccount costAccount);
 
     TourSupportInfoDTO toTourSupportInfoDTO(Tour tour);
 
+    BookedCustomerDTO toBookedPersonDTO(User user);
+
+    CreateBookingTourDTO toCreateBookingTourDTO(Tour tour);
 
     @Mapping(target = "paid", ignore = true)
     @Mapping(target = "total", ignore = true)

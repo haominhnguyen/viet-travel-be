@@ -1,9 +1,13 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
+import com.fpt.capstone.tourism.model.TourBooking;
+import com.fpt.capstone.tourism.model.Transaction;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourType;
 
 import java.util.List;
@@ -16,7 +20,7 @@ public interface BookingService {
 
      GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection, TourType tourType);
 
-
+     GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO);
 
      GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId);
 
@@ -29,4 +33,18 @@ public interface BookingService {
 
 
      GeneralResponse<?> updateCustomers(UpdateCustomersRequestDTO updateCustomersRequestDTO);
+
+
+     GeneralResponse<?> getTourDetails(Long tourId);
+
+     GeneralResponse<?> getTourDetails(Long tourId, Long scheduleId);
+
+     GeneralResponse<?> getCustomersByName(String name);
+
+
+
+     Transaction createReceiptBookingTransaction(TourBooking tourBooking, Double total, String fullName, PaymentMethod paymentMethod);
+
+     void saveTourBookingService(TourBooking tourBooking);
+
 }

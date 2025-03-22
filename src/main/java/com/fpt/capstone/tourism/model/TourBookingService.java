@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Entity
@@ -26,6 +27,10 @@ public class TourBookingService extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "service_id")
     private Service service;
+
+    @ManyToOne
+    @JoinColumn(name = "tour_day_id")
+    private TourDay tourDay;
 
     @Column(name = "current_quantity")
     private int currentQuantity;

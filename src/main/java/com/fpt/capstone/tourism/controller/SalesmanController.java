@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -80,6 +81,23 @@ public class SalesmanController {
     @PostMapping("/bookings/customers/update")
     public ResponseEntity<?> updateCustomers(@RequestBody UpdateCustomersRequestDTO updateCustomersRequestDTO) {
         return ResponseEntity.ok(bookingService.updateCustomers(updateCustomersRequestDTO));
+    }
+
+
+    @GetMapping("/bookings/create/tour/{tourId}/{scheduleId}")
+    public ResponseEntity<?> updateCustomers(@PathVariable("tourId") Long tourId, @PathVariable("scheduleId") Long scheduleId) {
+        return ResponseEntity.ok(bookingService.getTourDetails(tourId, scheduleId));
+    }
+
+
+    @GetMapping("/bookings/create/customers")
+    public ResponseEntity<?> updateCustomers(@RequestParam(defaultValue = "", required = false) String customerName) {
+        return ResponseEntity.ok(bookingService.getCustomersByName(customerName));
+    }
+
+    @PostMapping("/bookings/create")
+    public ResponseEntity<?> createPublicBooking(@RequestBody CreatePublicBookingRequestDTO bookingRequestDTO) {
+        return ResponseEntity.ok(bookingService.createBooking(bookingRequestDTO));
     }
 
 }
