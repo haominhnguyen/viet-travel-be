@@ -14,6 +14,7 @@ public interface TourDayServiceRepository extends JpaRepository<TourDayService, 
     @Query("SELECT tds.service.id FROM TourDayService tds WHERE tds.tourDay.id = :tourDayId")
     List<Long> findServiceIdsByTourDayId(@Param("tourDayId") Long tourDayId);
     List<TourDayService> findByTourDayId(Long tourDayId);
+
     Optional<TourDayService> findByTourDayIdAndServiceId(Long tourDayId, Long serviceId);
 }
 

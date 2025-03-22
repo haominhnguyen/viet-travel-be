@@ -53,24 +53,6 @@ public class TourManagementController {
             return ResponseEntity.ok(tourService.getTourDetail(id));
     }
 
-    @GetMapping("/{tourId}/list-tour-days")
-    public ResponseEntity<GeneralResponse<List<TourDayFullDTO>>> getTourDaysByTourId(@PathVariable Long tourId) {
-        return ResponseEntity.ok(tourDayServiceI.getTourDayDetail(tourId));
-    }
-
-    @PostMapping("/{tourId}/tour-days/create")
-    public ResponseEntity<GeneralResponse<TourDayFullDTO>> createTourDayDetail(
-            @RequestBody TourDayCreateRequestDTO tourDayCreateRequestDTO) {
-        return ResponseEntity.ok(tourDayServiceI.createTourDay(tourDayCreateRequestDTO));
-    }
-
-    @PutMapping("/{tourId}/tour-days/update/{tourDayId}")
-    public ResponseEntity<GeneralResponse<TourDayFullDTO>> updateTourDayDetail(
-            @PathVariable Long tourDayId,
-            @RequestBody TourDayUpdateRequestDTO tourDayUpdateDTO) {
-        return ResponseEntity.ok(tourDayServiceI.updateTourDay(tourDayId, tourDayUpdateDTO));
-    }
-
     @PostMapping("/create")
     public ResponseEntity<GeneralResponse<TourResponseDTO>> createTour(
             @Valid @RequestBody TourRequestDTO tourRequestDTO,
@@ -100,14 +82,15 @@ public class TourManagementController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @PostMapping("/{tourId}/tour-days/{tourDayId}/services/add")
-    public ResponseEntity<GeneralResponse<TourDayServiceResponseDTO>> addServiceToTourDay(
-            @PathVariable Long tourId,
-            @PathVariable Long tourDayId,
-            @RequestBody TourDayServiceRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        User user = getLoggedInUser(userDetails);
-        requestDTO.setId(tourDayId);
-        return ResponseEntity.ok(tourDayServiceI.addServiceToTourDay(requestDTO, user));
-    }
+//    @PostMapping("/{tourId}/tour-days/{tourDayId}/services/add")
+//    public ResponseEntity<GeneralResponse<TourDayServiceResponseDTO>> addServiceToTourDay(
+//            @PathVariable Long tourId,
+//            @PathVariable Long tourDayId,
+//            @RequestBody TourDayServiceRequestDTO requestDTO,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        User user = getLoggedInUser(userDetails);
+//        requestDTO.setId(tourDayId);
+//        return ResponseEntity.ok(tourDayServiceI.addServiceToTourDay(requestDTO, user));
+//    }
+
 }

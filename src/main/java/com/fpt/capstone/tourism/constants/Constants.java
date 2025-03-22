@@ -244,6 +244,11 @@ public class Constants {
         public static final String CANNOT_ADD_DELETED_SERVICE = "Cannot add a deleted service";
         public static final String SERVICE_ALREADY_ADDED = "This service is already added to this tour day";
         public static final String SERVICE_ADD_SUCCESS = "Service added to tour day successfully";
+        public static final String TOUR_DAY_CREATED_SUCCESS = "Tour day created successfully";
+        public static final String TOUR_DAY_UPDATED_SUCCESS = "Tour day updated successfully";
+        public static final String TOUR_DAY_DELETED_SUCCESS = "Tour day deleted successfully";
+        public static final String TOUR_DAY_RESTORED_SUCCESS = "Tour day restored successfully";
+        public static final String INVALID_SERVICE_CATEGORY = "Invalid service category. Must be one of: Hotel, Restaurant, Transport";
 
     }
 
