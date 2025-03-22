@@ -29,6 +29,10 @@ public class TourBookingService extends BaseEntity{
     private Service service;
 
     @ManyToOne
+    @JoinColumn(name = "tour_day_id")
+    private TourDay tourDay;
+
+    @ManyToOne
     @JoinColumn(name = "schedule_id")
     private TourSchedule tourSchedule;
 
