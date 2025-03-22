@@ -20,4 +20,5 @@ public interface LocationService {
     GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO);
 
     List<PublicLocationDTO> findRecommendedLocations(int numberLocation);
+    List<PublicLocationDTO> findRecommendedLocations(int numberLocation, Long locationId);
 }

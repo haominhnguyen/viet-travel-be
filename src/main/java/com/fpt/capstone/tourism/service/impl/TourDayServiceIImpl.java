@@ -34,14 +34,23 @@ public class TourDayServiceIImpl implements TourDayServiceI {
     private final TourDayServiceRepository tourDayServiceRepository;
     private final ServiceRepository serviceRepository;
     private final LocationRepository locationRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceResponseMapper tourDayServiceResponseMapper;
 
     @Override
-    public GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId) {
+    public GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId, Boolean isDeleted) {
         try {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
-            List<TourDay> tourDays = tourDayRepository.findByTourIdOrderById(tourId);
+
+            // Get tour days with optional filter by deleted status
+            List<TourDay> tourDays;
+            if (isDeleted != null) {
+                tourDays = tourDayRepository.findByTourIdAndDeletedOrderByDayNumber(tourId, isDeleted);
+            } else {
+                tourDays = tourDayRepository.findByTourIdOrderByDayNumber(tourId);
+            }
+
             if (tourDays.isEmpty()) {
                 return new GeneralResponse<>(HttpStatus.OK.value(), NO_TOUR_DAY_FOUND, Collections.emptyList());
             }
@@ -76,16 +85,26 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         })
                         .collect(Collectors.toList());
 
+                // Extract distinct service categories from services
+                List<String> serviceCategories = tourDayServices.stream()
+                        .map(TourDayServiceFullDTO::getServiceCategoryName)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .collect(Collectors.toList());
+
                 return TourDayFullDTO.builder()
                         .id(tourDay.getId())
                         .title(tourDay.getTitle())
+                        .dayNumber(tourDay.getDayNumber())
                         .content(tourDay.getContent())
                         .mealPlan(tourDay.getMealPlan())
                         .tourId(tour.getId())
                         .location(locationMapper.toDTO(tourDay.getLocation()))
                         .tourDayServices(tourDayServices)
+                        .serviceCategories(serviceCategories)
                         .createdAt(tourDay.getCreatedAt())
                         .updatedAt(tourDay.getUpdatedAt())
+                        .deleted(tourDay.getDeleted())
                         .build();
             }).collect(Collectors.toList());
 
@@ -98,293 +117,351 @@ public class TourDayServiceIImpl implements TourDayServiceI {
     }
 
     @Override
-    @Transactional
-    public GeneralResponse<TourDayFullDTO> createTourDay(TourDayCreateRequestDTO createRequestDTO) {
+    public GeneralResponse<TourDayFullDTO> getTourDayById(Long id, Long tourId) {
         try {
-            // Validate input
-            if (createRequestDTO == null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour day request cannot be null");
-            }
-
-            // Check if tour exists
-            Tour tour = tourRepository.findById(createRequestDTO.getTourId())
+            Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
-            // Check if location exists
-            Location location = locationRepository.findById(createRequestDTO.getLocationId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
+            TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
 
-            // Create tour day entity
-            TourDay tourDay = new TourDay();
-            tourDay.setTitle(createRequestDTO.getTitle());
-            tourDay.setContent(createRequestDTO.getContent());
-            tourDay.setMealPlan(createRequestDTO.getMealPlan());
-            tourDay.setTour(tour);
-            tourDay.setLocation(location);
-            tourDay.setDeleted(false);
+            // Get list of service IDs from TourDayService table
+            List<Long> serviceIds = tourDayServiceRepository.findServiceIdsByTourDayId(tourDay.getId());
 
-            // Save tour day to get ID
-            TourDay savedTourDay = tourDayRepository.save(tourDay);
+            // Get services by IDs
+            List<Service> services = serviceRepository.findByIdIn(serviceIds);
+            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
 
-            List<TourDayServiceFullDTO> tourDayServiceDTOs = new ArrayList<>();
-
-            // Process tour day services if provided
-            if (createRequestDTO.getTourDayServices() != null && !createRequestDTO.getTourDayServices().isEmpty()) {
-                List<TourDayService> tourDayServiceIS = new ArrayList<>();
-
-                for (TourDayServiceManageRequestDTO serviceDTO : createRequestDTO.getTourDayServices()) {
-                    // Check if service exists
-                    Service service = serviceRepository.findById(serviceDTO.getServiceId())
-                            .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service not found"));
-
-                    // Create tour day service
-                    TourDayService tourDayService = new TourDayService();
-                    tourDayService.setTourDay(savedTourDay);
-                    tourDayService.setService(service);
-                    tourDayService.setQuantity(serviceDTO.getQuantity());
-                    tourDayService.setSellingPrice(serviceDTO.getSellingPrice());
-                    tourDayServiceIS.add(tourDayService);
-                }
-
-                // Save all tour day services
-                List<TourDayService> savedServices = tourDayServiceRepository.saveAll(tourDayServiceIS);
-
-                // Map saved services to DTOs
-                tourDayServiceDTOs = savedServices.stream()
-                        .map(service -> {
-                            String categoryName = null;
-                            if (service.getService() != null && service.getService().getServiceCategory() != null) {
-                                categoryName = service.getService().getServiceCategory().getCategoryName();
-                            }
-
-                            return TourDayServiceFullDTO.builder()
-                                    .id(service.getId())
-                                    .serviceId(service.getService().getId())
-                                    .serviceName(service.getService().getName())
-                                    .serviceCategoryName(categoryName)
-                                    .quantity(service.getQuantity())
-                                    .sellingPrice(service.getSellingPrice())
-                                    .build();
-                        })
-                        .collect(Collectors.toList());
-            }
-
-            // Build response DTO
-            TourDayFullDTO responseDTO = TourDayFullDTO.builder()
-                    .id(savedTourDay.getId())
-                    .title(savedTourDay.getTitle())
-                    .content(savedTourDay.getContent())
-                    .mealPlan(savedTourDay.getMealPlan())
-                    .tourId(tour.getId())
-                    .location(locationMapper.toDTO(location))
-                    .tourDayServices(tourDayServiceDTOs)
-                    .createdAt(savedTourDay.getCreatedAt())
-                    .updatedAt(savedTourDay.getUpdatedAt())
-                    .build();
-            return new GeneralResponse<>(HttpStatus.CREATED.value(), "Tour day created successfully", responseDTO);
-        } catch (BusinessException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw BusinessException.of("Failed to create tour day", ex);
-        }
-    }
-
-    @Override
-    public GeneralResponse<TourDayFullDTO> updateTourDay(Long tourDayId, TourDayUpdateRequestDTO updateRequestDTO) {
-        try {
-            // Validate input
-            if (updateRequestDTO == null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour day update request cannot be null");
-            }
-
-            // Find the tour day to update
-            TourDay tourDay = tourDayRepository.findById(tourDayId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour day not found"));
-
-            // Check if tour exists if tourId is provided
-            if (updateRequestDTO.getTourId() != null) {
-                Tour tour = tourRepository.findById(updateRequestDTO.getTourId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
-                tourDay.setTour(tour);
-            }
-
-            // Check if location exists if locationId is provided
-            if (updateRequestDTO.getLocationId() != null) {
-                Location location = locationRepository.findById(updateRequestDTO.getLocationId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
-                tourDay.setLocation(location);
-            }
-
-            // Update basic tour day information
-            if (updateRequestDTO.getTitle() != null) {
-                tourDay.setTitle(updateRequestDTO.getTitle());
-            }
-
-            if (updateRequestDTO.getContent() != null) {
-                tourDay.setContent(updateRequestDTO.getContent());
-            }
-
-            if (updateRequestDTO.getMealPlan() != null) {
-                tourDay.setMealPlan(updateRequestDTO.getMealPlan());
-            }
-
-            // Save updated tour day
-            TourDay savedTourDay = tourDayRepository.save(tourDay);
-
-            // Handle tour day services if provided
-            if (updateRequestDTO.getTourDayServices() != null) {
-                // Get existing tour day services
-                List<TourDayService> existingServices = tourDayServiceRepository.findByTourDayId(tourDayId);
-
-                // Create a map of existing services by ID for easy access
-                Map<Long, TourDayService> existingServiceMap = existingServices.stream()
-                        .collect(Collectors.toMap(
-                                TourDayService::getId,
-                                service -> service,
-                                (s1, s2) -> s1
-                        ));
-
-                // Keep track of processed service IDs to identify which ones to delete
-                Set<Long> processedServiceIds = new HashSet<>();
-
-                // List to hold services to save (new or updated)
-                List<TourDayService> servicesToSave = new ArrayList<>();
-
-                // Process each service in the request
-                for (TourDayServiceUpdateRequestDTO serviceDTO : updateRequestDTO.getTourDayServices()) {
-                    TourDayService tourDayService;
-
-                    if (serviceDTO.getId() != null && existingServiceMap.containsKey(serviceDTO.getId())) {
-                        // Update existing service
-                        tourDayService = existingServiceMap.get(serviceDTO.getId());
-                        processedServiceIds.add(serviceDTO.getId());
-                    } else {
-                        // Create new service
-                        tourDayService = new TourDayService();
-                        tourDayService.setTourDay(savedTourDay);
-                    }
-
-                    // Update service if serviceId is provided
-                    if (serviceDTO.getServiceId() != null) {
-                        Service service = serviceRepository.findById(serviceDTO.getServiceId())
-                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service not found"));
-                        tourDayService.setService(service);
-                    }
-
-                    // Update quantity and selling price if provided
-                    if (serviceDTO.getQuantity() != null) {
-                        tourDayService.setQuantity(serviceDTO.getQuantity());
-                    }
-
-                    if (serviceDTO.getSellingPrice() != null) {
-                        tourDayService.setSellingPrice(serviceDTO.getSellingPrice());
-                    }
-
-                    servicesToSave.add(tourDayService);
-                }
-
-                // Save new and updated services
-                List<TourDayService> savedServices = tourDayServiceRepository.saveAll(servicesToSave);
-
-                // Mark services for deletion that weren't in the update request
-                existingServices.stream()
-                        .filter(service -> !processedServiceIds.contains(service.getId()))
-                        .forEach(service -> {
-                            servicesToSave.add(service);
-                        });
-
-                // Save services marked for deletion
-                if (!servicesToSave.isEmpty()) {
-                    tourDayServiceRepository.saveAll(servicesToSave);
-                }
-            }
-
-            // Fetch the updated tour day with its services for the response
-            TourDay updatedTourDay = tourDayRepository.findById(tourDayId).orElse(savedTourDay);
-            List<TourDayService> updatedServices = tourDayServiceRepository.findByTourDayId(tourDayId);
-            // Map services to DTOs
-            List<TourDayServiceFullDTO> tourDayServiceDTOs = updatedServices.stream()
-                    .map(service -> {
+            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
+                    .map(tourDayService -> {
+                        Service service = tourDayService.getService();
                         String categoryName = null;
-                        if (service.getService() != null && service.getService().getServiceCategory() != null) {
-                            categoryName = service.getService().getServiceCategory().getCategoryName();
+
+                        // Get the category name if service and category exist
+                        if (service != null && service.getServiceCategory() != null) {
+                            categoryName = service.getServiceCategory().getCategoryName();
                         }
 
                         return TourDayServiceFullDTO.builder()
-                                .id(service.getId())
-                                .serviceId(service.getService().getId())
-                                .serviceName(service.getService().getName())
+                                .id(tourDayService.getId())
+                                .serviceId(service != null ? service.getId() : null)
+                                .serviceName(service != null ? service.getName() : null)
                                 .serviceCategoryName(categoryName)
-                                .quantity(service.getQuantity())
-                                .sellingPrice(service.getSellingPrice())
+                                .quantity(tourDayService.getQuantity())
+                                .sellingPrice(tourDayService.getSellingPrice())
                                 .build();
                     })
                     .collect(Collectors.toList());
 
-            // Build response DTO
-            TourDayFullDTO responseDTO = TourDayFullDTO.builder()
-                    .id(updatedTourDay.getId())
-                    .title(updatedTourDay.getTitle())
-                    .content(updatedTourDay.getContent())
-                    .mealPlan(updatedTourDay.getMealPlan())
-                    .tourId(updatedTourDay.getTour().getId())
-                    .location(locationMapper.toDTO(updatedTourDay.getLocation()))
-                    .tourDayServices(tourDayServiceDTOs)
-                    .createdAt(updatedTourDay.getCreatedAt())
-                    .updatedAt(updatedTourDay.getUpdatedAt())
+            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
+                    .id(tourDay.getId())
+                    .title(tourDay.getTitle())
+                    .dayNumber(tourDay.getDayNumber())
+                    .content(tourDay.getContent())
+                    .mealPlan(tourDay.getMealPlan())
+                    .tourId(tour.getId())
+                    .location(locationMapper.toDTO(tourDay.getLocation()))
+                    .tourDayServices(tourDayServices)
+                    .createdAt(tourDay.getCreatedAt())
+                    .updatedAt(tourDay.getUpdatedAt())
                     .build();
-
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour day updated successfully", responseDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_DETAIL_LOAD_SUCCESS, tourDayDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Failed to update tour day", ex);
+            throw BusinessException.of(TOUR_DAY_DETAIL_LOAD_FAIL, ex);
         }
     }
 
     @Override
-    public GeneralResponse<TourDayServiceResponseDTO> addServiceToTourDay(TourDayServiceRequestDTO requestDTO, User user) {
-        // Validate the tour day exists
-        TourDay tourDay = tourDayRepository.findById(requestDTO.getId())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
+    @Transactional
+    public GeneralResponse<TourDayFullDTO> createTourDay(Long tourId, TourDayCreateRequestDTO request) {
+        try {
+            // Validate service categories
+            validateServiceCategories(request.getServiceCategories());
 
-        // Check if the tour is in a state where modifications are allowed
-        if (tourDay.getTour().getTourStatus() == TourStatus.OPENED) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, CANNOT_MODIFY_OPENED_TOUR);
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
+            Location location = null;
+            if (request.getLocationId() != null) {
+                location = locationRepository.findById(request.getLocationId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+            }
+
+            Integer dayNumber = tourDayRepository.findMaxDayNumberByTourId(tourId)
+                    .map(maxDay -> maxDay + 1)
+                    .orElse(1);
+
+            TourDay tourDay = TourDay.builder()
+                    .dayNumber(dayNumber)
+                    .title(request.getTitle())
+                    .content(request.getContent())
+                    .mealPlan(request.getMealPlan())
+                    .deleted(false)
+                    .tour(tour)
+                    .location(location)
+                    .build();
+
+            tourDay = tourDayRepository.save(tourDay);
+
+            // Get service categories and create TourDayService entries
+            List<ServiceCategory> serviceCategories = new ArrayList<>();
+            List<com.fpt.capstone.tourism.model.TourDayService> createdTourDayServices = new ArrayList<>();
+
+            for (String categoryName : request.getServiceCategories()) {
+                ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+                serviceCategories.add(category);
+
+                // Find a default service for this category to create a TourDayService entry
+                List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+                if (!servicesForCategory.isEmpty()) {
+                    Service defaultService = servicesForCategory.get(0); // Get the most recently added service
+
+                    // Create and save a TourDayService entry
+                    com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+                    tourDayService.setTourDay(tourDay);
+                    tourDayService.setService(defaultService);
+                    tourDayService.setQuantity(1); // Default quantity
+                    tourDayService.setSellingPrice(defaultService.getSellingPrice()); // Use service's selling price
+
+                    tourDayService = tourDayServiceRepository.save(tourDayService);
+                    createdTourDayServices.add(tourDayService);
+                }
+            }
+
+            // Get all tour day services for this tour day
+            List<com.fpt.capstone.tourism.model.TourDayService> tourDayServicesList = tourDayServiceRepository.findByTourDayId(tourDay.getId());
+
+            List<TourDayServiceFullDTO> tourDayServices = tourDayServicesList.stream()
+                    .map(tourDayService -> {
+                        Service service = tourDayService.getService();
+                        String categoryName = null;
+
+                        // Get the category name if service and category exist
+                        if (service != null && service.getServiceCategory() != null) {
+                            categoryName = service.getServiceCategory().getCategoryName();
+                        }
+
+                        return TourDayServiceFullDTO.builder()
+                                .id(tourDayService.getId())
+                                .serviceId(service != null ? service.getId() : null)
+                                .serviceName(service != null ? service.getName() : null)
+                                .serviceCategoryName(categoryName)
+                                .quantity(tourDayService.getQuantity())
+                                .sellingPrice(tourDayService.getSellingPrice())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            List<String> categoryNames = serviceCategories.stream()
+                    .map(ServiceCategory::getCategoryName)
+                    .collect(Collectors.toList());
+
+            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
+                    .id(tourDay.getId())
+                    .title(tourDay.getTitle())
+                    .dayNumber(tourDay.getDayNumber())
+                    .content(tourDay.getContent())
+                    .mealPlan(tourDay.getMealPlan())
+                    .tourId(tour.getId())
+                    .location(locationMapper.toDTO(location))
+                    .tourDayServices(tourDayServices)
+                    .serviceCategories(categoryNames)
+                    .deleted(false)
+                    .createdAt(tourDay.getCreatedAt())
+                    .updatedAt(tourDay.getUpdatedAt())
+                    .build();
+            return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_DAY_CREATED_SUCCESS, tourDayDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create tour day", ex);
         }
-        // Validate the service exists
-        Service service = serviceRepository.findById(requestDTO.getServiceId())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+    }
 
-        // Validate the service is not deleted
-        if (Boolean.TRUE.equals(service.getDeleted())) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, CANNOT_ADD_DELETED_SERVICE);
+    @Override
+    @Transactional
+    public GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request) {
+        try {
+            // Validate service categories
+            validateServiceCategories(request.getServiceCategories());
+
+            Location location = null;
+            if (request.getLocationId() != null) {
+                location = locationRepository.findById(request.getLocationId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+            }
+
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
+            TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
+
+            // Check if the day number already exists for another tour day in the same tour
+            if (request.getDayNumber() != null && !request.getDayNumber().equals(tourDay.getDayNumber())) {
+                boolean dayNumberExists = tourDayRepository.existsByTourIdAndDayNumberAndIdNot(
+                        tourId, request.getDayNumber(), id);
+                if (dayNumberExists) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Day number " + request.getDayNumber() + " already exists for this tour");
+                }
+            }
+
+            // Update tour day
+            tourDay.setDayNumber(request.getDayNumber());
+            tourDay.setTitle(request.getTitle());
+            tourDay.setContent(request.getContent());
+            tourDay.setMealPlan(request.getMealPlan());
+            tourDay.setLocation(location);
+
+            tourDay = tourDayRepository.save(tourDay);
+
+            // Get requested service categories
+            Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
+            List<ServiceCategory> serviceCategories = new ArrayList<>();
+
+            for (String categoryName : requestedCategories) {
+                ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+                serviceCategories.add(category);
+            }
+
+            // Get existing tour day services
+            List<com.fpt.capstone.tourism.model.TourDayService> existingTourDayServices =
+                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
+
+            // Track existing categories
+            Set<Long> existingCategoryIds = existingTourDayServices.stream()
+                    .map(tds -> tds.getService().getServiceCategory().getId())
+                    .collect(Collectors.toSet());
+
+            // Add new service categories that don't exist yet
+            for (ServiceCategory category : serviceCategories) {
+                if (!existingCategoryIds.contains(category.getId())) {
+                    // Find a default service for this category
+                    List<Service> servicesForCategory = serviceRepository.findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(category.getId());
+                    if (!servicesForCategory.isEmpty()) {
+                        Service defaultService = servicesForCategory.get(0);
+
+                        // Create and save a TourDayService entry
+                        com.fpt.capstone.tourism.model.TourDayService tourDayService = new com.fpt.capstone.tourism.model.TourDayService();
+                        tourDayService.setTourDay(tourDay);
+                        tourDayService.setService(defaultService);
+                        tourDayService.setQuantity(1); // Default quantity
+                        tourDayService.setSellingPrice(defaultService.getSellingPrice());
+
+                        tourDayServiceRepository.save(tourDayService);
+                    }
+                }
+            }
+
+            // Remove tour day services for categories that are no longer in the request
+            Set<Long> requestedCategoryIds = serviceCategories.stream()
+                    .map(ServiceCategory::getId)
+                    .collect(Collectors.toSet());
+
+            for (com.fpt.capstone.tourism.model.TourDayService tds : existingTourDayServices) {
+                Long categoryId = tds.getService().getServiceCategory().getId();
+                if (!requestedCategoryIds.contains(categoryId)) {
+                    tourDayServiceRepository.delete(tds);
+                }
+            }
+
+            // Get updated tour day services after modifications
+            List<com.fpt.capstone.tourism.model.TourDayService> updatedTourDayServices =
+                    tourDayServiceRepository.findByTourDayId(tourDay.getId());
+
+            List<TourDayServiceFullDTO> tourDayServices = updatedTourDayServices.stream()
+                    .map(tourDayService -> {
+                        Service service = tourDayService.getService();
+                        String categoryName = null;
+
+                        // Get the category name if service and category exist
+                        if (service != null && service.getServiceCategory() != null) {
+                            categoryName = service.getServiceCategory().getCategoryName();
+                        }
+
+                        return TourDayServiceFullDTO.builder()
+                                .id(tourDayService.getId())
+                                .serviceId(service != null ? service.getId() : null)
+                                .serviceName(service != null ? service.getName() : null)
+                                .serviceCategoryName(categoryName)
+                                .quantity(tourDayService.getQuantity())
+                                .sellingPrice(tourDayService.getSellingPrice())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            // Extract service category names for response
+            List<String> categoryNames = serviceCategories.stream()
+                    .map(ServiceCategory::getCategoryName)
+                    .collect(Collectors.toList());
+
+            TourDayFullDTO tourDayDTO = TourDayFullDTO.builder()
+                    .id(tourDay.getId())
+                    .title(tourDay.getTitle())
+                    .dayNumber(tourDay.getDayNumber())
+                    .content(tourDay.getContent())
+                    .mealPlan(tourDay.getMealPlan())
+                    .tourId(tour.getId())
+                    .tourDayServices(tourDayServices)
+                    .location(locationMapper.toDTO(location))
+                    .serviceCategories(categoryNames)
+                    .deleted(false)
+                    .createdAt(tourDay.getCreatedAt())
+                    .updatedAt(tourDay.getUpdatedAt())
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_UPDATED_SUCCESS, tourDayDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update tour day", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<String> changeTourDayStatus(Long id, Long tourId, Boolean isDeleted) {
+        try {
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
+            TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
+
+            // Set the deleted status based on the parameter
+            tourDay.setDeleted(isDeleted);
+            tourDayRepository.save(tourDay);
+
+            String statusMessage = isDeleted ? "deleted" : "restored";
+            String responseMessage = "Tour day with ID " + id + " has been " + statusMessage + " successfully";
+
+            return new GeneralResponse<>(HttpStatus.OK.value(),
+                    isDeleted ? TOUR_DAY_DELETED_SUCCESS : "Tour day restored successfully",
+                    responseMessage);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            String action = isDeleted ? "delete" : "restore";
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to " + action + " tour day", ex);
+        }
+    }
+
+    private void validateServiceCategories(List<String> serviceCategories) {
+        List<String> validCategories = Arrays.asList("Hotel", "Restaurant", "Transport");
+
+        if (serviceCategories == null || serviceCategories.isEmpty()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "At least one service category is required");
         }
 
-        // Calculate selling price if not provided
-        Double sellingPrice = requestDTO.getSellingPrice();
-        if (sellingPrice == null || sellingPrice <= 0) {
-            sellingPrice = service.getSellingPrice();
+        for (String category : serviceCategories) {
+            if (!validCategories.contains(category)) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, INVALID_SERVICE_CATEGORY);
+            }
         }
-
-        // Check if this service is already added to this tour day
-        tourDayServiceRepository.findByTourDayIdAndServiceId(tourDay.getId(), service.getId())
-                .ifPresent(existingService -> {
-                    throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_ALREADY_ADDED);
-                });
-
-        // Create and save the tour day service
-        TourDayService tourDayService = new TourDayService();
-        tourDayService.setTourDay(tourDay);
-        tourDayService.setService(service);
-        tourDayService.setQuantity(requestDTO.getQuantity());
-        tourDayService.setSellingPrice(sellingPrice);
-
-        tourDayService = tourDayServiceRepository.save(tourDayService);
-
-        // Convert to DTO and return
-        TourDayServiceResponseDTO responseDTO = tourDayServiceResponseMapper.toDTO(tourDayService);
-        return new GeneralResponse<>(HttpStatus.CREATED.value(), SERVICE_ADD_SUCCESS, responseDTO);
     }
 }
 

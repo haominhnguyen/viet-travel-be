@@ -46,5 +46,7 @@ SELECT s.serviceProvider.id, MIN(s.sellingPrice)
 
 """)
     List<Object[]> findMinRoomPricesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
+
+    List<ServiceProvider> findByLocationIdAndDeletedFalse(@Param("locationId") Long locationId);
 }
 

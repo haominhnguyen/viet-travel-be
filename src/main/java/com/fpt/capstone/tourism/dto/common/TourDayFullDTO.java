@@ -15,11 +15,14 @@ import java.util.List;
 public class TourDayFullDTO {
     private Long id;
     private String title;
+    private Integer dayNumber;
     private String content;
     private String mealPlan;
     private Long tourId;
     private LocationDTO location;
+    private Boolean deleted;
     private List<TourDayServiceFullDTO> tourDayServices;
+    private List<String> serviceCategories;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

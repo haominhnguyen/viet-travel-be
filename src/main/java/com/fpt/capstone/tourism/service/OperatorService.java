@@ -4,12 +4,10 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
-import com.fpt.capstone.tourism.dto.response.OperatorTourDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
-import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface OperatorService {
     GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate);
@@ -39,4 +37,10 @@ public interface OperatorService {
     GeneralResponse<PublicServiceProviderDTO> chooseServiceToPay(Long serviceId);
 
     GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO);
+
+    GeneralResponse<Map<Long, String>> getListLocation();
+
+    GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId);
+
+    GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId);
 }

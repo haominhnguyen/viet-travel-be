@@ -12,10 +12,15 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 
-public interface TourDayServiceI {
-    GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId);
-    GeneralResponse<TourDayFullDTO> createTourDay(TourDayCreateRequestDTO createRequestDTO);
-    GeneralResponse<TourDayFullDTO> updateTourDay(Long tourDayId, TourDayUpdateRequestDTO tourDayUpdateDTO);
 
-    GeneralResponse<TourDayServiceResponseDTO> addServiceToTourDay(TourDayServiceRequestDTO requestDTO, User user);
+public interface TourDayServiceI {
+    GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId, Boolean isDeleted);
+
+    GeneralResponse<TourDayFullDTO> getTourDayById(Long id, Long tourId);
+
+    GeneralResponse<TourDayFullDTO> createTourDay(Long tourId, TourDayCreateRequestDTO request);
+
+    GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request);
+
+    GeneralResponse<String> changeTourDayStatus(Long id, Long tourId, Boolean isDeleted);
 }

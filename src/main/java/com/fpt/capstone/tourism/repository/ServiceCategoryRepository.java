@@ -14,4 +14,5 @@ import java.util.Optional;
 public interface ServiceCategoryRepository extends JpaRepository<ServiceCategory, Long> {
     Optional<ServiceCategory> findByCategoryName(String categoryName);
     Page<ServiceCategory> findAll(Specification<ServiceCategory> spec, Pageable pageable);
+
 }

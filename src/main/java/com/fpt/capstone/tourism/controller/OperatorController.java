@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -94,4 +95,20 @@ public class OperatorController {
     public ResponseEntity<GeneralResponse<OperatorTransactionDTO>> payService(@RequestBody PayServiceRequestDTO requestDTO) {
         return ResponseEntity.ok(operatorService.payService(requestDTO));
     }
+
+    @GetMapping("/tour-service/list-location")
+    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListLocation() {
+        return ResponseEntity.ok(operatorService.getListLocation());
+    }
+
+    @GetMapping("/tour-service/{locationId}/list-service-provider")
+    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListServiceProviderByLocationnId(@PathVariable Long locationId) {
+        return ResponseEntity.ok(operatorService.getListServiceProviderByLocationId(locationId));
+    }
+
+    @GetMapping("/tour-service/{serviceProviderId}/list-service")
+    public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId) {
+        return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId));
+    }
+
 }

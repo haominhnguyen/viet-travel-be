@@ -55,5 +55,8 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     boolean existsByNameAndServiceProviderId(String name, Long providerId);
     boolean existsByNameAndServiceProviderIdAndIdNot(String name, Long providerId, Long serviceId);
 
+    List<Service> findByServiceProviderIdAndDeletedFalse(Long serviceProviderId);
+
+    List<Service> findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(Long categoryId);
 }
 
