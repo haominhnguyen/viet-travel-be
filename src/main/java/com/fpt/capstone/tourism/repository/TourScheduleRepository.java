@@ -28,7 +28,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     FROM TourSchedule ts
     JOIN ts.tour t
     JOIN ts.tourPax tp
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
     WHERE t.id = :tourId
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
@@ -49,11 +49,11 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 
     @Query("""
     SELECT new com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO(
-        ts.id, 
-        ts.startDate, 
-        ts.endDate, 
-        tp.sellingPrice, 
-        tp.minPax, 
+        ts.id,
+        ts.startDate,
+        ts.endDate,
+        tp.sellingPrice,
+        tp.minPax,
         tp.maxPax,
         (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0)),
         ts.meetingLocation,
@@ -63,7 +63,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     FROM TourSchedule ts
     JOIN ts.tour t
     JOIN ts.tourPax tp
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
     WHERE t.id = :tourId AND ts.id = :tourScheduleId
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
