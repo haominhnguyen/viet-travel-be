@@ -123,4 +123,9 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));
     }
 
+    @GetMapping("/list-change-service-request")
+    public ResponseEntity<GeneralResponse<?>> getListChangeServiceRequest() {
+        return ResponseEntity.ok(operatorService.getListChangeServiceRequest());
+    }
+
 }

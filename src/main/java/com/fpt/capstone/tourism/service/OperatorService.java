@@ -50,4 +50,6 @@ public interface OperatorService {
     GeneralResponse<?> addService(AddServiceRequestDTO requestDTO);
 
     GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO);
+
+    GeneralResponse<?> getListChangeServiceRequest();
 }

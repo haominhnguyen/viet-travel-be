@@ -671,6 +671,17 @@ public class OperatorServiceImpl implements OperatorService {
         }
     }
 
+    @Override
+    public GeneralResponse<?> getListChangeServiceRequest() {
+        try {
+//            List<TourBookingService> bookingServices = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse()
+//            emailService.sendMailServiceProvider(mailServiceDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", "mailServiceDTO");
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
 
     private Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
         return (root, query, cb) -> {
