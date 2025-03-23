@@ -58,5 +58,22 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findByServiceProviderIdAndDeletedFalse(Long serviceProviderId);
 
     List<Service> findByServiceCategoryIdAndDeletedFalseOrderByIdDesc(Long categoryId);
+
+    @Query("SELECT s FROM Service s " +
+            "WHERE s.serviceProvider.id = :providerId " +
+            "AND :locationId IN (SELECT l.id FROM Location l " +
+            "JOIN ServiceProvider sp ON sp.location.id = l.id " +
+            "WHERE sp.id = s.serviceProvider.id)")
+    List<Service> findByServiceProviderIdAndLocationId(
+            @Param("providerId") Long providerId,
+            @Param("locationId") Long locationId);
+
+    @Query("SELECT s FROM Service s " +
+            "WHERE s.serviceProvider.id = :providerId " +
+            "AND s.serviceCategory.id = :categoryId " +
+            "AND (s.deleted = false OR s.deleted IS NULL)")
+    List<Service> findByServiceProviderIdAndCategoryId(
+            @Param("providerId") Long providerId,
+            @Param("categoryId") Long categoryId);
 }
 

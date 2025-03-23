@@ -249,6 +249,9 @@ public class Constants {
         public static final String TOUR_DAY_DELETED_SUCCESS = "Tour day deleted successfully";
         public static final String TOUR_DAY_RESTORED_SUCCESS = "Tour day restored successfully";
         public static final String INVALID_SERVICE_CATEGORY = "Invalid service category. Must be one of: Hotel, Restaurant, Transport";
+        public static final String NO_TOUR_DAYS_FOUND = "No tour days found";
+        public static final String SERVICES_LOAD_SUCCESS = "Tour services retrieved successfully";
+        public static final String SERVICES_LOAD_FAIL = "Failed to retrieve tour services";
 
     }
 
