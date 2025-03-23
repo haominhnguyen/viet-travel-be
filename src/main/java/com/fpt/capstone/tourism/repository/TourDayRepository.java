@@ -27,4 +27,8 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
 
     @Query("SELECT COUNT(td) > 0 FROM TourDay td WHERE td.tour.id = :tourId AND td.dayNumber = :dayNumber AND td.id != :tourDayId")
     boolean existsByTourIdAndDayNumberAndIdNot(@Param("tourId") Long tourId, @Param("dayNumber") Integer dayNumber, @Param("tourDayId") Long tourDayId);
+
+
+    List<TourDay> findByTourIdAndDeletedFalseOrderByDayNumber(Long tourId);
+    Optional<TourDay> findByTourIdAndDayNumber(Long tourId, Integer dayNumber);
 }
