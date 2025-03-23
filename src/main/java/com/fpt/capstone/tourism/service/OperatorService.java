@@ -58,4 +58,6 @@ public interface OperatorService {
     GeneralResponse<?> rejectServiceRequest(Long tourBookingServiceId);
 
     GeneralResponse<?> approveServiceRequest(Long tourBookingServiceId);
+
+    GeneralResponse<?> getTourSummary(Long scheduleId);
 }

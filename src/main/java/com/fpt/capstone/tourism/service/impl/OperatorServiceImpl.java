@@ -14,6 +14,7 @@ import com.fpt.capstone.tourism.model.Service;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.OperatorService;
@@ -31,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -820,6 +822,66 @@ public class OperatorServiceImpl implements OperatorService {
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourSummary(Long scheduleId) {
+        try {
+            //Tìm tất cả các booking thuộc schedule
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+
+            //Tìm tất cả transaction thuộc schedule
+            List<Transaction> transactions = transactionRepository.findAllByBookingIn(bookings);
+
+            //Tìm số tiền công ty đã thu của cả lịch trình
+            BigDecimal receiptedAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
+                    transactions,
+                    TransactionType.RECEIPT,CostAccountStatus.PAID);
+
+            //Tìm số tiền HDV đã thu hộ của cả lịch trình
+            BigDecimal collectionAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
+                    transactions,
+                    TransactionType.COLLECTION,CostAccountStatus.PAID);
+
+            //Tìm tổng số tiền phải thu
+            BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
+                    transactions,
+                    TransactionType.RECEIPT
+            );
+
+            //Tìm số tiền công ty đã chi
+            BigDecimal paymentAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
+                    transactions,
+                    TransactionType.PAYMENT,CostAccountStatus.PAID);
+
+            //Tìm số tiền HDV đã chi
+            BigDecimal advanceAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
+                    transactions,
+                    TransactionType.ADVANCED,CostAccountStatus.PAID);
+
+            //Tìm tổng số tiền phải chi
+            BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
+                    transactions,
+                    TransactionType.PAYMENT
+            );
+
+
+            TourSummaryDTO resultDTO = TourSummaryDTO.builder()
+                    .tourScheduleId(scheduleId)
+                    .receiptedAmount(receiptedAmount)
+                    .remainingReceiptAmount(totalReceiptAmount.subtract(receiptedAmount).subtract(collectionAmount))
+                    .collectionAmount(collectionAmount)
+                    .totalReceiptAmount(totalReceiptAmount)
+                    .paymentAmount(paymentAmount)
+                    .remainingPaymentAmount(totalPaymentAmount.subtract(paymentAmount).subtract(advanceAmount))
+                    .advanceAmount(advanceAmount)
+                    .totalPaymentAmount(totalPaymentAmount)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }
