@@ -1,9 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.response.CreateBookingTourDTO;
-import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
-import com.fpt.capstone.tourism.dto.response.TourDetailSaleResponseDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.mapper.custom.TourImageCustom;
 import com.fpt.capstone.tourism.model.*;
 import org.mapstruct.*;
@@ -43,7 +41,7 @@ public interface BookingMapper {
 
     BookedCustomerDTO toBookedPersonDTO(User user);
 
-    CreateBookingTourDTO toCreateBookingTourDTO(Tour tour);
+    TourInfoInCreateBookingDTO toCreateBookingTourDTO(Tour tour);
 
     @Mapping(target = "paid", ignore = true)
     @Mapping(target = "total", ignore = true)
@@ -63,4 +61,13 @@ public interface BookingMapper {
     TourBookingCustomerDTO toTourBookingCustomerDTO(TourBookingCustomer customer);
     TourBookingCustomer toTourBookingCustomer(TourBookingCustomerDTO tourBookingCustomerDTO);
 
+    ServiceSaleResponseDTO toServiceSaleResponseDTO(Service service);
+
+    ServiceProviderSaleResponseDTO toServiceProviderSaleResponseDTO(ServiceProvider serviceProvider);
+
+    TourDayDTO toTourDayDto(TourDay tourDay);
+
+    ServiceCategoryDTO toServiceCategoryDto(ServiceCategory serviceCategory);
+
+    TourBookingServiceDTO toTourBookingServiceDTO(TourBookingService tourBookingService);
 }

@@ -24,5 +24,4 @@ public class TourBookingSaleResponseDTO {
     private double total;
     private PaymentMethod paymentMethod;
     private StaffDTO sale;
-    private List<TourBookingServiceSaleResponseDTO> services;
 }

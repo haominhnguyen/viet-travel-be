@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
+import com.fpt.capstone.tourism.dto.response.TourBookingServiceSaleResponseDTO;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;

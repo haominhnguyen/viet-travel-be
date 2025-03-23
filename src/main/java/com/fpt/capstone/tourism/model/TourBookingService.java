@@ -20,16 +20,19 @@ public class TourBookingService extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_booking_id")
+    @ToString.Exclude
     private TourBooking booking;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
+    @ToString.Exclude
     private Service service;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_day_id")
+    @ToString.Exclude
     private TourDay tourDay;
 
     @Column(name = "current_quantity")

@@ -5,10 +5,7 @@ import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,13 +41,16 @@ public class TourBooking extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "tour_id")
+    @ToString.Exclude
     private Tour tour;
 
     @ManyToOne
     @JoinColumn(name = "schedule_id")
+    @ToString.Exclude
     private TourSchedule tourSchedule;
 
     @OneToMany(mappedBy = "tourBooking")
+    @ToString.Exclude
     private List<TourBookingCustomer> customers;
 
     @Enumerated(EnumType.STRING)
@@ -77,9 +77,11 @@ public class TourBooking extends BaseEntity {
     private LocalDateTime expiredAt;
 
     @OneToMany(mappedBy = "booking")
+    @ToString.Exclude
     private List<TourBookingService> tourBookingServices;
 
     @OneToMany(mappedBy = "booking")
+    @ToString.Exclude
     private List<Transaction> transactions;
 
 

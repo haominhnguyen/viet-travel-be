@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
+import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +39,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final UserRepository userRepository;
     private final TourBookingServiceRepository tourBookingServiceRepository;
+    private final TourDayRepository tourDayRepository;
 
 
     private final LocationMapper locationMapper;
@@ -402,7 +403,7 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> getTourDetails(Long tourId, Long scheduleId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow();
-            CreateBookingTourDTO tourDetailSaleResponseDTO = bookingMapper.toCreateBookingTourDTO(tour);
+            TourInfoInCreateBookingDTO tourDetailSaleResponseDTO = bookingMapper.toCreateBookingTourDTO(tour);
             PublicTourScheduleDTO scheduleDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
             tourDetailSaleResponseDTO.setTourSchedule(scheduleDTO);
             return GeneralResponse.of(tourDetailSaleResponseDTO);
@@ -423,6 +424,11 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Get customers for sale failed", ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> updateTourBookingService(Long tourBookingServiceID) {
+        return null;
     }
 
     @Override
@@ -458,7 +464,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void saveTourBookingService(TourBooking tourBooking) {
         Tour tour = tourBooking.getTour();
-        List<TourDay> tourDays = tour.getTourDays();
+        List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
 
         for(TourDay tourDay : tourDays) {
             List<TourDayService> dayServices = tourDay.getTourDayServices();
@@ -473,6 +479,55 @@ public class BookingServiceImpl implements BookingService {
                         .build();
                 tourBookingServiceRepository.save(tourBookingService);
             }
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourBookingServices(Long tourBookingID) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(tourBookingID).orElseThrow();
+            Tour tour = tourBooking.getTour();
+            List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
+            return GeneralResponse.of(bookingHelper.getTourBookingListService(tourDays, tourBooking));
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour booking services for sale failed", ex);
+        }
+
+    }
+
+    @Override
+    public GeneralResponse<?> updateServiceQuantity(UpdateServiceNotBookingSaleRequestDTO updateServiceNotBookingSaleRequestDTO) {
+        try {
+            TourBookingService tourBookingService = tourBookingServiceRepository.findById(updateServiceNotBookingSaleRequestDTO.getTourBookingServiceId()).orElseThrow();
+            tourBookingService.setCurrentQuantity(updateServiceNotBookingSaleRequestDTO.getCurrentQuantity());
+            TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
+            return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
+        } catch (Exception ex) {
+            throw BusinessException.of("Get tour booking services for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
+        try {
+            TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
+            tourBookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
+            return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
+        } catch (Exception ex) {
+            throw BusinessException.of("Cancel tour booking services for sale failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendCheckingServiceAvailable(Long tourBookingServiceId) {
+        try {
+            TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
+            tourBookingService.setStatus(TourBookingServiceStatus.CHECKING);
+            TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
+            return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
+        } catch (Exception ex) {
+            throw BusinessException.of("Cancel tour booking services for sale failed", ex);
         }
     }
 }
