@@ -252,6 +252,17 @@ public class Constants {
         public static final String NO_TOUR_DAYS_FOUND = "No tour days found";
         public static final String SERVICES_LOAD_SUCCESS = "Tour services retrieved successfully";
         public static final String SERVICES_LOAD_FAIL = "Failed to retrieve tour services";
+        public static final String PAX_CONFIG_NOT_FOUND = "Pax configuration not found";
+        public static final String PAX_CONFIG_NOT_ASSOCIATED = "Pax configuration not associated with this tour";
+        public static final String PAX_CONFIG_OVERLAP = "Pax configuration overlaps with existing configurations";
+        public static final String PAX_CONFIG_INVALID_RANGE = "Min pax must be less than or equal to max pax";
+        public static final String PAX_CONFIG_INVALID_DATES = "Valid from date must be before valid to date";
+
+        public static final String PAX_CONFIGS_LOAD_SUCCESS = "Pax configurations retrieved successfully";
+        public static final String PAX_CONFIG_LOAD_SUCCESS = "Pax configuration retrieved successfully";
+        public static final String PAX_CONFIG_CREATE_SUCCESS = "Pax configuration created successfully";
+        public static final String PAX_CONFIG_UPDATE_SUCCESS = "Pax configuration updated successfully";
+        public static final String PAX_CONFIG_DELETE_SUCCESS = "Pax configuration deleted successfully";
 
     }
 

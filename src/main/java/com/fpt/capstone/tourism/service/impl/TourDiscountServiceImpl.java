@@ -153,26 +153,24 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     }
 
     private Double calculatePriceForPax(Double basePrice, TourPax pax) {
-        // Simple calculation example using TourPax information:
         double fixedCostPerPerson = pax.getFixedCost() / Math.max(pax.getMinPax(), 1);
         double extraCostPerPerson = pax.getExtraHotelCost() / Math.max(pax.getMinPax(), 1);
 
         // Apply tiered pricing based on pax range
         if (pax.getMinPax() <= 2) {
-            // Higher price for 1-2 people
+            // Higher price for lower number of person
             return basePrice * 1.2 + fixedCostPerPerson + extraCostPerPerson;
         } else if (pax.getMinPax() <= 5) {
-            // Standard price for 3-5 people
-            return basePrice + fixedCostPerPerson + (extraCostPerPerson * 0.8); // 20% discount on extra costs
+            // Standard price for medium number of people
+            return basePrice + fixedCostPerPerson + (extraCostPerPerson * 0.8);
         } else {
-            // Discount for 6+ people
-            return basePrice * 0.9 + fixedCostPerPerson * 0.8; // 10% discount on base, 20% on fixed costs
+            // Discount for high number people
+            return basePrice * 0.9 + fixedCostPerPerson * 0.8;
         }
     }
 
     private String determineServiceStatus(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         LocalDateTime now = LocalDateTime.now();
-
         if (startDateTime == null || endDateTime == null) {
             return "UNKNOWN";
         }
