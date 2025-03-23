@@ -24,12 +24,12 @@ public class TourDayController {
         return ResponseEntity.ok(tourDayServiceI.getTourDayDetail(tourId, isDeleted));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse<TourDayFullDTO>> getTourDayById(
-            @PathVariable Long tourId,
-            @PathVariable Long id) {
-        return ResponseEntity.ok(tourDayServiceI.getTourDayById(id, tourId));
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<GeneralResponse<TourDayFullDTO>> getTourDayById(
+//            @PathVariable Long tourId,
+//            @PathVariable Long id) {
+//        return ResponseEntity.ok(tourDayServiceI.getTourDayById(id, tourId));
+//    }
 
     @PostMapping("create")
     public ResponseEntity<GeneralResponse<TourDayFullDTO>> createTourDay(

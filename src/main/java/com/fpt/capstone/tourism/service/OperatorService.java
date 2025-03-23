@@ -50,4 +50,14 @@ public interface OperatorService {
     GeneralResponse<?> addService(AddServiceRequestDTO requestDTO);
 
     GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO);
+
+    GeneralResponse<?> getListChangeServiceRequest(int page, int size);
+
+    GeneralResponse<?> getChangeServiceRequestDetail(Long tourBookingServiceId);
+
+    GeneralResponse<?> rejectServiceRequest(Long tourBookingServiceId);
+
+    GeneralResponse<?> approveServiceRequest(Long tourBookingServiceId);
+
+    GeneralResponse<?> getTourSummary(Long scheduleId);
 }

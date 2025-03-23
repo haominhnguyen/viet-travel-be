@@ -16,8 +16,6 @@ import java.util.List;
 public interface TourDayServiceI {
     GeneralResponse<List<TourDayFullDTO>> getTourDayDetail(Long tourId, Boolean isDeleted);
 
-    GeneralResponse<TourDayFullDTO> getTourDayById(Long id, Long tourId);
-
     GeneralResponse<TourDayFullDTO> createTourDay(Long tourId, TourDayCreateRequestDTO request);
 
     GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request);
