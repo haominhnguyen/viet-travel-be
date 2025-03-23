@@ -42,9 +42,10 @@ public class HomepageController {
                                                                             @RequestParam(value = "duration", required = false) Integer duration,
                                                                             @RequestParam(value = "fromDate", required = false)
                                                                             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-                                                                            @RequestParam(value = "departLocationId", required = false) Long departLocationId) {
+                                                                            @RequestParam(value = "departLocationId", required = false) Long departLocationId,
+                                                                            @RequestParam(value = "sortByPrice", required = false) String sortByPrice) {
 
-        GeneralResponse<PagingDTO<List<PublicTourDTO>>> tourResponse = homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
+        GeneralResponse<PagingDTO<List<PublicTourDTO>>> tourResponse = homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId, sortByPrice);
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("tours", tourResponse.getData());
         List<PublicLocationDTO> locations = locationRepository.findAll().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList());

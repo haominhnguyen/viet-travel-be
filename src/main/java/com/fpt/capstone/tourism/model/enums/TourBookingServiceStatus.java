@@ -6,4 +6,8 @@ public enum TourBookingServiceStatus {
     APPROVED,       // Đã được phê duyệt (nhà cung cấp đã xác nhận)
     REJECTED,       // Bị từ chối (nhà cung cấp từ chối dịch vụ)
     NOT_ORDERED,    // Chưa đặt dịch vụ (dù có trong danh sách nhưng chưa gửi yêu cầu)
+    ADD_REQUEST,    // Yêu cầu điều hành thêm dịch vụ
+    CANCEL_REQUEST, // Yêu cầu điều hành hủy dịch vụ
+    REJECTED_BY_OPERATOR, // Nhà điều hành từ chối yêu cầu thay đổi
+    CANCELLED,         // BỊ hủy
 }

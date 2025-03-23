@@ -128,7 +128,7 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId) {
+    public GeneralResponse<PagingDTO<List<PublicTourDTO>>> getAllPublicTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId, String sortByPrice) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
             Specification<Tour> spec = buildSearchSpecification(keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId);
@@ -157,6 +157,13 @@ public class TourServiceImpl implements TourService {
                             minPriceMap.getOrDefault(tour.getId(), 0.0)  // Giá thấp nhất
                     ))
                     .collect(Collectors.toList());
+
+            //Sort by min Price
+            if ("asc".equalsIgnoreCase(sortByPrice)) {
+                publicTourDTOS.sort(Comparator.comparing(PublicTourDTO::getPriceFrom));
+            } else if ("desc".equalsIgnoreCase(sortByPrice)) {
+                publicTourDTOS.sort(Comparator.comparing(PublicTourDTO::getPriceFrom).reversed());
+            }
 
             return buildPagedResponse(tourPage, publicTourDTOS);
         } catch (Exception ex) {

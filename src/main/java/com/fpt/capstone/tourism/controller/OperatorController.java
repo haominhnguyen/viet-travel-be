@@ -123,4 +123,25 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));
     }
 
+    @GetMapping("/list-change-service-request")
+    public ResponseEntity<GeneralResponse<?>> getListChangeServiceRequest(@RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(operatorService.getListChangeServiceRequest(page, size));
+    }
+
+    @GetMapping("/change-service-request-detail/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> getChangeServiceRequestDetail(@PathVariable("tourBookingServiceId") Long tourBookingServiceId) {
+        return ResponseEntity.ok(operatorService.getChangeServiceRequestDetail(tourBookingServiceId));
+    }
+
+    @PutMapping("/reject-service-request/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> rejectServiceRequest(@PathVariable Long tourBookingServiceId) {
+        return ResponseEntity.ok(operatorService.rejectServiceRequest(tourBookingServiceId));
+    }
+
+    @PutMapping("/approve-service-request/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> approveServiceRequest(@PathVariable Long tourBookingServiceId) {
+        return ResponseEntity.ok(operatorService.approveServiceRequest(tourBookingServiceId));
+    }
+
 }

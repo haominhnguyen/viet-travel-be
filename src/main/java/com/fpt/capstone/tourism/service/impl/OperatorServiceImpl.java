@@ -64,6 +64,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final RoomMapper roomMapper;
     private final MealMapper mealMapper;
     private final TransportMapper transportMapper;
+    private final TourBookingServiceMapper bookingServiceMapper;
     private final EmailConfirmationService emailService;
 
     @Override
@@ -666,6 +667,159 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             emailService.sendMailServiceProvider(mailServiceDTO);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getListChangeServiceRequest(int page, int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByStatusIn(
+                    List.of(TourBookingServiceStatus.ADD_REQUEST, TourBookingServiceStatus.CANCEL_REQUEST),
+                    pageable
+            );
+
+            List<ChangeServiceDTO> resultDTO = bookingServicePage.getContent().stream()
+                    .map(service -> new ChangeServiceDTO(
+                            service.getId(),
+                            service.getBooking() != null ? service.getBooking().getTour().getName() : null, // tourName
+                            service.getBooking() != null ? service.getBooking().getTour().getTourType().toString() : null, // tourType
+                            service.getTourDay() != null ? service.getTourDay().getDayNumber() : null, // dayNumber
+                            service.getBooking() != null ? service.getBooking().getBookingCode() : null, // bookingCode
+                            service.getReason(), // reason
+                            service.getBooking() != null && service.getBooking().getUser() != null
+                                    ? service.getBooking().getUser().getFullName()
+                                    : null, // proposer
+                            service.getStatus() != null ? service.getStatus().name() : null, // status
+                            service.getUpdatedAt() // updatedAt
+                    ))
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getChangeServiceRequestDetail(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
+                    () -> BusinessException.of("No booking sservice found")
+            );
+
+            TourBooking booking = bookingService.getBooking();
+            Service service = bookingService.getService();
+            ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
+                    .tourBookingServiceId(tourBookingServiceId)
+                    .tourName(booking != null ? booking.getTour().getName() : null)
+                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
+                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
+                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
+                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
+                    .bookingCode(booking != null ? booking.getBookingCode() : null)
+                    .status(bookingService.getStatus() != null ? bookingService.getStatus().name() : null)
+                    .reason(bookingService.getReason())
+                    .proposer(booking != null && booking.getUser() != null
+                            ? booking.getUser().getFullName()
+                            : null)
+                    .updatedAt(bookingService.getUpdatedAt())
+                    .serviceName(service != null ? service.getName() : null)
+                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .requestQuantity(bookingService.getRequestedQuantity())
+                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> rejectServiceRequest(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
+                    () -> BusinessException.of("No booking service found")
+            );
+
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
+            }
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+            }
+            TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
+
+            TourBooking booking = bookingService.getBooking();
+            Service service = bookingService.getService();
+            ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
+                    .tourBookingServiceId(tourBookingServiceId)
+                    .tourName(booking != null ? booking.getTour().getName() : null)
+                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
+                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
+                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
+                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
+                    .bookingCode(booking != null ? booking.getBookingCode() : null)
+                    .status(newBookingService.getStatus() != null ? newBookingService.getStatus().name() : null)
+                    .reason(bookingService.getReason())
+                    .proposer(booking != null && booking.getUser() != null
+                            ? booking.getUser().getFullName()
+                            : null)
+                    .updatedAt(bookingService.getUpdatedAt())
+                    .serviceName(service != null ? service.getName() : null)
+                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .requestQuantity(bookingService.getRequestedQuantity())
+                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> approveServiceRequest(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
+                    () -> BusinessException.of("No booking service found")
+            );
+
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+                bookingService.setDeleted(Boolean.TRUE);
+            }
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
+            }
+            TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
+
+            TourBooking booking = bookingService.getBooking();
+            Service service = bookingService.getService();
+            ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
+                    .tourBookingServiceId(tourBookingServiceId)
+                    .tourName(booking != null ? booking.getTour().getName() : null)
+                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
+                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
+                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
+                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
+                    .bookingCode(booking != null ? booking.getBookingCode() : null)
+                    .status(newBookingService.getStatus() != null ? newBookingService.getStatus().name() : null)
+                    .reason(bookingService.getReason())
+                    .proposer(booking != null && booking.getUser() != null
+                            ? booking.getUser().getFullName()
+                            : null)
+                    .updatedAt(bookingService.getUpdatedAt())
+                    .serviceName(service != null ? service.getName() : null)
+                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .requestQuantity(bookingService.getRequestedQuantity())
+                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }
