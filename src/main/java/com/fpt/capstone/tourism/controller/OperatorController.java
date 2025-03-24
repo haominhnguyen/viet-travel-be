@@ -124,6 +124,11 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.addService(requestDTO));
     }
 
+    @PostMapping("/preview-mail")
+    public ResponseEntity<GeneralResponse<?>> previewMail(@RequestBody PreviewMailDTO previewMailDTO) {
+        return ResponseEntity.ok(operatorService.previewMail(previewMailDTO));
+    }
+
     @PostMapping("/send-mail-to-provider")
     public ResponseEntity<GeneralResponse<?>> sendMailToProvider(@RequestBody MailServiceDTO mailServiceDTO) {
         return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));

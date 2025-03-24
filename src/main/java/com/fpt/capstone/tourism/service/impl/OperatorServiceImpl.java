@@ -33,6 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -446,6 +447,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 // Thêm vào danh sách DTO
                 serviceDTOList.add(OperatorServiceDTO.builder()
+                        .bookingServiceId(bookingService.getId())
                         .bookingId(bookingService.getBooking().getId())
                         .serviceId(bookingService.getService().getId())
                         .providerName(bookingService.getService().getServiceProvider().getName())
@@ -623,6 +625,7 @@ public class OperatorServiceImpl implements OperatorService {
             throw BusinessException.of("Fail", ex);
         }
     }
+
     @Transactional
     @Override
     public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
@@ -661,26 +664,14 @@ public class OperatorServiceImpl implements OperatorService {
                     bookingServiceRepository.save(bookingService);
                 }
 
-                ServiceProvider provider = service.getServiceProvider();
-
-                String emailContent = "Kính gửi: " + provider.getName() + ",\n\n"
-                        + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
-                        + "Dịch vụ: " + service.getName() + "\n"
-                        + "Số lượng: " + requestDTO.getAddQuantity() + "\n"
-                        + "Ngày yêu cầu: " + requestDTO.getRequestDate() + ".\n\n"
-                        + "Tổng số tiền: " + requestDTO.getAddQuantity() * service.getNettPrice() + "(đ)\n\n"
-                        + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
-                        + "Best Regards,\n"
-                        + "Viet Travel";
-                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .providerId(provider.getId())
-                        .providerName(provider.getName())
-                        .providerEmail(provider.getEmail())
-//                        .emailSubject(emailSubject)
-                        .emailContent(emailContent)
+                PreviewMailDTO previewMailDTO = PreviewMailDTO.builder()
+                        .bookingServiceId(bookingService.getId())
+                        .serviceId(service.getId())
+                        .orderQuantity(requestDTO.getAddQuantity())
+                        .requestDate(requestDTO.getRequestDate())
                         .build();
 
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Need confirm", mailServiceDTO);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Need send mail", previewMailDTO);
 
             }
 
@@ -690,10 +681,54 @@ public class OperatorServiceImpl implements OperatorService {
         }
     }
 
+    @Transactional
+    @Override
+    public GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO) {
+        try {
+            Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+
+            ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                    () -> BusinessException.of("Service Provider not found")
+            );
+
+            String emailContent = MessageFormat.format(
+                    emailOrderServiceContent,
+                    serviceProvider.getName(),
+                    service.getName(),
+                    previewMailDTO.getOrderQuantity(),
+                    previewMailDTO.getRequestDate(),
+                    previewMailDTO.getOrderQuantity() * service.getNettPrice()
+            );
+            String emailSubject = MessageFormat.format(
+                    emailOrderServiceSubject,
+                    serviceProvider.getId()
+            );
+            MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                    .bookingServiceId(previewMailDTO.getBookingServiceId())
+                    .providerId(serviceProvider.getId())
+                    .providerName(serviceProvider.getName())
+                    .providerEmail(serviceProvider.getEmail())
+                    .emailSubject(emailSubject)
+                    .emailContent(emailContent)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
     @Override
     public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
         try {
+            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
+                    () -> BusinessException.of("Booking service not found")
+            );
             emailService.sendMailServiceProvider(mailServiceDTO);
+            bookingService.setStatus(TourBookingServiceStatus.PENDING);
+            bookingServiceRepository.save(bookingService);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);

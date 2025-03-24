@@ -60,4 +60,6 @@ public interface OperatorService {
     GeneralResponse<?> approveServiceRequest(Long tourBookingServiceId);
 
     GeneralResponse<?> getTourSummary(Long scheduleId);
+
+    GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO);
 }

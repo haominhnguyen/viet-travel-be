@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class MailServiceDTO {
+    private Long bookingServiceId;
     private Long providerId;
     private String providerName;
     private String providerEmail;

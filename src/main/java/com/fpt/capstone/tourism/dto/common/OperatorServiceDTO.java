@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 @Builder
 public class OperatorServiceDTO {
+    private Long bookingServiceId;
     private Long bookingId;
     private Long serviceId;
     private String providerName;
