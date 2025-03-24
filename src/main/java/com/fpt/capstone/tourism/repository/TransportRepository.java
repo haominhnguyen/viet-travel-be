@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface TransportRepository extends JpaRepository<Transport, Long> {
     Optional<Transport> findByServiceId(Long serviceId);
+    Optional<Transport> findByServiceIdAndDeletedFalse(Long serviceId);
 }

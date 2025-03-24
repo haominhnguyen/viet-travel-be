@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.dto.common;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -11,11 +12,14 @@ import java.util.Date;
 public class AvailableServiceDTO {
     private Long id;
     private String name;
-    private String description;
     private String categoryName;
     private Double nettPrice;
     private Double sellingPrice;
     private String status; // ACTIVE, EXPIRED, UPCOMING
-    private Date startDate;
-    private Date endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+
+    private RoomDetailDTO roomDetail;
+    private MealDetailDTO mealDetail;
+    private TransportDetailDTO transportDetail;
 }

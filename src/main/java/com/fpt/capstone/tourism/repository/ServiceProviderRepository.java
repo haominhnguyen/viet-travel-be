@@ -54,5 +54,25 @@ SELECT s.serviceProvider.id, MIN(s.sellingPrice)
             "WHERE sp.location.id = :locationId AND sc.categoryName = :categoryName " +
             "AND (sp.deleted = false OR sp.deleted IS NULL)")
     boolean existsByLocationIdAndCategoryName(@Param("locationId") Long locationId, @Param("categoryName") String categoryName);
+
+    @Query("SELECT sp FROM ServiceProvider sp " +
+            "JOIN sp.serviceCategories sc " +
+            "WHERE sp.location.id = :locationId " +
+            "AND sc.id = :categoryId " +
+            "AND (sp.deleted = false OR sp.deleted IS NULL)")
+    List<ServiceProvider> findByLocationIdAndServiceCategoryId(
+            @Param("locationId") Long locationId,
+            @Param("categoryId") Long categoryId);
+
+    @Query("SELECT sp FROM ServiceProvider sp " +
+            "WHERE sp.location.id = :locationId " +
+            "AND (sp.deleted = false OR sp.deleted IS NULL)")
+    List<ServiceProvider> findByLocationIdAndNotDeleted(@Param("locationId") Long locationId);
+
+    @Query("SELECT DISTINCT sc.categoryName FROM ServiceProvider sp " +
+            "JOIN sp.serviceCategories sc " +
+            "WHERE sp.location.id = :locationId " +
+            "AND (sp.deleted = false OR sp.deleted IS NULL)")
+    List<String> findAvailableCategoriesByLocationId(@Param("locationId") Long locationId);
 }
 
