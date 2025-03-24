@@ -98,14 +98,15 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.payService(requestDTO));
     }
 
-    @GetMapping("/tour-service/list-location")
-    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListLocation() {
-        return ResponseEntity.ok(operatorService.getListLocation());
+    @GetMapping("/tour-service/list-location-and-service-category")
+    public ResponseEntity<GeneralResponse<?>> getListLocationAndServiceCategory() {
+        return ResponseEntity.ok(operatorService.getListLocationAndServiceCategory());
     }
 
-    @GetMapping("/tour-service/{locationId}/list-service-provider")
-    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListServiceProviderByLocationnId(@PathVariable Long locationId) {
-        return ResponseEntity.ok(operatorService.getListServiceProviderByLocationId(locationId));
+    @GetMapping("/tour-service/{locationId}/list-service-provider/{serviceCategoryId}")
+    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListServiceProviderByLocationIdAndServiceCategoryId(@PathVariable Long locationId,
+                                                                                                  @PathVariable Long serviceCategoryId) {
+        return ResponseEntity.ok(operatorService.getListServiceProviderByLocationIdAndServiceCategoryId(locationId, serviceCategoryId));
     }
 
     @GetMapping("/tour-service/{serviceProviderId}/list-service")

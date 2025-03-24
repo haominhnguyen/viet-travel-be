@@ -39,9 +39,9 @@ public interface OperatorService {
 
     GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO);
 
-    GeneralResponse<Map<Long, String>> getListLocation();
+    GeneralResponse<?> getListLocationAndServiceCategory();
 
-    GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId);
+    GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId);
 
     GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId);
 

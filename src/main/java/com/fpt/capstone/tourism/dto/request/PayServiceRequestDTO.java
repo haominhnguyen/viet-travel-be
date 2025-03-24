@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +19,8 @@ public class PayServiceRequestDTO {
     private String paidBy;
     private String receivedBy;
     private PaymentMethod paymentMethod;
+    @Pattern(regexp = "PAYMENT|ADVANCED", message = "TransactionType must be PAYMENT or ADVANCED")
+    private TransactionType transactionType;
     private String notes;
     private Long serviceId;
     private Integer quantity;
