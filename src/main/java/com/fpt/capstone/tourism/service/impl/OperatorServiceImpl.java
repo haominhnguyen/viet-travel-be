@@ -70,6 +70,18 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingServiceMapper bookingServiceMapper;
     private final EmailConfirmationService emailService;
 
+
+    final String emailOrderServiceContent = "Kính gửi: {0},\n\n"
+            + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
+            + "Dịch vụ: {1}\n"
+            + "Số lượng: {2}\n"
+            + "Ngày yêu cầu: {3}.\n\n"
+            + "Tổng số tiền: {4,number,#,###.##} (đ)\n\n"
+            + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
+            + "Best Regards,\n"
+            + "Viet Travel";
+    final String emailOrderServiceSubject = "[Viet Travel - {0}] - Thông tin đặt hàng dịch vụ.";
+
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
         try {
@@ -531,21 +543,21 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> getListLocationAndServiceCategory() {
         try {
-            List<Map<Long, String>> resultDTO = new ArrayList<>();
+            Map<String, Map<Long, String>> resultDTO = new HashMap<>();
 
             //Get list location
             List<Location> locations = locationRepository.findByDeletedFalse();
             Map<Long, String> mapLocation = locations.stream()
                     .collect(Collectors.toMap(Location::getId, Location::getName));
 
-            resultDTO.add(mapLocation);
+            resultDTO.put("locations", mapLocation);
 
             //Get list service category
             List<ServiceCategory> serviceCategories = serviceCategoryRepository.findByDeletedFalse();
             Map<Long, String> mapServiceCategory = serviceCategories.stream()
                     .collect(Collectors.toMap(ServiceCategory::getId, ServiceCategory::getCategoryName));
 
-            resultDTO.add(mapServiceCategory);
+            resultDTO.put("serviceCategories", mapServiceCategory);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
@@ -651,7 +663,6 @@ public class OperatorServiceImpl implements OperatorService {
 
                 ServiceProvider provider = service.getServiceProvider();
 
-                String emailSubject = "[Viet Travel - " + provider.getId() + "] - Thông tin đặt hàng dịch vụ.";
                 String emailContent = "Kính gửi: " + provider.getName() + ",\n\n"
                         + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
                         + "Dịch vụ: " + service.getName() + "\n"
@@ -665,7 +676,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .providerId(provider.getId())
                         .providerName(provider.getName())
                         .providerEmail(provider.getEmail())
-                        .emailSubject(emailSubject)
+//                        .emailSubject(emailSubject)
                         .emailContent(emailContent)
                         .build();
 
