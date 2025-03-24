@@ -62,4 +62,6 @@ public interface OperatorService {
     GeneralResponse<?> getTourSummary(Long scheduleId);
 
     GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO);
+
+    GeneralResponse<?> getListBookingForAddService(Long scheduleId);
 }

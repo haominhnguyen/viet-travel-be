@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -101,6 +102,11 @@ public class OperatorController {
     @GetMapping("/tour-service/list-location-and-service-category")
     public ResponseEntity<GeneralResponse<?>> getListLocationAndServiceCategory() {
         return ResponseEntity.ok(operatorService.getListLocationAndServiceCategory());
+    }
+
+    @GetMapping("/tour-service/{scheduleId}/list-booking")
+    public ResponseEntity<GeneralResponse<?>> getListBookingForAddService(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListBookingForAddService(scheduleId));
     }
 
     @GetMapping("/tour-service/{locationId}/list-service-provider/{serviceCategoryId}")

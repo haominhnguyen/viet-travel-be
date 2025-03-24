@@ -721,6 +721,24 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
+    public GeneralResponse<?> getListBookingForAddService(Long scheduleId) {
+        try {
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBookingSimpleDTO> resultDTO = bookings.stream()
+                    .map(booking ->
+                            TourBookingSimpleDTO.builder()
+                                    .bookingId(booking.getId())
+                                    .bookingCode(booking.getBookingCode())
+                                    .customerName(booking.getUser().getFullName())
+                                    .build()
+                    ).collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
     public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
