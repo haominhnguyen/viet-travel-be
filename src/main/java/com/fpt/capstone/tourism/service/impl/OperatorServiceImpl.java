@@ -56,6 +56,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final MealRepository mealRepository;
     private final TransportRepository transportRepository;
     private final TourBookingServiceRepository bookingServiceRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -435,6 +436,8 @@ public class OperatorServiceImpl implements OperatorService {
                 serviceDTOList.add(OperatorServiceDTO.builder()
                         .bookingId(bookingService.getBooking().getId())
                         .serviceId(bookingService.getService().getId())
+                        .providerName(bookingService.getService().getServiceProvider().getName())
+                        .providerEmail(bookingService.getService().getServiceProvider().getEmail())
                         .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
                         .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
@@ -491,7 +494,7 @@ public class OperatorServiceImpl implements OperatorService {
             Transaction transaction = Transaction.builder()
                     .booking(tourBooking)
                     .amount(requestDTO.getAmount())
-                    .category(TransactionType.PAYMENT)
+                    .category(requestDTO.getTransactionType())
                     .paidBy(requestDTO.getPaidBy())
                     .receivedBy(requestDTO.getReceivedBy())
                     .paymentMethod(requestDTO.getPaymentMethod())
@@ -526,21 +529,33 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<Map<Long, String>> getListLocation() {
+    public GeneralResponse<?> getListLocationAndServiceCategory() {
         try {
+            List<Map<Long, String>> resultDTO = new ArrayList<>();
+
+            //Get list location
             List<Location> locations = locationRepository.findByDeletedFalse();
-            Map<Long, String> resultDTO = locations.stream()
+            Map<Long, String> mapLocation = locations.stream()
                     .collect(Collectors.toMap(Location::getId, Location::getName));
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list location success", resultDTO);
+
+            resultDTO.add(mapLocation);
+
+            //Get list service category
+            List<ServiceCategory> serviceCategories = serviceCategoryRepository.findByDeletedFalse();
+            Map<Long, String> mapServiceCategory = serviceCategories.stream()
+                    .collect(Collectors.toMap(ServiceCategory::getId, ServiceCategory::getCategoryName));
+
+            resultDTO.add(mapServiceCategory);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list location fail", ex);
+            throw BusinessException.of("Fail", ex);
         }
     }
 
     @Override
-    public GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId) {
+    public GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId) {
         try {
-            List<ServiceProvider> providers = providerRepository.findByLocationIdAndDeletedFalse(locationId);
+            List<ServiceProvider> providers = providerRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, serviceCategoryId);
             Map<Long, String> resultDTO = providers.stream()
                     .collect(Collectors.toMap(ServiceProvider::getId, ServiceProvider::getName));
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list provider by location success", resultDTO);
@@ -596,7 +611,7 @@ public class OperatorServiceImpl implements OperatorService {
             throw BusinessException.of("Fail", ex);
         }
     }
-
+    @Transactional
     @Override
     public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
         try {
@@ -624,13 +639,13 @@ public class OperatorServiceImpl implements OperatorService {
                             .requestDate(requestDTO.getRequestDate())
                             .deleted(Boolean.FALSE)
                             .reason(requestDTO.getReason())
-                            .status(TourBookingServiceStatus.PENDING)
+                            .status(TourBookingServiceStatus.NOT_ORDERED)
                             .build();
                     bookingServiceRepository.save(bookingService);
                 }
                 if (bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
                     bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
-                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                    bookingService.setStatus(TourBookingServiceStatus.CHANGED);
                     bookingServiceRepository.save(bookingService);
                 }
 
@@ -747,10 +762,10 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
             }
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
             }
             TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
@@ -790,11 +805,11 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
                 bookingService.setDeleted(Boolean.TRUE);
             }
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
             }
             TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
@@ -839,12 +854,12 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm số tiền công ty đã thu của cả lịch trình
             BigDecimal receiptedAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.RECEIPT,CostAccountStatus.PAID);
+                    TransactionType.RECEIPT, CostAccountStatus.PAID);
 
             //Tìm số tiền HDV đã thu hộ của cả lịch trình
             BigDecimal collectionAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.COLLECTION,CostAccountStatus.PAID);
+                    TransactionType.COLLECTION, CostAccountStatus.PAID);
 
             //Tìm tổng số tiền phải thu
             BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
@@ -855,12 +870,12 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm số tiền công ty đã chi
             BigDecimal paymentAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.PAYMENT,CostAccountStatus.PAID);
+                    TransactionType.PAYMENT, CostAccountStatus.PAID);
 
             //Tìm số tiền HDV đã chi
             BigDecimal advanceAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.ADVANCED,CostAccountStatus.PAID);
+                    TransactionType.ADVANCED, CostAccountStatus.PAID);
 
             //Tìm tổng số tiền phải chi
             BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(

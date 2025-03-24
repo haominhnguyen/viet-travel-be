@@ -39,12 +39,12 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
 
 
     @Query("""
-SELECT s.serviceProvider.id, MIN(s.sellingPrice)
-    FROM Service s
-    WHERE s.serviceProvider.id IN :hotelIds
-    GROUP BY s.serviceProvider.id
+            SELECT s.serviceProvider.id, MIN(s.sellingPrice)
+                FROM Service s
+                WHERE s.serviceProvider.id IN :hotelIds
+                GROUP BY s.serviceProvider.id
 
-""")
+            """)
     List<Object[]> findMinRoomPricesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 
     List<ServiceProvider> findByLocationIdAndDeletedFalse(@Param("locationId") Long locationId);
@@ -55,6 +55,16 @@ SELECT s.serviceProvider.id, MIN(s.sellingPrice)
             "AND (sp.deleted = false OR sp.deleted IS NULL)")
     boolean existsByLocationIdAndCategoryName(@Param("locationId") Long locationId, @Param("categoryName") String categoryName);
 
+<<<<<<< HEAD
+    @Query("""
+                SELECT sp FROM ServiceProvider sp 
+                JOIN sp.serviceCategories sc 
+                WHERE sp.location.id = :locationId 
+                AND sc.id = :serviceCategoryId 
+                AND sp.deleted = false
+            """)
+    List<ServiceProvider> findByLocationIdAndServiceCategoryIdAndDeletedFalse(Long locationId, Long serviceCategoryId);
+=======
     @Query("SELECT sp FROM ServiceProvider sp " +
             "JOIN sp.serviceCategories sc " +
             "WHERE sp.location.id = :locationId " +
@@ -74,5 +84,6 @@ SELECT s.serviceProvider.id, MIN(s.sellingPrice)
             "WHERE sp.location.id = :locationId " +
             "AND (sp.deleted = false OR sp.deleted IS NULL)")
     List<String> findAvailableCategoriesByLocationId(@Param("locationId") Long locationId);
+>>>>>>> 0d44e626f973419ac855fdb5dc7ddfec4a7e4b31
 }
 

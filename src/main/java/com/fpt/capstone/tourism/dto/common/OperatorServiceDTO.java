@@ -14,6 +14,8 @@ import java.util.List;
 public class OperatorServiceDTO {
     private Long bookingId;
     private Long serviceId;
+    private String providerName;
+    private String providerEmail;
     private String bookingCode;
     private String serviceName;
     private String serviceCategory;
