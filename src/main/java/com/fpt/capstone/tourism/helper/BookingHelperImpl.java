@@ -1,24 +1,19 @@
 package com.fpt.capstone.tourism.helper;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourBookingDTO;
-import com.fpt.capstone.tourism.dto.common.TourBookingDetailSaleResponseDTO;
-import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.dto.response.TourBookingSaleResponseDTO;
+import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
-import com.fpt.capstone.tourism.repository.TourBookingCustomerRepository;
-import com.fpt.capstone.tourism.repository.TourScheduleRepository;
-import com.fpt.capstone.tourism.repository.TransactionRepository;
+import com.fpt.capstone.tourism.repository.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,9 +36,11 @@ public class BookingHelperImpl implements BookingHelper {
     private final TourBookingCustomerRepository tourBookingCustomerRepository;
     private final TourBookingCustomerMapper tourBookingCustomerMapper;
     private final TourScheduleRepository tourScheduleRepository;
+    private final TourBookingServiceRepository tourBookingServiceRepository;
 
 
     private final List<TransactionType> transactionTypes = List.of(TransactionType.RECEIPT, TransactionType.COLLECTION);
+    private final TourDayRepository tourDayRepository;
 
 
     @Override
@@ -206,11 +204,31 @@ public class BookingHelperImpl implements BookingHelper {
         tourBookingSaleResponseDTO.setSchedule(tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId()));
         tourBookingSaleResponseDTO.setCreatedAt(tourBooking.getCreatedAt());
         tourBookingSaleResponseDTO.setTransactions(tourBookingReceipts.stream().map(bookingMapper::toTransactionDTO).toList());
-
-
-        List<TourBookingService> tourBookingServices = tourBooking.getTourBookingServices();
-
-
         return tourBookingSaleResponseDTO;
+    }
+
+
+
+    @Override
+    public List<TourBookingServiceSaleResponseDTO> getTourBookingListService(List<TourDay> tourDays, TourBooking tourBooking) {
+        List<TourBookingServiceSaleResponseDTO> tourBookingServiceSaleResponseDTOS = new ArrayList<>();
+
+        for (TourDay tourDay : tourDays) {
+
+            List<TourBookingService> tourBookingServices = tourBookingServiceRepository.findByTourDayAndBooking(tourDay, tourBooking);
+            TourDayDTO tourDayDTO = bookingMapper.toTourDayDto(tourDay);
+
+
+
+            TourBookingServiceSaleResponseDTO tourBookingServiceSaleResponseDTO = TourBookingServiceSaleResponseDTO.builder()
+                    .tourDay(tourDayDTO)
+                    .bookingServices(tourBookingServices.stream().map(bookingMapper::toTourBookingServiceDTO).toList())
+                    .build();
+
+            tourBookingServiceSaleResponseDTOS.add(tourBookingServiceSaleResponseDTO);
+
+        }
+
+        return tourBookingServiceSaleResponseDTOS;
     }
 }

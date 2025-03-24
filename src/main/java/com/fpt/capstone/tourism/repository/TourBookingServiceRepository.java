@@ -1,11 +1,13 @@
 package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourBookingService;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import org.apache.catalina.LifecycleState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.fpt.capstone.tourism.model.TourDay;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -18,4 +20,5 @@ public interface TourBookingServiceRepository extends JpaRepository<TourBookingS
     Page<TourBookingService> findByStatusIn(List<TourBookingServiceStatus> statuses, Pageable pageable);
 
 
+    List<TourBookingService> findByTourDayAndBooking(TourDay tourDay, TourBooking tourBooking);
 }

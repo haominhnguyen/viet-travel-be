@@ -45,9 +45,11 @@ public class Service extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "provider_id")
+    @ToString.Exclude
     private ServiceProvider serviceProvider;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")
+    @ToString.Exclude
     private List<TourDayService> tourDayServices;
 
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy = "service")

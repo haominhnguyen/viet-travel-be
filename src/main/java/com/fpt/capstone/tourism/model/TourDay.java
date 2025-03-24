@@ -34,12 +34,15 @@ public class TourDay extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "tour_id")
+    @ToString.Exclude
     private Tour tour;
 
     @ManyToOne
     @JoinColumn(name = "location_id")
+    @ToString.Exclude
     private Location location;
 
     @OneToMany(mappedBy = "tourDay")
+    @ToString.Exclude
     private List<TourDayService> tourDayServices;
 }

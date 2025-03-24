@@ -3,10 +3,7 @@ package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Data
@@ -22,6 +19,7 @@ public class CostAccount extends  BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "transaction_id")
+    @ToString.Exclude
     private Transaction transaction;
 
     private String content;

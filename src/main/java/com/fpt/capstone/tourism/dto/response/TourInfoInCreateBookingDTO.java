@@ -1,18 +1,16 @@
 package com.fpt.capstone.tourism.dto.response;
 
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
-import com.fpt.capstone.tourism.dto.common.TagDTO;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
-public class CreateBookingTourDTO {
+public class TourInfoInCreateBookingDTO {
     private Long id;
     private String name;
     private int numberDays;

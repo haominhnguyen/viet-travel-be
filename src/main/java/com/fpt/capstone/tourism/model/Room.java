@@ -26,11 +26,6 @@ public class Room extends BaseEntity{
     @Column(name = "available_quantity", nullable = false)
     private Integer availableQuantity; // Số lượng phòng còn lại
 
-//    @Column(name = "check_in_date")
-//    private LocalDate checkInDate; // Thời gian check-in
-//
-//    @Column(name = "check_out_date")
-//    private LocalDate checkOutDate; // Thời gian check-out
 
     @Column(name = "is_deleted")
     private Boolean deleted;
@@ -41,4 +36,12 @@ public class Room extends BaseEntity{
 
     @Column(columnDefinition = "text")
     private String facilities; // Danh sách các dịch vụ trong phòng (bồn tắm, tủ lạnh, wifi)
+
+
+
+//    @Column(name = "check_in_date")
+//    private LocalDate checkInDate; // Thời gian check-in
+//
+//    @Column(name = "check_out_date")
+//    private LocalDate checkOutDate; // Thời gian check-out
 }

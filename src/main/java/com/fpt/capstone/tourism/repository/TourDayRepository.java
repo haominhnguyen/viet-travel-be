@@ -31,4 +31,6 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
 
     List<TourDay> findByTourIdAndDeletedFalseOrderByDayNumber(Long tourId);
     Optional<TourDay> findByTourIdAndDayNumber(Long tourId, Integer dayNumber);
+
+    List<TourDay> findAllByTourId(Long tourId);
 }

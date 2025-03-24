@@ -34,6 +34,7 @@ public class Tour extends BaseEntity{
     private Boolean deleted;
 
     @ManyToMany
+    @ToString.Exclude
     @JoinTable(name = "tour_location",
             joinColumns = @JoinColumn(name = "tour_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id"))
@@ -41,6 +42,7 @@ public class Tour extends BaseEntity{
 
 
     @ManyToMany
+    @ToString.Exclude
     @JoinTable(
             name = "tour_tag",
             joinColumns = @JoinColumn(name = "tour_id"),
@@ -57,9 +59,11 @@ public class Tour extends BaseEntity{
     private TourStatus tourStatus;
 
     @OneToMany(mappedBy = "tour")
+    @ToString.Exclude
     private Set<TourPax> tourPax;
 
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "depart_location_id")
     private Location departLocation;
 
@@ -70,15 +74,18 @@ public class Tour extends BaseEntity{
     private String privacy;
 
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<TourSchedule> tourSchedules;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "tour")
     private List<TourDay> tourDays;
 }

@@ -4,6 +4,7 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
+import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
@@ -65,6 +66,23 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.saleViewBookingDetails(tourBookingId));
     }
 
+    @GetMapping("/bookings/services/{tourBookingId}")
+    public ResponseEntity<?> getBookingsDetailServices(@PathVariable Long tourBookingId) {
+        return ResponseEntity.ok(bookingService.getTourBookingServices(tourBookingId));
+    }
+
+
+    @PostMapping("/bookings/services/update-quantity")
+    public ResponseEntity<?> getBookingsDetailServices(@RequestBody UpdateServiceNotBookingSaleRequestDTO updateServiceNotBookingSaleRequestDTO) {
+        return ResponseEntity.ok(bookingService.updateServiceQuantity(updateServiceNotBookingSaleRequestDTO));
+    }
+
+
+    @PostMapping("/bookings/services/cancel-service")
+    public ResponseEntity<?> cancelService(@RequestBody Long tourBookingServiceId) {
+        return ResponseEntity.ok(bookingService.cancelService(tourBookingServiceId));
+    }
+
 
     @GetMapping("/bookings/customers/list/{tourBookingId}")
     public ResponseEntity<?> getBookingCustomers(@PathVariable Long tourBookingId) {
@@ -98,6 +116,12 @@ public class SalesmanController {
     @PostMapping("/bookings/create")
     public ResponseEntity<?> createPublicBooking(@RequestBody CreatePublicBookingRequestDTO bookingRequestDTO) {
         return ResponseEntity.ok(bookingService.createBooking(bookingRequestDTO));
+    }
+
+
+    @PostMapping("/bookings/services/checking-available")
+    public ResponseEntity<?> sendCheckingAvailable(@RequestBody Long tourBookingServiceId) {
+        return ResponseEntity.ok(bookingService.sendCheckingServiceAvailable(tourBookingServiceId));
     }
 
 }

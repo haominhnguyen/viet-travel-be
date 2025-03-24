@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
+import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.TourBooking;
@@ -41,12 +42,18 @@ public interface BookingService {
 
      GeneralResponse<?> getCustomersByName(String name);
 
-
+     GeneralResponse<?> updateTourBookingService(Long tourBookingServiceID);
 
      Transaction createReceiptBookingTransaction(TourBooking tourBooking, Double total, String fullName, PaymentMethod paymentMethod);
 
      void saveTourBookingService(TourBooking tourBooking);
 
-     //GeneralResponse<?> getTourBookingServices(L);
+     GeneralResponse<?> getTourBookingServices(Long tourBookingID);
 
+     GeneralResponse<?> updateServiceQuantity(UpdateServiceNotBookingSaleRequestDTO updateServiceNotBookingSaleRequestDTO);
+
+
+     GeneralResponse<?> cancelService(Long tourBookingServiceId);
+
+     GeneralResponse<?> sendCheckingServiceAvailable(Long tourBookingServiceId);
 }
