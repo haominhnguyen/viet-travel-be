@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 
@@ -12,4 +13,8 @@ public interface TourDiscountService {
     GeneralResponse<TourServiceListDTO> getTourServicesList(Long tourId, Integer paxCount);
 
     GeneralResponse<ServiceProviderOptionsDTO> getServiceProviderOptions(Long locationId, String categoryName);
+
+    GeneralResponse<ServiceByCategoryDTO> createServiceDetail(Long tourId, ServiceCreateRequestDTO request);
+
+    GeneralResponse<Void> changeServiceStatus(Long tourId, Long serviceId, Boolean delete);
 }

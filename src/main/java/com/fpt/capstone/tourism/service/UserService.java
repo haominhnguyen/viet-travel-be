@@ -15,10 +15,6 @@ import java.util.List;
 
 
 public interface UserService {
-    void createEmailConfirmationToken(User user, String token);
-    User findUserByEmailConfirmationToken(String token);
-    void deleteEmailConfirmationToken(String token);
-
     String generateToken(User user);
     User findById(Long id);
     User findUserByUsername(String username);
@@ -38,9 +34,10 @@ public interface UserService {
     GeneralResponse<UserProfileResponseDTO> getUserProfile(String username);
     GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UserProfileRequestDTO user);
     String getCurrentUser();
-
     GeneralResponse<String> changePassword(String token, String currentPassword, String newPassword, String newRePassword);
-
     GeneralResponse<String> updateAvatar(Long userId, MultipartFile file);
 
+    GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>> getUsersByRole(int page, int size, String keyword, Boolean isDeleted, String customer, String sortField, String sortDirection);
+
+    GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>> getNonCustomerUsers(int page, int size, String keyword, Boolean isDeleted, String roleFilter, String sortField, String sortDirection);
 }

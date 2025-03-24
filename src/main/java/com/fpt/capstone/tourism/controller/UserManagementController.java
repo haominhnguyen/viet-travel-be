@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.UserCreationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
+import com.fpt.capstone.tourism.enums.RoleName;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -38,7 +39,31 @@ public class UserManagementController {
         return ResponseEntity.ok(userService.getAllUser(page, size, keyword, isDeleted, roleName, sortField, sortDirection));
     }
 
+    @GetMapping("/customers")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>>> getAllCustomers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(defaultValue = "createdAt") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        return ResponseEntity.ok(userService.getUsersByRole(page, size, keyword, isDeleted, "CUSTOMER", sortField, sortDirection));
+    }
 
+    @GetMapping("/staff")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>>> getAllStaff(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(required = false) RoleName roleType,
+            @RequestParam(defaultValue = "createdAt") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        String roleFilter = roleType != null ? roleType.name() : null;
+        return ResponseEntity.ok(userService.getNonCustomerUsers(page, size, keyword, isDeleted, roleFilter, sortField, sortDirection));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {

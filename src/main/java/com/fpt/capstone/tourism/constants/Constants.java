@@ -272,6 +272,10 @@ public class Constants {
         public static final String NO_SERVICES_AVAILABLE= "No tour services found";
         public static final String SERVICE_UPDATE_FAIL = "Service update failed";
 
+        public static final String DAY_NUMBER_REQUIRED = "Day number is required";
+        public static final String SERVICE_ALREADY_ASSOCIATED = "Service already associated with this tour day";
+        public static final String SERVICE_CREATE_FAIL = "Service creation failed";
+        public static final String SERVICE_DELETE_FAIL = "Service delete failed";
     }
 
 
