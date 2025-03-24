@@ -21,5 +21,7 @@ public interface TourDayServiceRepository extends JpaRepository<TourDayService, 
 
     List<TourDayService> findByTourDayIdIn(List<Long> tourDayIds);
     Optional<TourDayService> findByServiceIdAndTourDayTourId(Long serviceId, Long tourId);
+
+    boolean existsByServiceIdAndTourDayId(Long serviceId, Long id);
 }
 

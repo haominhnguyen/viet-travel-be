@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -277,6 +278,185 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
     @Override
     @Transactional
+    public GeneralResponse<ServiceByCategoryDTO> createServiceDetail(Long tourId, ServiceCreateRequestDTO request) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Validate service exists
+            if (request.getServiceId() == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
+            }
+
+            Service service = serviceRepository.findById(request.getServiceId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + request.getServiceId()));
+
+            // 3. Validate day number is provided
+            if (request.getDayNumber() == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, DAY_NUMBER_REQUIRED);
+            }
+
+            // 4. Find the tour day
+            TourDay tourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, request.getDayNumber())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + ": " + request.getDayNumber()));
+
+            // 5. Check if the service is already associated with this tour day
+            if (tourDayServiceRepository.existsByServiceIdAndTourDayId(request.getServiceId(), tourDay.getId())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_ASSOCIATED);
+            }
+
+            // 6. Create a new tour day service
+            TourDayService tourDayService = new TourDayService();
+            tourDayService.setTourDay(tourDay);
+            tourDayService.setService(service);
+            tourDayService.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1); // Default quantity is 1
+
+            // 7. Set selling price if provided, otherwise use service's default price
+            if (request.getSellingPrice() != null) {
+                tourDayService.setSellingPrice(request.getSellingPrice());
+            } else {
+                tourDayService.setSellingPrice(service.getSellingPrice());
+            }
+
+            // 8. Update service-specific details
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+
+            if ("Hotel".equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
+                Room room = roomRepository.findByServiceId(service.getId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + service.getId()));
+
+                if (request.getRoomDetail().getCapacity() != null) {
+                    room.setCapacity(request.getRoomDetail().getCapacity());
+                }
+
+                if (request.getRoomDetail().getAvailableQuantity() != null) {
+                    room.setAvailableQuantity(request.getRoomDetail().getAvailableQuantity());
+                }
+
+                if (request.getRoomDetail().getFacilities() != null) {
+                    room.setFacilities(request.getRoomDetail().getFacilities());
+                }
+
+                roomRepository.save(room);
+            }
+            else if ("Restaurant".equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
+                Meal meal = mealRepository.findByServiceId(service.getId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + service.getId()));
+
+                if (request.getMealDetail().getType() != null) {
+                    meal.setType(MealType.valueOf(request.getMealDetail().getType()));
+                }
+
+                if (request.getMealDetail().getMealDetail() != null) {
+                    meal.setMealDetail(request.getMealDetail().getMealDetail());
+                }
+
+                mealRepository.save(meal);
+            }
+            else if ("Transport".equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
+                Transport transport = transportRepository.findByServiceId(service.getId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + service.getId()));
+
+                if (request.getTransportDetail().getSeatCapacity() != null) {
+                    transport.setSeatCapacity(request.getTransportDetail().getSeatCapacity());
+                }
+
+                transportRepository.save(transport);
+            }
+
+            // 9. Update pax-specific pricing if provided
+            if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
+                // Calculate an average price from all the pax prices to use as the base price
+                Double avgPrice = request.getPaxPrices().values().stream()
+                        .mapToDouble(Double::doubleValue)
+                        .average()
+                        .orElse(tourDayService.getSellingPrice() != null ? tourDayService.getSellingPrice() : service.getSellingPrice());
+
+                tourDayService.setSellingPrice(avgPrice);
+            }
+
+            // 10. Save the tour day service entry
+            tourDayService = tourDayServiceRepository.save(tourDayService);
+
+            // 11. Return service details
+            return getServiceDetail(tourId, tourDayService.getService().getId());
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_CREATE_FAIL, ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<Void> changeServiceStatus(Long tourId, Long serviceId, Boolean delete) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Verify the service exists
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+
+            // 3. Find the TourDayService entry to verify association
+            TourDayService tourDayService = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED));
+
+            // 4. Update status based on service category
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+            boolean statusUpdated = false;
+
+            if ("Hotel".equalsIgnoreCase(categoryName)) {
+                Room room = roomRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + serviceId));
+
+                room.setDeleted(delete);
+                roomRepository.save(room);
+                statusUpdated = true;
+            }
+            else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+                Meal meal = mealRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
+
+                meal.setDeleted(delete);
+                mealRepository.save(meal);
+                statusUpdated = true;
+            }
+            else if ("Transport".equalsIgnoreCase(categoryName)) {
+                Transport transport = transportRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
+
+                transport.setDeleted(delete);
+                transportRepository.save(transport);
+                statusUpdated = true;
+            }
+
+            if (!statusUpdated) {
+                // If no specific service detail was found, update the service itself
+                service.setDeleted(delete);
+                serviceRepository.save(service);
+            }
+
+            // 5. Return success response
+            String serviceType = categoryName != null ? categoryName : "Service";
+            String message = delete ? serviceType + " marked as deleted successfully" : serviceType + " restored successfully";
+
+            return GeneralResponse.<Void>builder()
+                    .code(HttpStatus.OK.value())
+                    .message(message)
+                    .build();
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            String errorMessage = delete ? SERVICE_DELETE_FAIL : "Failed to change service status";
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage, ex);
+        }
+    }
+
+    @Override
+    @Transactional
     public GeneralResponse<ServiceByCategoryDTO> updateServiceDetail(Long tourId, Long serviceId, ServiceUpdateRequestDTO request) {
         try {
             // 1. Validate tour exists
@@ -444,8 +624,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_UPDATE_FAIL, ex);
         }
     }
-
-
 
     @Override
     public GeneralResponse<TourServiceListDTO> getTourServicesList(Long tourId, Integer paxCount) {

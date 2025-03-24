@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
 import com.fpt.capstone.tourism.service.TourDiscountService;
@@ -44,6 +45,7 @@ public class TourDiscountController {
         return ResponseEntity.ok(tourDiscountService.updateServiceDetail(tourId, serviceId, request));
     }
 
+
     @GetMapping("/providers")
     public ResponseEntity<GeneralResponse<ServiceProviderOptionsDTO>> getServiceProviderOptions(
             @PathVariable Long tourId,
@@ -51,4 +53,20 @@ public class TourDiscountController {
             @RequestParam String categoryName) {
         return ResponseEntity.ok(tourDiscountService.getServiceProviderOptions(locationId, categoryName));
     }
+
+    @PostMapping("/create")
+    public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> createServiceDetail(
+            @PathVariable Long tourId,
+            @RequestBody ServiceCreateRequestDTO request) {
+        return ResponseEntity.ok(tourDiscountService.createServiceDetail(tourId, request));
+    }
+
+    @DeleteMapping("/{serviceId}")
+    public ResponseEntity<GeneralResponse<Void>> changeServiceStatus(
+            @PathVariable Long tourId,
+            @PathVariable Long serviceId,
+            @RequestParam(required = false, defaultValue = "true") Boolean delete) {
+        return ResponseEntity.ok(tourDiscountService.changeServiceStatus(tourId, serviceId, delete));
+    }
+
 }
