@@ -1,9 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
-import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
-import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
@@ -24,8 +22,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +40,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final TourBookingServiceRepository tourBookingServiceRepository;
     private final TourDayRepository tourDayRepository;
+    private final ServiceRepository serviceRepository;
 
 
     private final LocationMapper locationMapper;
@@ -53,6 +54,7 @@ public class BookingServiceImpl implements BookingService {
 
     private final TourBookingCustomerService tourBookingCustomerService;
     private final CostAccountRepository costAccountRepository;
+    private final LocationRepository locationRepository;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -110,7 +112,7 @@ public class BookingServiceImpl implements BookingService {
 
             TourBooking result = tourBookingRepository.save(tourBooking);
 
-            saveTourBookingService(result);
+
 
             TourBooking temp = TourBooking.builder().id(result.getId()).build();
 
@@ -133,6 +135,8 @@ public class BookingServiceImpl implements BookingService {
             }
 
             tourBookingCustomerService.saveAll(allCustomers);
+
+            saveTourBookingService(result);
 
             createReceiptBookingTransaction(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
 
@@ -223,6 +227,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO) {
 
 
@@ -251,7 +256,7 @@ public class BookingServiceImpl implements BookingService {
 
             TourBooking result = tourBookingRepository.save(tourBooking);
 
-            saveTourBookingService(result);
+
 
             TourBookingCustomer bookedPerson = TourBookingCustomer.builder()
                     .ageType(AgeType.ADULT)
@@ -272,6 +277,8 @@ public class BookingServiceImpl implements BookingService {
 
             tourBookingCustomerRepository.saveAll(customers);
             tourBookingCustomerRepository.save(bookedPerson);
+
+            saveTourBookingService(result);
 
             //Create transaction for booking
             createReceiptBookingTransaction(result, bookingRequestDTO.getTotalAmount(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
@@ -466,20 +473,51 @@ public class BookingServiceImpl implements BookingService {
         Tour tour = tourBooking.getTour();
         List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
 
+        List<TourBookingCustomer> customers = tourBookingCustomerRepository.findByBookedPersonAndTourBooking(false, tourBooking);
+
+        int totalRooms = calculateTotalRooms(customers);
+
         for(TourDay tourDay : tourDays) {
             List<TourDayService> dayServices = tourDay.getTourDayServices();
             for(TourDayService dayService : dayServices) {
                 TourBookingService tourBookingService = TourBookingService.builder()
                         .booking(tourBooking)
-                        .currentQuantity(0)
                         .tourDay(tourDay)
                         .service(dayService.getService())
                         .deleted(false)
-                        .status(TourBookingServiceStatus.NOT_ORDERED)
+                        .status(TourBookingServiceStatus.SUCCESS)
                         .build();
+
+                com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(dayService.getService().getId()).orElseThrow();
+
+                if(service.getServiceCategory().getCategoryName().equals("Hotel")) {
+                    tourBookingService.setCurrentQuantity(totalRooms);
+                } else if(service.getServiceCategory().getCategoryName().equals("Restaurant")) {
+                    tourBookingService.setCurrentQuantity(customers.size());
+                }
                 tourBookingServiceRepository.save(tourBookingService);
             }
         }
+    }
+
+    public int calculateTotalRooms(List<TourBookingCustomer> customers) {
+        int singleRooms = 0;
+        int availableForDoubleRooms = 0;
+
+        for (TourBookingCustomer customer : customers) {
+            if (Boolean.TRUE.equals(customer.getSingleRoom())) {
+                singleRooms++;
+            } else if (customer.getAgeType() == AgeType.ADULT) {
+                availableForDoubleRooms++;
+            }
+        }
+
+        int doubleRooms = availableForDoubleRooms / 2;
+        int leftover = availableForDoubleRooms % 2;
+
+        singleRooms += leftover;
+
+        return singleRooms + doubleRooms;
     }
 
     @Override
@@ -529,5 +567,96 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Cancel tour booking services for sale failed", ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourPrivateByName(String name) {
+        try {
+            String normalizedName = removeAccents(name.toLowerCase());
+            //List<Tour> tours = tourRepository.findByNameContainingAndTourType(normalizedName , TourType.PRIVATE);
+            List<Tour> tours = tourRepository.findAll(bookingHelper.searchByNameAndTourType(normalizedName, TourType.PRIVATE));
+            List<TourSupportInfoDTO> tourDTOs = tours.stream().map(bookingMapper::toTourSupportInfoDTO).toList();
+            return GeneralResponse.of(tourDTOs);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot get tour private list", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourContents(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow();
+            TourContentSaleResponseDTO tourContentSaleResponseDTO = bookingMapper.toTourContentSaleResponseDTO(tour);
+            return GeneralResponse.of(tourContentSaleResponseDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot get tour private list", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getLocations() {
+        try {
+            List<Location> locations = locationRepository.findByDeletedFalse();
+            List<LocationShortDTO> locationDTOS = locations.stream().map(locationMapper::toLocationShortDTO).toList();
+            return GeneralResponse.of(locationDTOS);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot get tour private list", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<?> createTourPrivate(CreateTourPrivateRequestDTO tour) {
+
+        try {
+            Tour temp = tourRepository.findByName(tour.getName());
+            if(temp != null) {
+                throw BusinessException.of("Tên tour đã tồn tại");
+            } else {
+
+                List<Location> locations = tour.getLocations().stream()
+                        .map(loc -> locationRepository.findById(loc.getId())
+                                .orElseThrow(() -> new RuntimeException("Location not found")))
+                        .toList();
+
+
+                Tour newTour = Tour.builder()
+                        .name(tour.getName())
+                        .numberDays(tour.getNumberDays())
+                        .numberNights(tour.getNumberNights())
+                        .departLocation(Location.builder().id(tour.getDepartLocationId()).build())
+                        .highlights(tour.getHighlights())
+                        .note(tour.getNote())
+                        .tourType(TourType.PRIVATE)
+                        .locations(locations)
+                        .deleted(false)
+                        .createdBy(User.builder().id(tour.getCreatedBy()).build())
+                        .tourStatus(TourStatus.DRAFT)
+                        .build();
+
+                Tour savedTour = tourRepository.save(newTour);
+
+                List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(),savedTour);
+
+                tourDayRepository.saveAll(tourDays);
+
+                return GeneralResponse.of(tour);
+
+
+            }
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Create Tour Failed", ex);
+        }
+
+    }
+
+    public static String removeAccents(String text) {
+        if (text == null) {
+            return null;
+        }
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);//Chuyển chữ có dấu thành ký tự gốc + dấu (ví dụ: Đà → Da + dấu huyền).
+        Pattern pattern = Pattern.compile("\\p{M}"); //  Xóa tất cả các dấu khỏi ký tự.
+        return pattern.matcher(normalized).replaceAll("");
     }
 }

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.model.enums.AgeType;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourBookingCustomer;
@@ -15,4 +16,7 @@ public interface TourBookingCustomerRepository extends JpaRepository<TourBooking
     TourBookingCustomer findByTourBookingAndBookedPerson(TourBooking tourBooking, boolean bookedPerson);
 
     List<TourBookingCustomer> findByTourBookingId(Long id);
+
+    List<TourBookingCustomer> findByBookedPersonAndTourBooking(boolean booked, TourBooking tourBooking);
+
 }

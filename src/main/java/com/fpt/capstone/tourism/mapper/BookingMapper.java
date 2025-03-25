@@ -70,4 +70,10 @@ public interface BookingMapper {
     ServiceCategoryDTO toServiceCategoryDto(ServiceCategory serviceCategory);
 
     TourBookingServiceDTO toTourBookingServiceDTO(TourBookingService tourBookingService);
+
+    TourContentSaleResponseDTO toTourContentSaleResponseDTO(Tour tour);
+
+    PublicTourDayDTO toPublicTourDayDTO(TourDay tourDay);
+
+
 }

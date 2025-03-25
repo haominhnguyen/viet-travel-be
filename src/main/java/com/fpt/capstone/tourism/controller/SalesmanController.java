@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
+import com.fpt.capstone.tourism.dto.request.CreateTourPrivateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -122,6 +123,30 @@ public class SalesmanController {
     @PostMapping("/bookings/services/checking-available")
     public ResponseEntity<?> sendCheckingAvailable(@RequestBody Long tourBookingServiceId) {
         return ResponseEntity.ok(bookingService.sendCheckingServiceAvailable(tourBookingServiceId));
+    }
+
+
+    @GetMapping("/tours/private/list")
+    public ResponseEntity<?> sendCheckingAvailable(@RequestParam String name) {
+        return ResponseEntity.ok(bookingService.getTourPrivateByName(name));
+    }
+
+
+    @GetMapping("/tours/private/details")
+    public ResponseEntity<?> getTourContent(@RequestParam Long tourId) {
+        return ResponseEntity.ok(bookingService.getTourContents(tourId));
+    }
+
+
+    @GetMapping("/tours/create/locations")
+    public ResponseEntity<?> getLocations() {
+        return ResponseEntity.ok(bookingService.getLocations());
+    }
+
+
+    @PostMapping("/tours/create")
+    public ResponseEntity<?> createTourPrivate(@RequestBody CreateTourPrivateRequestDTO tour) {
+        return ResponseEntity.ok(bookingService.createTourPrivate(tour));
     }
 
 }

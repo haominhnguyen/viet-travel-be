@@ -8,12 +8,12 @@ import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -230,5 +229,41 @@ public class BookingHelperImpl implements BookingHelper {
         }
 
         return tourBookingServiceSaleResponseDTOS;
+    }
+
+    @Override
+    public Specification<Tour> searchByNameAndTourType(String name, TourType tourType) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (name != null && !name.isEmpty()) {
+                predicates.add(
+                        cb.like(
+                                cb.function("unaccent", String.class, cb.lower(root.get("name"))),
+                                "%" + name.toLowerCase() + "%"
+                        )
+                );
+            }
+
+            if (tourType != null) {
+                predicates.add(cb.equal(root.get("tourType"), tourType));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    @Override
+    public List<TourDay> generateTourDays(int numberDays, Tour tour) {
+        List<TourDay> tourDays = new ArrayList<>();
+        for (int i = 1; i <= numberDays; i++) {
+            TourDay tourDay = new TourDay();
+            tourDay.setDayNumber(i);
+            tourDay.setTitle("Ngày " + i);
+            tourDay.setDeleted(false);
+            tourDay.setTour(tour);
+            tourDays.add(tourDay);
+        }
+        return tourDays;
     }
 }
