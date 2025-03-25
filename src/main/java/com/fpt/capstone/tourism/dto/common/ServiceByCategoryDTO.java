@@ -1,13 +1,11 @@
-package com.fpt.capstone.tourism.dto.response;
+package com.fpt.capstone.tourism.dto.common;
 
-import com.fpt.capstone.tourism.dto.common.PaxPriceDTO;
-import com.fpt.capstone.tourism.dto.common.ServiceAttributeDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +13,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceDetailDTO {
+public class ServiceByCategoryDTO {
     private Long id;
     private String name;
     private String description;
@@ -28,10 +26,11 @@ public class ServiceDetailDTO {
     private Long serviceProviderId;
     private String serviceProviderName;
     private String categoryName;
-    private Date startDate;
-    private Date endDate;
-    private Map<Long, PaxPriceDTO> paxPrices; // Key: paxId, Value: PaxPriceDTO
-    private List<ServiceAttributeDTO> attributes; // Additional attributes like room details, meal details, etc.
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Map<String, PaxPriceInfoDTO> paxPrices; // Key: paxId, Value: PaxPriceInfoDTO
 
-
+    private RoomDetailDTO roomDetail;
+    private MealDetailDTO mealDetail;
+    private TransportDetailDTO transportDetail;
 }

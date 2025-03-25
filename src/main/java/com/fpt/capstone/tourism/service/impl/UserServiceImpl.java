@@ -127,39 +127,10 @@ public class UserServiceImpl implements UserService {
             throw BusinessException.of(GET_USER_FAIL_MESSAGE, e);
         }
     }
-
-    @Override
-    @Transactional
-    public void createEmailConfirmationToken(User user, String token) {
-        // First, delete any existing tokens for this user
-        emailConfirmationTokenRepository.deleteByUser(user);
-        // Create and save the new token
-        Token confirmationToken = new Token();
-        confirmationToken.setToken(token);
-        confirmationToken.setUser(user);
-        confirmationToken.setCreatedAt(LocalDateTime.now());
-        emailConfirmationTokenRepository.save(confirmationToken);
-    }
-
-    @Override
-    public User findUserByEmailConfirmationToken(String token) {
-        Optional<Token> confirmationToken = emailConfirmationTokenRepository.findByToken(token);
-        return confirmationToken.map(Token::getUser).orElse(null);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEmailConfirmationToken(String token) {
-        emailConfirmationTokenRepository.deleteByToken(token);
-    }
-
     @Override
     public GeneralResponse<UserProfileResponseDTO> getUserProfile(String username) {
         try {
-
-
             User currentUser = userRepository.findByUsername(username).orElseThrow();
-
             UserProfileResponseDTO userProfileResponseDTO = UserProfileResponseDTO.builder()
                     .id(currentUser.getId())
                     .username(currentUser.getUsername())
@@ -171,24 +142,19 @@ public class UserServiceImpl implements UserService {
                     .avatarImg(currentUser.getAvatarImage())
                     .createAt(currentUser.getCreatedAt().toString())
                     .build();
-
             return GeneralResponse.of(userProfileResponseDTO, GET_PROFILE_SUCCESS);
         } catch (Exception e) {
             throw BusinessException.of(GET_PROFILE_FAIL);
         }
     }
 
-
     @Override
     public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UserProfileRequestDTO newUser) {
-
         try{
             User existingUser = findById(userId);
-
             //Check valid users field need to update
             Validator.validateProfile(newUser.getFullName(), newUser.getEmail(),
                     newUser.getPhone(), newUser.getAddress());
-
             //Update user follow by userProfileRequestDTO
             existingUser.setFullName(newUser.getFullName());
             existingUser.setEmail(newUser.getEmail());
@@ -211,8 +177,6 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex){
             throw BusinessException.of(UPDATE_PROFILE_FAIL, ex);
         }
-
-
     }
 
     @Override
@@ -271,6 +235,181 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex) {
             throw BusinessException.of(UPDATE_AVATAR_FAIL, ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>> getUsersByRole(
+            int page, int size, String keyword, Boolean isDeleted, String roleName,
+            String sortField, String sortDirection) {
+        try {
+            // Validate sortField to prevent invalid field names
+            List<String> allowedSortFields = Arrays.asList("id", "createdAt", "username", "email");
+            if (!allowedSortFields.contains(sortField)) {
+                sortField = "createdAt";
+            }
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<User> spec = buildSearchSpecificationWithRole(keyword, isDeleted, roleName);
+
+            Page<User> userPage = userRepository.findAll(spec, pageable);
+            List<UserFullInformationResponseDTO> users = userPage.getContent().stream()
+                    .map(user -> {
+                        List<Role> roles = roleRepository.findRolesByUserId(user.getId());
+                        UserFullInformationResponseDTO userDTO = userFullInformationMapper.toDTO(user);
+                        userDTO.setRoles(roles.stream()
+                                .map(Role::getRoleName)
+                                .collect(Collectors.toList()));
+                        return userDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            PagingDTO<List<UserFullInformationResponseDTO>> pagingDTO = PagingDTO.<List<UserFullInformationResponseDTO>>builder()
+                    .page(page)
+                    .size(size)
+                    .total(userPage.getTotalElements())
+                    .items(users)
+                    .build();
+
+            return GeneralResponse.of(pagingDTO, "Get all users with role " + roleName + " successfully");
+        } catch (Exception e) {
+            throw BusinessException.of(GET_ALL_USER_FAIL_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<UserFullInformationResponseDTO>>> getNonCustomerUsers(
+            int page, int size, String keyword, Boolean isDeleted, String specificRole,
+            String sortField, String sortDirection) {
+        try {
+            // Validate sortField to prevent invalid field names
+            List<String> allowedSortFields = Arrays.asList("id", "createdAt", "username", "email");
+            if (!allowedSortFields.contains(sortField)) {
+                sortField = "createdAt";
+            }
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<User> spec = buildNonCustomerSpecification(keyword, isDeleted, specificRole);
+
+            Page<User> userPage = userRepository.findAll(spec, pageable);
+            List<UserFullInformationResponseDTO> users = userPage.getContent().stream()
+                    .map(user -> {
+                        List<Role> roles = roleRepository.findRolesByUserId(user.getId());
+                        UserFullInformationResponseDTO userDTO = userFullInformationMapper.toDTO(user);
+                        userDTO.setRoles(roles.stream()
+                                .map(Role::getRoleName)
+                                .collect(Collectors.toList()));
+                        return userDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            PagingDTO<List<UserFullInformationResponseDTO>> pagingDTO = PagingDTO.<List<UserFullInformationResponseDTO>>builder()
+                    .page(page)
+                    .size(size)
+                    .total(userPage.getTotalElements())
+                    .items(users)
+                    .build();
+
+            String message = specificRole != null
+                    ? "Get all users with role " + specificRole + " successfully"
+                    : "Get all staff users successfully";
+
+            return GeneralResponse.of(pagingDTO, message);
+        } catch (Exception e) {
+            throw BusinessException.of(GET_ALL_USER_FAIL_MESSAGE, e);
+        }
+    }
+
+    private Specification<User> buildSearchSpecificationWithRole(String keyword, Boolean isDeleted, String roleName) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                Expression<String> normalizedUsername = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("username")));
+                Expression<String> normalizedEmail = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("email")));
+                Expression<String> normalizedFullName = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("fullName")));
+                Expression<String> normalizedPhone = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("phone")));
+                Expression<String> normalizedAddress = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("address")));
+                Expression<String> normalizedKeyword = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.literal(keyword.toLowerCase()));
+
+                Predicate keywordPredicate = criteriaBuilder.or(
+                        criteriaBuilder.like(normalizedUsername, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedEmail, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedFullName, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedPhone, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedAddress, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%")))
+                );
+                predicates.add(keywordPredicate);
+            }
+
+            // Filter by deleted status
+            if (isDeleted != null) {
+                predicates.add(criteriaBuilder.equal(root.get("deleted"), isDeleted));
+            }
+
+            // Filter by exact role name
+            if (roleName != null && !roleName.isEmpty()) {
+                Join<User, UserRole> userRoleJoin = root.join("userRoles", JoinType.INNER);
+                Join<UserRole, Role> roleJoin = userRoleJoin.join("role", JoinType.INNER);
+                predicates.add(criteriaBuilder.equal(roleJoin.get("roleName"), roleName));
+
+                // Add distinct to avoid duplicate results
+                query.distinct(true);
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private Specification<User> buildNonCustomerSpecification(String keyword, Boolean isDeleted, String specificRole) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                Expression<String> normalizedUsername = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("username")));
+                Expression<String> normalizedEmail = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("email")));
+                Expression<String> normalizedFullName = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("fullName")));
+                Expression<String> normalizedPhone = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("phone")));
+                Expression<String> normalizedAddress = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.lower(root.get("address")));
+                Expression<String> normalizedKeyword = criteriaBuilder.function("unaccent", String.class, criteriaBuilder.literal(keyword.toLowerCase()));
+
+                Predicate keywordPredicate = criteriaBuilder.or(
+                        criteriaBuilder.like(normalizedUsername, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedEmail, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedFullName, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedPhone, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%"))),
+                        criteriaBuilder.like(normalizedAddress, criteriaBuilder.concat("%", criteriaBuilder.concat(normalizedKeyword, "%")))
+                );
+                predicates.add(keywordPredicate);
+            }
+
+            // Filter by deleted status
+            if (isDeleted != null) {
+                predicates.add(criteriaBuilder.equal(root.get("deleted"), isDeleted));
+            }
+
+            // Join with roles
+            Join<User, UserRole> userRoleJoin = root.join("userRoles", JoinType.INNER);
+            Join<UserRole, Role> roleJoin = userRoleJoin.join("role", JoinType.INNER);
+
+            // If specific role is provided, filter by that role
+            if (specificRole != null && !specificRole.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(roleJoin.get("roleName"), specificRole));
+            } else {
+                // Otherwise, exclude CUSTOMER role
+                predicates.add(criteriaBuilder.notEqual(roleJoin.get("roleName"), "CUSTOMER"));
+            }
+
+            // Add distinct to avoid duplicate results
+            query.distinct(true);
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     @Override
@@ -467,13 +606,11 @@ public class UserServiceImpl implements UserService {
                     .total(userPage.getTotalElements())
                     .items(users)
                     .build();
-
             return GeneralResponse.of(pagingDTO, GET_ALL_USER_SUCCESS_MESSAGE);
         } catch (Exception e) {
             throw BusinessException.of(GET_ALL_USER_FAIL_MESSAGE, e);
         }
     }
-
 
     private Specification<User> buildSearchSpecification(String keyword, Boolean isDeleted, String roleName) {
         return (root, query, criteriaBuilder) -> {
@@ -509,9 +646,7 @@ public class UserServiceImpl implements UserService {
                 Join<UserRole, Role> roleJoin = userRoleJoin.join("role", JoinType.INNER);
                 predicates.add(criteriaBuilder.equal(roleJoin.get("roleName"), roleName));
             }
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
-
 }

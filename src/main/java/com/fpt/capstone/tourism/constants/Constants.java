@@ -263,7 +263,19 @@ public class Constants {
         public static final String PAX_CONFIG_CREATE_SUCCESS = "Pax configuration created successfully";
         public static final String PAX_CONFIG_UPDATE_SUCCESS = "Pax configuration updated successfully";
         public static final String PAX_CONFIG_DELETE_SUCCESS = "Pax configuration deleted successfully";
+        public static final String SERVICE_NOT_ASSOCIATED = "Service not associated with this tour";
+        public static final String SERVICE_DETAIL_LOAD_SUCCESS = "Service details retrieved successfully";
+        public static final String SERVICE_DETAIL_LOAD_FAIL = "Failed to retrieve service details";
+        public static final String PROVIDER_SERVICES_LOAD_SUCCESS = "Provider services retrieved successfully";
+        public static final String PROVIDER_SERVICES_LOAD_FAIL = "Failed to retrieve provider services details";
 
+        public static final String NO_SERVICES_AVAILABLE= "No tour services found";
+        public static final String SERVICE_UPDATE_FAIL = "Service update failed";
+
+        public static final String DAY_NUMBER_REQUIRED = "Day number is required";
+        public static final String SERVICE_ALREADY_ASSOCIATED = "Service already associated with this tour day";
+        public static final String SERVICE_CREATE_FAIL = "Service creation failed";
+        public static final String SERVICE_DELETE_FAIL = "Service delete failed";
     }
 
 

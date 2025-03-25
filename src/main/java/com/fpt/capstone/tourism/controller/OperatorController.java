@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.service.OperatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -98,14 +99,20 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.payService(requestDTO));
     }
 
-    @GetMapping("/tour-service/list-location")
-    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListLocation() {
-        return ResponseEntity.ok(operatorService.getListLocation());
+    @GetMapping("/tour-service/list-location-and-service-category")
+    public ResponseEntity<GeneralResponse<?>> getListLocationAndServiceCategory() {
+        return ResponseEntity.ok(operatorService.getListLocationAndServiceCategory());
     }
 
-    @GetMapping("/tour-service/{locationId}/list-service-provider")
-    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListServiceProviderByLocationnId(@PathVariable Long locationId) {
-        return ResponseEntity.ok(operatorService.getListServiceProviderByLocationId(locationId));
+    @GetMapping("/tour-service/{scheduleId}/list-booking")
+    public ResponseEntity<GeneralResponse<?>> getListBookingForAddService(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListBookingForAddService(scheduleId));
+    }
+
+    @GetMapping("/tour-service/{locationId}/list-service-provider/{serviceCategoryId}")
+    public ResponseEntity<GeneralResponse<Map<Long, String>>> getListServiceProviderByLocationIdAndServiceCategoryId(@PathVariable Long locationId,
+                                                                                                  @PathVariable Long serviceCategoryId) {
+        return ResponseEntity.ok(operatorService.getListServiceProviderByLocationIdAndServiceCategoryId(locationId, serviceCategoryId));
     }
 
     @GetMapping("/tour-service/{serviceProviderId}/list-service")
@@ -121,6 +128,11 @@ public class OperatorController {
     @PostMapping("/add-service")
     public ResponseEntity<GeneralResponse<?>> addService(@RequestBody AddServiceRequestDTO requestDTO) {
         return ResponseEntity.ok(operatorService.addService(requestDTO));
+    }
+
+    @PostMapping("/preview-mail")
+    public ResponseEntity<GeneralResponse<?>> previewMail(@RequestBody PreviewMailDTO previewMailDTO) {
+        return ResponseEntity.ok(operatorService.previewMail(previewMailDTO));
     }
 
     @PostMapping("/send-mail-to-provider")

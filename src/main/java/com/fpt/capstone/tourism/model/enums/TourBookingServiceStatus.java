@@ -10,6 +10,7 @@ public enum TourBookingServiceStatus {
     CANCEL_REQUEST, // Yêu cầu điều hành hủy dịch vụ
     REJECTED_BY_OPERATOR, // Nhà điều hành từ chối yêu cầu thay đổi
     CANCELLED,         // BỊ hủy
+    CHANGED,           //1 phần được đặt, 1 phần thì chưa
     SUCCESS, //Đặt dịch vụ thành công
     CHECKING // Yêu cầu dịch vụ khả dụng hay không
 }

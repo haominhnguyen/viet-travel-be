@@ -19,4 +19,6 @@ public interface ServiceCategoryRepository extends JpaRepository<ServiceCategory
     Page<ServiceCategory> findAll(Specification<ServiceCategory> spec, Pageable pageable);
     @Query("SELECT sc.categoryName FROM ServiceCategory sc WHERE sc.id IN :ids")
     List<String> findCategoryNamesByIds(@Param("ids") List<Long> ids);
+
+    List<ServiceCategory> findByDeletedFalse();
 }

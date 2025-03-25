@@ -33,6 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,6 +57,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final MealRepository mealRepository;
     private final TransportRepository transportRepository;
     private final TourBookingServiceRepository bookingServiceRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -68,6 +70,18 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransportMapper transportMapper;
     private final TourBookingServiceMapper bookingServiceMapper;
     private final EmailConfirmationService emailService;
+
+
+    final String emailOrderServiceContent = "Kính gửi: {0},\n\n"
+            + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
+            + "Dịch vụ: {1}\n"
+            + "Số lượng: {2}\n"
+            + "Ngày yêu cầu: {3}.\n\n"
+            + "Tổng số tiền: {4,number,#,###.##} (đ)\n\n"
+            + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
+            + "Best Regards,\n"
+            + "Viet Travel";
+    final String emailOrderServiceSubject = "[Viet Travel - {0}] - Thông tin đặt hàng dịch vụ.";
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -433,8 +447,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 // Thêm vào danh sách DTO
                 serviceDTOList.add(OperatorServiceDTO.builder()
+                        .bookingServiceId(bookingService.getId())
                         .bookingId(bookingService.getBooking().getId())
                         .serviceId(bookingService.getService().getId())
+                        .providerName(bookingService.getService().getServiceProvider().getName())
+                        .providerEmail(bookingService.getService().getServiceProvider().getEmail())
                         .bookingCode(bookingService.getBooking().getBookingCode())
                         .serviceName(bookingService.getService().getName())
                         .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
@@ -491,7 +508,7 @@ public class OperatorServiceImpl implements OperatorService {
             Transaction transaction = Transaction.builder()
                     .booking(tourBooking)
                     .amount(requestDTO.getAmount())
-                    .category(TransactionType.PAYMENT)
+                    .category(requestDTO.getTransactionType())
                     .paidBy(requestDTO.getPaidBy())
                     .receivedBy(requestDTO.getReceivedBy())
                     .paymentMethod(requestDTO.getPaymentMethod())
@@ -526,21 +543,33 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<Map<Long, String>> getListLocation() {
+    public GeneralResponse<?> getListLocationAndServiceCategory() {
         try {
+            Map<String, Map<Long, String>> resultDTO = new HashMap<>();
+
+            //Get list location
             List<Location> locations = locationRepository.findByDeletedFalse();
-            Map<Long, String> resultDTO = locations.stream()
+            Map<Long, String> mapLocation = locations.stream()
                     .collect(Collectors.toMap(Location::getId, Location::getName));
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list location success", resultDTO);
+
+            resultDTO.put("locations", mapLocation);
+
+            //Get list service category
+            List<ServiceCategory> serviceCategories = serviceCategoryRepository.findByDeletedFalse();
+            Map<Long, String> mapServiceCategory = serviceCategories.stream()
+                    .collect(Collectors.toMap(ServiceCategory::getId, ServiceCategory::getCategoryName));
+
+            resultDTO.put("serviceCategories", mapServiceCategory);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list location fail", ex);
+            throw BusinessException.of("Fail", ex);
         }
     }
 
     @Override
-    public GeneralResponse<Map<Long, String>> getListServiceProviderByLocationId(Long locationId) {
+    public GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId) {
         try {
-            List<ServiceProvider> providers = providerRepository.findByLocationIdAndDeletedFalse(locationId);
+            List<ServiceProvider> providers = providerRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, serviceCategoryId);
             Map<Long, String> resultDTO = providers.stream()
                     .collect(Collectors.toMap(ServiceProvider::getId, ServiceProvider::getName));
             return new GeneralResponse<>(HttpStatus.OK.value(), "Get list provider by location success", resultDTO);
@@ -597,6 +626,7 @@ public class OperatorServiceImpl implements OperatorService {
         }
     }
 
+    @Transactional
     @Override
     public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
         try {
@@ -624,37 +654,24 @@ public class OperatorServiceImpl implements OperatorService {
                             .requestDate(requestDTO.getRequestDate())
                             .deleted(Boolean.FALSE)
                             .reason(requestDTO.getReason())
-                            .status(TourBookingServiceStatus.PENDING)
+                            .status(TourBookingServiceStatus.NOT_ORDERED)
                             .build();
                     bookingServiceRepository.save(bookingService);
                 }
                 if (bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
                     bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
-                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                    bookingService.setStatus(TourBookingServiceStatus.CHANGED);
                     bookingServiceRepository.save(bookingService);
                 }
 
-                ServiceProvider provider = service.getServiceProvider();
-
-                String emailSubject = "[Viet Travel - " + provider.getId() + "] - Thông tin đặt hàng dịch vụ.";
-                String emailContent = "Kính gửi: " + provider.getName() + ",\n\n"
-                        + "Dưới đây là thông tin đặt dịch vụ của chúng tôi. Mong quý đối tác vui lòng sắp xếp và xác nhận thông tin sau:\n\n"
-                        + "Dịch vụ: " + service.getName() + "\n"
-                        + "Số lượng: " + requestDTO.getAddQuantity() + "\n"
-                        + "Ngày yêu cầu: " + requestDTO.getRequestDate() + ".\n\n"
-                        + "Tổng số tiền: " + requestDTO.getAddQuantity() * service.getNettPrice() + "(đ)\n\n"
-                        + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
-                        + "Best Regards,\n"
-                        + "Viet Travel";
-                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .providerId(provider.getId())
-                        .providerName(provider.getName())
-                        .providerEmail(provider.getEmail())
-                        .emailSubject(emailSubject)
-                        .emailContent(emailContent)
+                PreviewMailDTO previewMailDTO = PreviewMailDTO.builder()
+                        .bookingServiceId(bookingService.getId())
+                        .serviceId(service.getId())
+                        .orderQuantity(requestDTO.getAddQuantity())
+                        .requestDate(requestDTO.getRequestDate())
                         .build();
 
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Need confirm", mailServiceDTO);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Need send mail", previewMailDTO);
 
             }
 
@@ -664,10 +681,72 @@ public class OperatorServiceImpl implements OperatorService {
         }
     }
 
+    @Transactional
+    @Override
+    public GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO) {
+        try {
+            Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
+                    () -> BusinessException.of("Service not found")
+            );
+
+            ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                    () -> BusinessException.of("Service Provider not found")
+            );
+
+            String emailContent = MessageFormat.format(
+                    emailOrderServiceContent,
+                    serviceProvider.getName(),
+                    service.getName(),
+                    previewMailDTO.getOrderQuantity(),
+                    previewMailDTO.getRequestDate(),
+                    previewMailDTO.getOrderQuantity() * service.getNettPrice()
+            );
+            String emailSubject = MessageFormat.format(
+                    emailOrderServiceSubject,
+                    serviceProvider.getId()
+            );
+            MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                    .bookingServiceId(previewMailDTO.getBookingServiceId())
+                    .providerId(serviceProvider.getId())
+                    .providerName(serviceProvider.getName())
+                    .providerEmail(serviceProvider.getEmail())
+                    .emailSubject(emailSubject)
+                    .emailContent(emailContent)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getListBookingForAddService(Long scheduleId) {
+        try {
+            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBookingSimpleDTO> resultDTO = bookings.stream()
+                    .map(booking ->
+                            TourBookingSimpleDTO.builder()
+                                    .bookingId(booking.getId())
+                                    .bookingCode(booking.getBookingCode())
+                                    .customerName(booking.getUser().getFullName())
+                                    .build()
+                    ).collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
     @Override
     public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
         try {
+            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
+                    () -> BusinessException.of("Booking service not found")
+            );
             emailService.sendMailServiceProvider(mailServiceDTO);
+            bookingService.setStatus(TourBookingServiceStatus.PENDING);
+            bookingServiceRepository.save(bookingService);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
@@ -747,10 +826,10 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
             }
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
             }
             TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
@@ -790,11 +869,11 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
                 bookingService.setDeleted(Boolean.TRUE);
             }
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
             }
             TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
@@ -839,12 +918,12 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm số tiền công ty đã thu của cả lịch trình
             BigDecimal receiptedAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.RECEIPT,CostAccountStatus.PAID);
+                    TransactionType.RECEIPT, CostAccountStatus.PAID);
 
             //Tìm số tiền HDV đã thu hộ của cả lịch trình
             BigDecimal collectionAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.COLLECTION,CostAccountStatus.PAID);
+                    TransactionType.COLLECTION, CostAccountStatus.PAID);
 
             //Tìm tổng số tiền phải thu
             BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
@@ -855,12 +934,12 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm số tiền công ty đã chi
             BigDecimal paymentAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.PAYMENT,CostAccountStatus.PAID);
+                    TransactionType.PAYMENT, CostAccountStatus.PAID);
 
             //Tìm số tiền HDV đã chi
             BigDecimal advanceAmount = transactionRepository.findAmountByTransactionCategoryAndCostAccountStatusIn(
                     transactions,
-                    TransactionType.ADVANCED,CostAccountStatus.PAID);
+                    TransactionType.ADVANCED, CostAccountStatus.PAID);
 
             //Tìm tổng số tiền phải chi
             BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
