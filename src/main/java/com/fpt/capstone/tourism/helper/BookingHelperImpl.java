@@ -196,16 +196,16 @@ public class BookingHelperImpl implements BookingHelper {
 
     @Override
     public TourBookingDetailSaleResponseDTO setPaymentStatisticForBookingDetail(TourBooking tourBooking) {
-        log.info("Start setPaymentStatisticForBookingDetail booking detail with ID: {}", tourBooking);
+        log.info("Start setPaymentStatisticForBookingDetail booking detail with ID: {}", tourBooking.getId());
         TourBookingDetailSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toBookingDetailSaleResponseDTO(tourBooking);
 
-        log.info("Start findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking);
+        log.info("Start findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking.getId());
         List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
-        log.info("End findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking);
+        log.info("End findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking.getId());
 
-        log.info("Start findTourScheduleByTourId booking detail with ID: {}", tourBooking);
+        log.info("Start findTourScheduleByTourId booking detail with ID: {}", tourBooking.getId());
         PublicTourScheduleDTO publicTour = tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId());
-        log.info("End findTourScheduleByTourId booking detail with ID: {}", tourBooking);
+        log.info("End findTourScheduleByTourId booking detail with ID: {}", tourBooking.getId());
 
         double totalCost = getTotal(tourBookingReceipts);
         double paid = getPaidAmount(tourBookingReceipts);

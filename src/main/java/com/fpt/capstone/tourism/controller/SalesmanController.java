@@ -73,7 +73,10 @@ public class SalesmanController {
 
     @GetMapping("/bookings/services/{tourBookingId}")
     public ResponseEntity<?> getBookingsDetailServices(@PathVariable Long tourBookingId) {
-        return ResponseEntity.ok(bookingService.getTourBookingServices(tourBookingId));
+        log.info("Start call api get service booking with ID: {}", tourBookingId);
+        GeneralResponse<?> res = bookingService.getTourBookingServices(tourBookingId);
+        log.info("End call api get service booking with ID: {}", tourBookingId);
+        return ResponseEntity.ok(res);
     }
 
 

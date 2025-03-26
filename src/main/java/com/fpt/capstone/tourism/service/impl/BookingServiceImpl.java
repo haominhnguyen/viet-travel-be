@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -529,10 +531,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<?> getTourBookingServices(Long tourBookingID) {
         try {
-            TourBooking tourBooking = tourBookingRepository.findById(tourBookingID).orElseThrow();
-            Tour tour = tourBooking.getTour();
-            List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
-            return GeneralResponse.of(bookingHelper.getTourBookingListService(tourDays, tourBooking));
+            log.info("Start get tour booking service by booking ID: {}", tourBookingID);
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(tourBookingID);
+            if (Objects.nonNull(tourBooking)) {
+                Tour tour = tourBooking.getTour();
+                List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
+                List<TourBookingServiceSaleResponseDTO> responseLst = bookingHelper.getTourBookingListService(tourDays, tourBooking);
+                log.info("End get tour booking service by booking ID: {}", tourBookingID);
+                return GeneralResponse.of(responseLst);
+            }
+            log.info("Not exist tour booking service with tour booking ID: {}", tourBookingID);
+            return GeneralResponse.of(Collections.emptyList());
+
         } catch (Exception ex) {
             throw BusinessException.of("Get tour booking services for sale failed", ex);
         }
