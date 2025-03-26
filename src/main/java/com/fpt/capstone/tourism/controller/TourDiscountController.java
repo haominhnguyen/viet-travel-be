@@ -94,12 +94,14 @@ public class TourDiscountController {
     }
 
     @GetMapping("/list-location")
-    public ResponseEntity<GeneralResponse<PagingDTO<List<LocationDTO>>>> getAll(@RequestParam(defaultValue = "0") int page,
-                                                                                @RequestParam(defaultValue = "10") int size,
-                                                                                @RequestParam(required = false) String keyword,
-                                                                                @RequestParam(required = false) Boolean isDeleted,
-                                                                                @RequestParam(defaultValue = "desc") String orderDate) {
-        return ResponseEntity.ok(locationService.getAllLocation(page, size, keyword, isDeleted, orderDate));
+    public ResponseEntity<GeneralResponse<PagingDTO<List<LocationDTO>>>> getLocationsByTourId(
+            @PathVariable Long tourId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(defaultValue = "desc") String orderDate) {
+        return ResponseEntity.ok(locationService.getLocationsByTourId(tourId, page, size, keyword, isDeleted, orderDate));
     }
 
     @GetMapping("/activity-categories")
