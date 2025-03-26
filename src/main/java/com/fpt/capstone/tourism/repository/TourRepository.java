@@ -1,7 +1,5 @@
 package com.fpt.capstone.tourism.repository;
 
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.data.domain.Pageable;
@@ -11,9 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
@@ -70,4 +66,14 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             JOIN TourSchedule ts ON ts.tour.id = t.id AND ts.id =:scheduleId
             """)
     Tour findByScheduleId(@Param("scheduleId")Long scheduleId);
+
+
+    List<Tour> findByNameContainingAndTourType(@Param("name") String name, @Param("tourType") TourType tourType);
+
+
+    List<Tour> findByTourType(TourType tourType);
+
+    List<Tour> findByNameContaining(String name);
+
+    Tour findByName(String name);
 }
