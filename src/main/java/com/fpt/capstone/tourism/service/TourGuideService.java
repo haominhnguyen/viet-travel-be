@@ -9,7 +9,6 @@ import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import java.util.List;
 
 public interface TourGuideService {
-    //CRUD User
     GeneralResponse<?> getById(Long id);
     GeneralResponse<?> create(TourGuideRequestDTO userDTO);
     GeneralResponse<?> update(Long id, TourGuideRequestDTO userDTO);

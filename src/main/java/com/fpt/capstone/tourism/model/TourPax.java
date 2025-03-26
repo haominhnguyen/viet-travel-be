@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,4 +50,7 @@ public class TourPax extends BaseEntity{
     @Temporal(TemporalType.DATE)
     @Column(name = "valid_to")
     private Date validTo;
+
+    @Column(name = "is_deleted")
+    private Boolean deleted;
 }

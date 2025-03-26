@@ -229,6 +229,16 @@ public class TourServiceImpl implements TourService {
             List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
+            UserBasicDTO createdByDTO = null;
+            if (currentTour.getCreatedBy() != null) {
+                createdByDTO = UserBasicDTO.builder()
+                        .id(currentTour.getCreatedBy().getId())
+                        .username(currentTour.getCreatedBy().getUsername())
+                        .fullName(currentTour.getCreatedBy().getFullName())
+                        .email(currentTour.getCreatedBy().getEmail())
+                        .build();
+            }
+
             //Mapping to DTO
             TourDetailDTO tourBasicDTO = TourDetailDTO.builder()
                     .id(currentTour.getId())
@@ -244,6 +254,9 @@ public class TourServiceImpl implements TourService {
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
+                    .createdAt(currentTour.getCreatedAt())
+                    .updatedAt(currentTour.getUpdatedAt())
+                    .createdBy(createdByDTO)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DETAIL_LOAD_SUCCESS, tourBasicDTO);
         } catch (Exception ex){
@@ -653,7 +666,6 @@ public class TourServiceImpl implements TourService {
                 Predicate namePredicate = cb.like(normalizedName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
                 predicates.add(namePredicate);
             }
-
             // Filter by deletion status
             if (isDeleted != null) {
                 predicates.add(cb.equal(root.get("deleted"), isDeleted));
@@ -661,7 +673,6 @@ public class TourServiceImpl implements TourService {
             if (isOpened != null) {
                 predicates.add(cb.equal(root.get("opened"), isOpened));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

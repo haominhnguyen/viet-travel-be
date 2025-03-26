@@ -33,4 +33,5 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     Optional<TourDay> findByTourIdAndDayNumber(Long tourId, Integer dayNumber);
 
     List<TourDay> findAllByTourId(Long tourId);
+
 }

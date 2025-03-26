@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -26,4 +27,7 @@ public class TourDetailDTO {
     private List<PublicTourScheduleDTO> tourSchedules;
     private List<PublicTourImageDTO> tourImages;
     private List<PublicTourDayDTO> tourDays;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private UserBasicDTO createdBy;
 }

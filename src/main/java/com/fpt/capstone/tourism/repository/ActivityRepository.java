@@ -19,5 +19,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long>, JpaSp
     Activity findByTitle(String title);
     @Query(value = "SELECT * FROM activity WHERE is_deleted = FALSE AND location_id =:locationId ORDER BY RANDOM() LIMIT :numberActivity", nativeQuery = true)
     List<Activity> findRelatedActivities(@Param("locationId") Long locationId, int numberActivity);
+
+    List<Activity> findByDeletedFalse();
+    List<Activity> findByActivityCategoryIdAndDeletedFalse(Long categoryId);
+    List<Activity> findByLocationIdAndDeletedFalse(Long locationId);
+
+    List<Activity> findByLocationIdAndActivityCategoryIdAndDeletedFalse(Long locationId, Long categoryId);
 }
 
