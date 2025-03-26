@@ -7,17 +7,20 @@ import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Update;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/salesman")
 public class SalesmanController {
 
+    private static final Logger logger = Logger.getLogger(SalesmanController.class.getName());
 
     private final BookingService bookingService;
 
@@ -62,7 +65,10 @@ public class SalesmanController {
 
     @GetMapping("/bookings/detail/{tourBookingId}")
     public ResponseEntity<?> getBookingsDetail(@PathVariable Long tourBookingId) {
-        return ResponseEntity.ok(bookingService.saleViewBookingDetails(tourBookingId));
+        log.info("Start call api booking detail with ID: {}", tourBookingId);
+        GeneralResponse<?> res = bookingService.saleViewBookingDetails(tourBookingId);
+        log.info("End call api booking detail with ID: {}", tourBookingId);
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/bookings/services/{tourBookingId}")

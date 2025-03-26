@@ -15,6 +15,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingHelperImpl implements BookingHelper {
@@ -194,13 +196,22 @@ public class BookingHelperImpl implements BookingHelper {
 
     @Override
     public TourBookingDetailSaleResponseDTO setPaymentStatisticForBookingDetail(TourBooking tourBooking) {
+        log.info("Start setPaymentStatisticForBookingDetail booking detail with ID: {}", tourBooking);
         TourBookingDetailSaleResponseDTO tourBookingSaleResponseDTO = bookingMapper.toBookingDetailSaleResponseDTO(tourBooking);
+
+        log.info("Start findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking);
         List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
+        log.info("End findAllByBookingAndCategoryIn booking detail with ID: {}", tourBooking);
+
+        log.info("Start findTourScheduleByTourId booking detail with ID: {}", tourBooking);
+        PublicTourScheduleDTO publicTour = tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId());
+        log.info("End findTourScheduleByTourId booking detail with ID: {}", tourBooking);
+
         double totalCost = getTotal(tourBookingReceipts);
         double paid = getPaidAmount(tourBookingReceipts);
         tourBookingSaleResponseDTO.setPaid(paid);
         tourBookingSaleResponseDTO.setTotal(totalCost);
-        tourBookingSaleResponseDTO.setSchedule(tourScheduleRepository.findTourScheduleByTourId(tourBooking.getTour().getId(), tourBooking.getTourSchedule().getId()));
+        tourBookingSaleResponseDTO.setSchedule(publicTour);
         tourBookingSaleResponseDTO.setCreatedAt(tourBooking.getCreatedAt());
         tourBookingSaleResponseDTO.setTransactions(tourBookingReceipts.stream().map(bookingMapper::toTransactionDTO).toList());
         return tourBookingSaleResponseDTO;
