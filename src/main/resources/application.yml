@@ -22,7 +22,7 @@ spring:
 
   jpa:
     open-in-view: true
-    show-sql: true
+    show-sql: false # Temp not view SQL Hibernate
     properties:
       hibernate:
         transaction:
