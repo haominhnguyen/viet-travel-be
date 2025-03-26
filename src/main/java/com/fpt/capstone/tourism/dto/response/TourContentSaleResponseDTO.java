@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.TagDTO;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,4 +21,5 @@ public class TourContentSaleResponseDTO {
     private List<TagDTO> tags;
     private PublicLocationDTO departLocation;
     private List<PublicTourDayDTO> tourDays;
+    private LocalDateTime createdAt;
 }

@@ -24,7 +24,7 @@ public class TourPax extends BaseEntity{
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
 
-    @Column(name = "fixed_cost", nullable = false)
+    @Column(name = "fixed_cost")
     private Double fixedCost;
 
     @Column(name = "min_pax", nullable = false)
@@ -33,20 +33,20 @@ public class TourPax extends BaseEntity{
     @Column(name = "max_pax", nullable = false)
     private int maxPax;
 
-    @Column(name = "extra_hotel_cost", nullable = false)
+    @Column(name = "extra_hotel_cost")
     private Double extraHotelCost;
 
-    @Column(name = "nett_price_per_pax", nullable = false)
+    @Column(name = "nett_price_per_pax")
     private Double nettPricePerPax;
 
     @Column(name = "selling_price")
     private Double sellingPrice;
 
     @Temporal(TemporalType.DATE)
-    @Column(name = "valid_from", nullable = false)
+    @Column(name = "valid_from")
     private Date validFrom;
 
     @Temporal(TemporalType.DATE)
-    @Column(name = "valid_to", nullable = false)
+    @Column(name = "valid_to")
     private Date validTo;
 }

@@ -33,7 +33,7 @@ public class Tour extends BaseEntity{
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @ManyToMany(cascade=CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @ToString.Exclude
     @JoinTable(name = "tour_location",
             joinColumns = @JoinColumn(name = "tour_id"),

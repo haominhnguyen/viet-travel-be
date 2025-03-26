@@ -55,6 +55,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourBookingCustomerService tourBookingCustomerService;
     private final CostAccountRepository costAccountRepository;
     private final LocationRepository locationRepository;
+    private final TourPaxRepository tourPaxRepository;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -587,6 +588,7 @@ public class BookingServiceImpl implements BookingService {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow();
             TourContentSaleResponseDTO tourContentSaleResponseDTO = bookingMapper.toTourContentSaleResponseDTO(tour);
+            tourContentSaleResponseDTO.setCreatedAt(tour.getCreatedAt());
             return GeneralResponse.of(tourContentSaleResponseDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Cannot get tour private list", ex);
@@ -624,7 +626,7 @@ public class BookingServiceImpl implements BookingService {
                         .name(tour.getName())
                         .numberDays(tour.getNumberDays())
                         .numberNights(tour.getNumberNights())
-                        .departLocation(Location.builder().id(tour.getDepartLocationId()).build())
+                        .departLocation(Location.builder().id(tour.getDepartLocation()).build())
                         .highlights(tour.getHighlights())
                         .note(tour.getNote())
                         .tourType(TourType.PRIVATE)
@@ -636,9 +638,18 @@ public class BookingServiceImpl implements BookingService {
 
                 Tour savedTour = tourRepository.save(newTour);
 
+
+                TourPax tourPax = TourPax.builder()
+                        .tour(savedTour)
+                        .maxPax(tour.getPax())
+                        .minPax(tour.getPax())
+                        .build();
+
                 List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(),savedTour);
 
                 tourDayRepository.saveAll(tourDays);
+
+                tourPaxRepository.save(tourPax);
 
                 return GeneralResponse.of(tour);
 
@@ -649,6 +660,19 @@ public class BookingServiceImpl implements BookingService {
             throw BusinessException.of("Create Tour Failed", ex);
         }
 
+    }
+
+    @Override
+    public GeneralResponse<?> updateTourPrivate(UpdateTourPrivateContentRequestDTO tour) {
+        try {
+
+            TourSchedule tourSchedule = TourSchedule.builder().build();
+
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot get tour private list", ex);
+        }
+
+        return null;
     }
 
     public static String removeAccents(String text) {

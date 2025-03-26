@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.CreatePublicBookingRequestDTO;
-import com.fpt.capstone.tourism.dto.request.CreateTourPrivateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.UpdateCustomersRequestDTO;
-import com.fpt.capstone.tourism.dto.request.UpdateServiceNotBookingSaleRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.TourBooking;
@@ -66,4 +63,6 @@ public interface BookingService {
 
 
      GeneralResponse<?> createTourPrivate(CreateTourPrivateRequestDTO tour);
+
+     GeneralResponse<?> updateTourPrivate(UpdateTourPrivateContentRequestDTO tour);
 }

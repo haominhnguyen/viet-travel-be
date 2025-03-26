@@ -13,9 +13,10 @@ public class CreateTourPrivateRequestDTO {
     private String name;
     private int numberDays;
     private int numberNights;
-    private Long departLocationId;
+    private Long departLocation;
     private List<LocationShortDTO> locations;
     private String highlights;
     private String note;
     private Long createdBy;
+    private int pax;
 }
