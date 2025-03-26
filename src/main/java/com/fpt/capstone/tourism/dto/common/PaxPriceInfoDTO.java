@@ -12,5 +12,5 @@ public class PaxPriceInfoDTO {
     private int minPax;
     private int maxPax;
     private String paxRange;
-    private Double price;
+    //private Double price;
 }

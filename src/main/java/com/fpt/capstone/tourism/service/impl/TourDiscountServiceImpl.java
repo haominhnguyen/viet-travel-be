@@ -58,15 +58,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
 
             for (TourPax pax : paxOptions) {
-                // Calculate adjusted price based on pax configuration
-                Double adjustedPrice = calculatePriceForPax(tourDayService.getSellingPrice(), pax);
-
                 paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                         .paxId(pax.getId())
                         .minPax(pax.getMinPax())
                         .maxPax(pax.getMaxPax())
                         .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
-                        .price(adjustedPrice)
                         .build());
             }
 
@@ -675,14 +671,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
                     for (TourPax pax : paxOptions) {
                         // Calculate price based on TourPax settings and service selling price
-                        Double adjustedPrice = calculatePriceForPax(tds.getSellingPrice(), pax);
+                        //Double adjustedPrice = calculatePriceForPax(tds.getSellingPrice(), pax);
 
                         paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                                 .paxId(pax.getId())
                                 .minPax(pax.getMinPax())
                                 .maxPax(pax.getMaxPax())
                                 .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
-                                .price(adjustedPrice)
+                                //.price(adjustedPrice)
                                 .build());
                     }
 
@@ -731,23 +727,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICES_LOAD_FAIL, ex);
-        }
-    }
-
-    private Double calculatePriceForPax(Double basePrice, TourPax pax) {
-        double fixedCostPerPerson = pax.getFixedCost() / Math.max(pax.getMinPax(), 1);
-        double extraCostPerPerson = pax.getExtraHotelCost() / Math.max(pax.getMinPax(), 1);
-
-        // Apply tiered pricing based on pax range
-        if (pax.getMinPax() <= 2) {
-            // Higher price for lower number of person
-            return basePrice * 1.2 + fixedCostPerPerson + extraCostPerPerson;
-        } else if (pax.getMinPax() <= 5) {
-            // Standard price for medium number of people
-            return basePrice + fixedCostPerPerson + (extraCostPerPerson * 0.8);
-        } else {
-            // Discount for high number people
-            return basePrice * 0.9 + fixedCostPerPerson * 0.8;
         }
     }
 
