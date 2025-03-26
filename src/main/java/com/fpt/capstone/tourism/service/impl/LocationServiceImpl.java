@@ -207,9 +207,13 @@ public class LocationServiceImpl implements LocationService {
                         )
                 );
             }
-            // Add isDeleted filter if provided
+
+            // Add isDeleted filter - default to false if not provided
             if (isDeleted != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("isDeleted"), isDeleted));
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("deleted"), isDeleted));
+            } else {
+                // Default to showing only non-deleted locations
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("deleted"), false));
             }
 
             Page<Location> locationPage = locationRepository.findAll(spec, pageable);

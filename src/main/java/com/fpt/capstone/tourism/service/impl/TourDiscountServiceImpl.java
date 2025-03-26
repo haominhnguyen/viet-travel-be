@@ -107,7 +107,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .build();
                 }
             }
-
             // 7. Build response
             ServiceByCategoryDTO response = ServiceByCategoryDTO.builder()
                     .id(service.getId())
@@ -448,6 +447,40 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (Exception ex) {
             String errorMessage = delete ? SERVICE_DELETE_FAIL : "Failed to change service status";
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<Integer>> getDayNumbersByServiceAndTour(Long tourId, Long serviceId) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Validate service exists
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+
+            // 3. Get all TourDayService entries for this service and tour
+            Optional<TourDayService> tourDayServices = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId);
+
+            // 4. If no services found, return empty result
+            if (tourDayServices.isEmpty()) {
+                return new GeneralResponse<>(HttpStatus.OK.value(), "No day numbers found for this service in the tour", List.of());
+            }
+
+            // 5. Extract day numbers and sort them
+            List<Integer> dayNumbers = tourDayServices.stream()
+                    .map(tds -> tds.getTourDay().getDayNumber())
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            // 6. Build response
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Day numbers retrieved successfully", dayNumbers);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve day numbers", ex);
         }
     }
 

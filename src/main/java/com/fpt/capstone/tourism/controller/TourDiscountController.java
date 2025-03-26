@@ -40,6 +40,14 @@ public class TourDiscountController {
         return ResponseEntity.ok(tourDiscountService.getServiceDetail(tourId, serviceId));
     }
 
+    @GetMapping("/services/{serviceId}/days")
+    public ResponseEntity<GeneralResponse<List<Integer>>> getDayNumbersByServiceAndTour(
+            @PathVariable Long tourId,
+            @PathVariable Long serviceId) {
+        GeneralResponse<List<Integer>> response = tourDiscountService.getDayNumbersByServiceAndTour(tourId, serviceId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
     @GetMapping("/provider/{providerId}/location/{locationId}")
     public ResponseEntity<GeneralResponse<ServiceProviderServicesDTO>> getServiceProviderServices(
             @PathVariable Long tourId,
@@ -55,7 +63,6 @@ public class TourDiscountController {
             @RequestBody ServiceUpdateRequestDTO request) {
         return ResponseEntity.ok(tourDiscountService.updateServiceDetail(tourId, serviceId, request));
     }
-
 
     @GetMapping("/providers")
     public ResponseEntity<GeneralResponse<ServiceProviderOptionsDTO>> getServiceProviderOptions(
