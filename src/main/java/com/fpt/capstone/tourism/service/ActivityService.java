@@ -23,4 +23,8 @@ public interface ActivityService {
     //List activity for head of business
     GeneralResponse<List<ActivityListDTO>> getActivityList(Long tourId);
     GeneralResponse<ActivityDetailDTO> getActivityDetail(Long tourId, Long activityId);
+
+    GeneralResponse<List<ActivityBasicDTO>> getActivitiesByLocationAndCategory(Long locationId, Long categoryId);
+    GeneralResponse<ActivityDetailDTO> createActivity(Long tourId, ActivityCreateUpdateRequestDTO request);
+    GeneralResponse<ActivityDetailDTO> updateActivity(Long tourId, Long activityId, ActivityCreateUpdateRequestDTO request);
 }

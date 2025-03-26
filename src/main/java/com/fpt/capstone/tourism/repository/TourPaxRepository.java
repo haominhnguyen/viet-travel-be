@@ -17,4 +17,8 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
             "AND :paxCount BETWEEN tp.minPax AND tp.maxPax " +
             "AND CURRENT_DATE BETWEEN tp.validFrom AND tp.validTo")
     List<TourPax> findByTourIdAndPaxRange(@Param("tourId") Long tourId, @Param("paxCount") Integer paxCount);
+
+    boolean existsByTourIdAndMinPaxAndMaxPaxAndDeletedFalse(Long tourId, Integer minPax, Integer maxPax);
+
+    List<TourPax> findByTourIdAndDeletedFalseOrderByMinPax(Long tourId);
 }

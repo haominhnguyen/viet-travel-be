@@ -48,6 +48,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final TourDayActivityRepository tourDayActivityRepository;
     private final ActivityCategoryRepository activityCategoryRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final LocationRepository locationRepository;
 
     @Override
     public List<ActivityDTO> findRecommendedActivities(int numberActivity) {
@@ -286,6 +287,47 @@ public class ActivityServiceImpl implements ActivityService {
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, ACTIVITY_DETAIL_LOAD_FAIL, ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<List<ActivityBasicDTO>> getActivitiesByLocationAndCategory(Long locationId, Long categoryId) {
+        try {
+            // Validate location exists
+            locationRepository.findById(locationId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+
+            // Validate category exists
+            activityCategoryRepository.findById(categoryId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, CATEGORY_NOT_FOUND + " with id: " + categoryId));
+
+            // Get activities by location and category
+            List<Activity> activities = activityRepository.findByLocationIdAndActivityCategoryIdAndDeletedFalse(locationId, categoryId);
+
+            List<ActivityBasicDTO> activityDTOs = activities.stream()
+                    .map(activity -> ActivityBasicDTO.builder()
+                            .id(activity.getId())
+                            .title(activity.getTitle())
+                            .pricePerPerson(activity.getPricePerPerson())
+                            .imageUrl(activity.getImageUrl())
+                            .build())
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), ACTIVITY_LOADED_SUCCESS, activityDTOs);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, ACTIVITY_LOADED_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ActivityDetailDTO> createActivity(Long tourId, ActivityCreateUpdateRequestDTO request) {
+        return null;
+    }
+
+    @Override
+    public GeneralResponse<ActivityDetailDTO> updateActivity(Long tourId, Long activityId, ActivityCreateUpdateRequestDTO request) {
+        return null;
     }
 
     private Specification<Activity> buildSearchSpecification(String keyword, Boolean isDeleted, Long categoryId) {

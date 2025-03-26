@@ -127,7 +127,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .categoryName(categoryName)
                     .startDate(service.getStartDate())
                     .endDate(service.getEndDate())
-                    //.paxPrices(paxPrices)
+                    .paxPrices(paxPrices)
                     .roomDetail(roomDetail)
                     .mealDetail(mealDetail)
                     .transportDetail(transportDetail)
@@ -408,7 +408,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
             boolean statusUpdated = false;
 
-            if ("Hotel".equalsIgnoreCase(categoryName)) {
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Room room = roomRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + serviceId));
 
@@ -416,7 +416,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 roomRepository.save(room);
                 statusUpdated = true;
             }
-            else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
 
@@ -424,7 +424,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 mealRepository.save(meal);
                 statusUpdated = true;
             }
-            else if ("Transport".equalsIgnoreCase(categoryName)) {
+            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
 
@@ -723,7 +723,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .tourId(tourId)
                     .tourName(tour.getName())
                     .serviceCategories(categoryDTOs)
-                    //.paxOptions(paxOptionDTOs)
+                    .paxOptions(paxOptionDTOs)
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), SERVICES_LOAD_SUCCESS, response);

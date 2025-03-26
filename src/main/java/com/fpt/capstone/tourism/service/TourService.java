@@ -23,7 +23,6 @@ public interface TourService {
 
     List<PublicTourDTO> findSameLocationPublicTour(List<Long> locationIds);
 
-
     GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened, Pageable pageable);
 
     GeneralResponse<TourDetailDTO> getTourDetail(Long id);
@@ -33,6 +32,4 @@ public interface TourService {
 
     @Transactional
     GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO, User currentUser);
-
-
 }

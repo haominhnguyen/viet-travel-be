@@ -40,7 +40,6 @@ public class Tour extends BaseEntity{
             inverseJoinColumns = @JoinColumn(name = "location_id"))
     private List<Location> locations;
 
-
     @ManyToMany
     @ToString.Exclude
     @JoinTable(

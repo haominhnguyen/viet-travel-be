@@ -23,5 +23,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long>, JpaSp
     List<Activity> findByDeletedFalse();
     List<Activity> findByActivityCategoryIdAndDeletedFalse(Long categoryId);
     List<Activity> findByLocationIdAndDeletedFalse(Long locationId);
+
+    List<Activity> findByLocationIdAndActivityCategoryIdAndDeletedFalse(Long locationId, Long categoryId);
 }
 
