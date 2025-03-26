@@ -1,8 +1,6 @@
 package com.fpt.capstone.tourism.service;
 
-import com.fpt.capstone.tourism.dto.common.ActivityDTO;
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.LocationDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 
 import java.util.List;
@@ -21,4 +19,8 @@ public interface ActivityService {
     GeneralResponse<ActivityDTO> deleteActivity(Long id, boolean isDeleted);
 
     List<ActivityDTO> findRelatedActivities(Long activityId, int numberActivity);
+
+    //List activity for head of business
+    GeneralResponse<List<ActivityListDTO>> getActivityList(Long tourId);
+    GeneralResponse<ActivityDetailDTO> getActivityDetail(Long tourId, Long activityId);
 }

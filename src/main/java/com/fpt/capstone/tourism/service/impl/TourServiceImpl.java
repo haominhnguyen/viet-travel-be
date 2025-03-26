@@ -653,7 +653,6 @@ public class TourServiceImpl implements TourService {
                 Predicate namePredicate = cb.like(normalizedName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
                 predicates.add(namePredicate);
             }
-
             // Filter by deletion status
             if (isDeleted != null) {
                 predicates.add(cb.equal(root.get("deleted"), isDeleted));
@@ -661,7 +660,6 @@ public class TourServiceImpl implements TourService {
             if (isOpened != null) {
                 predicates.add(cb.equal(root.get("opened"), isOpened));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

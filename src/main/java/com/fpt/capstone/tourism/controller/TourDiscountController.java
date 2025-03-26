@@ -4,16 +4,20 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
+import com.fpt.capstone.tourism.service.ActivityService;
 import com.fpt.capstone.tourism.service.TourDiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/head-of-business/tour/{tourId}/discount")
 public class TourDiscountController {
     private final TourDiscountService tourDiscountService;
+    private final ActivityService activityService;
 
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<TourServiceListDTO>> getTourServicesList(
@@ -60,13 +64,25 @@ public class TourDiscountController {
             @RequestBody ServiceCreateRequestDTO request) {
         return ResponseEntity.ok(tourDiscountService.createServiceDetail(tourId, request));
     }
+//    @DeleteMapping("/{serviceId}")
+//    public ResponseEntity<GeneralResponse<Void>> changeServiceStatus(
+//            @PathVariable Long tourId,
+//            @PathVariable Long serviceId,
+//            @RequestParam(required = false, defaultValue = "true") Boolean delete) {
+//        return ResponseEntity.ok(tourDiscountService.changeServiceStatus(tourId, serviceId, delete));
+//    }
 
-    @DeleteMapping("/{serviceId}")
-    public ResponseEntity<GeneralResponse<Void>> changeServiceStatus(
+    @GetMapping("/activity")
+    public ResponseEntity<GeneralResponse<List<ActivityListDTO>>> getActivityList(
+            @PathVariable Long tourId) {
+        return ResponseEntity.ok(activityService.getActivityList(tourId));
+    }
+
+    @GetMapping("/activity/{activityId}")
+    public ResponseEntity<GeneralResponse<ActivityDetailDTO>> getActivityDetail(
             @PathVariable Long tourId,
-            @PathVariable Long serviceId,
-            @RequestParam(required = false, defaultValue = "true") Boolean delete) {
-        return ResponseEntity.ok(tourDiscountService.changeServiceStatus(tourId, serviceId, delete));
+            @PathVariable Long activityId) {
+        return ResponseEntity.ok(activityService.getActivityDetail(tourId, activityId));
     }
 
 }

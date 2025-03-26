@@ -80,7 +80,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
-            if ("Hotel".equalsIgnoreCase(categoryName)) {
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Optional<Room> roomOpt = roomRepository.findByServiceId(serviceId);
                 if (roomOpt.isPresent()) {
                     Room room = roomOpt.get();
@@ -91,7 +91,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .facilities(room.getFacilities())
                             .build();
                 }
-            } else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Optional<Meal> mealOpt = mealRepository.findByServiceId(serviceId);
                 if (mealOpt.isPresent()) {
                     Meal meal = mealOpt.get();
@@ -101,7 +101,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .mealDetail(meal.getMealDetail())
                             .build();
                 }
-            } else if ("Transport".equalsIgnoreCase(categoryName)) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Optional<Transport> transportOpt = transportRepository.findByServiceId(serviceId);
                 if (transportOpt.isPresent()) {
                     Transport transport = transportOpt.get();
@@ -127,7 +127,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .categoryName(categoryName)
                     .startDate(service.getStartDate())
                     .endDate(service.getEndDate())
-                    .paxPrices(paxPrices)
+                    //.paxPrices(paxPrices)
                     .roomDetail(roomDetail)
                     .mealDetail(mealDetail)
                     .transportDetail(transportDetail)

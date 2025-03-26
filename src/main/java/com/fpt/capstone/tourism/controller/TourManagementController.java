@@ -8,6 +8,8 @@ import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.service.LocationService;
+import com.fpt.capstone.tourism.service.TagService;
 import com.fpt.capstone.tourism.service.TourDayServiceI;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.validation.Valid;
@@ -30,6 +32,8 @@ public class TourManagementController {
     private final TourService tourService;
     private final TourDayServiceI tourDayServiceI;
     private final UserRepository userRepository;
+    private final LocationService locationService;
+    private final TagService tagService;
 
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<PagingDTO<List<TourBasicDTO>>>> getAllTours(
@@ -80,6 +84,20 @@ public class TourManagementController {
         User user = getLoggedInUser(userDetails);
         GeneralResponse<TourResponseDTO> response = tourService.updateTour(id, tourRequestDTO,user);
         return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    @GetMapping("/list-location")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<LocationDTO>>>> getAll(@RequestParam(defaultValue = "0") int page,
+                                                                                @RequestParam(defaultValue = "10") int size,
+                                                                                @RequestParam(required = false) String keyword,
+                                                                                @RequestParam(required = false) Boolean isDeleted,
+                                                                                @RequestParam(defaultValue = "desc") String orderDate) {
+        return ResponseEntity.ok(locationService.getAllLocation(page, size, keyword, isDeleted, orderDate));
+    }
+
+    @GetMapping("/list-tag")
+    public ResponseEntity<GeneralResponse<List<TagDTO>>> getTags() {
+        return ResponseEntity.ok(tagService.findAll());
     }
 
 //    @PostMapping("/{tourId}/tour-days/{tourDayId}/services/add")
