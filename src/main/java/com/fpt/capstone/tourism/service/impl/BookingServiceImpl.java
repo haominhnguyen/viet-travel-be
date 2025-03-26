@@ -333,7 +333,7 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> saleViewBookingDetails(Long bookingId) {
         try {
             log.info("Start find tour booking detail with ID: {}", bookingId);
-            TourBooking tourBooking = tourBookingRepository.findById(bookingId).orElseThrow();
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(bookingId);
             log.info("End find tour booking detail with ID: {}", bookingId);
 
             return GeneralResponse.of(bookingHelper.setPaymentStatisticForBookingDetail(tourBooking));
