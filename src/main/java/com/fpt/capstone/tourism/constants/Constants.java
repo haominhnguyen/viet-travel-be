@@ -294,6 +294,10 @@ public class Constants {
         public static final String ACTIVITY_ALREADY_EXISTS = "Activity already exists for this tour day";
         public static final String ACTIVITY_LOADED_SUCCESS = "Activity loaded successfully";
         public static final String ACTIVITY_LOADED_FAIL = "Failed to load activity";
+        public static final String CATEGORY_SERVICES_LOAD_SUCCESS = "Category services loaded successfully";
+        public static final String CATEGORY_SERVICES_LOAD_FAIL = "Failed to load category services";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Provider category services loaded successfully";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Failed to load provider category services";
     }
 
 

@@ -15,9 +15,11 @@ public class TourDayServiceCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tour_day_id")
-    private Long tourDayId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_day_id")
+    private TourDay tourDay;
 
-    @Column(name = "service_category_id")
-    private Long serviceCategoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_category_id")
+    private ServiceCategory serviceCategory;
 }

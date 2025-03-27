@@ -21,4 +21,6 @@ public interface TourDiscountService {
     GeneralResponse<Void> changeServiceStatus(Long tourId, Long serviceId, Boolean delete);
 
     GeneralResponse<List<Integer>> getDayNumbersByServiceAndTour(Long tourId, Long serviceId);
+
+    GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId);
 }

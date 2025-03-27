@@ -25,13 +25,9 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
     private final TourDayRepository tourDayRepository;
     private final TourRepository tourRepository;
-    private final TourDayServiceMapper tourDayServiceMapper;
     private final LocationMapper locationMapper;
-    private final TourDayServiceRepository tourDayServiceRepository;
-    private final ServiceRepository serviceRepository;
     private final LocationRepository locationRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
-    private final TourDayServiceResponseMapper tourDayServiceResponseMapper;
     private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;
 
@@ -40,7 +36,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
         try {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
-
             // Get tour days with optional filter by deleted status
             List<TourDay> tourDays;
             if (isDeleted != null) {
@@ -48,16 +43,13 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             } else {
                 tourDays = tourDayRepository.findByTourIdOrderByDayNumber(tourId);
             }
-
             if (tourDays.isEmpty()) {
                 return new GeneralResponse<>(HttpStatus.OK.value(), NO_TOUR_DAY_FOUND, Collections.emptyList());
             }
-
             // Map list of TourDay to list of TourDayFullDTO
             List<TourDayFullDTO> tourDayDTOs = tourDays.stream().map(tourDay -> {
-                // Get service categories for this tour day using the new approach
-                List<String> serviceCategories = getServiceCategoriesForTourDay(tourDay.getId());
-
+                // Get service categories for this tour day using the entity reference approach
+                List<String> serviceCategories = getServiceCategoriesForTourDay(tourDay);
                 return TourDayFullDTO.builder()
                         .id(tourDay.getId())
                         .title(tourDay.getTitle())
@@ -72,7 +64,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         .updatedAt(tourDay.getUpdatedAt())
                         .build();
             }).collect(Collectors.toList());
-
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_DETAIL_LOAD_SUCCESS, tourDayDTOs);
         } catch (BusinessException ex) {
             throw ex;
@@ -133,8 +124,8 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                 serviceCategories.add(category);
 
                 // Store the association between tour day and service category
-                // in a separate table or through another mechanism if needed
-                saveTourDayServiceCategory(tourDay.getId(), category.getId());
+                // using the entity references
+                saveTourDayServiceCategory(tourDay, category);
             }
 
             // Extract category names for response
@@ -214,13 +205,11 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             tourDay.setLocation(location);
 
             tourDay = tourDayRepository.save(tourDay);
-
-            // Get requested service categories but DON'T create TourDayService entries
+            // Get requested service categories
             Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
             List<ServiceCategory> serviceCategories = new ArrayList<>();
-
             // Delete all existing tour day service category associations first
-            deleteTourDayServiceCategories(tourDay.getId());
+            deleteTourDayServiceCategories(tourDay);
 
             // Then add the new ones
             for (String categoryName : requestedCategories) {
@@ -228,8 +217,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
 
-                // Store the association between tour day and service category
-                saveTourDayServiceCategory(tourDay.getId(), category.getId());
+                saveTourDayServiceCategory(tourDay, category);
             }
 
             // Extract category names for response
@@ -245,7 +233,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .mealPlan(tourDay.getMealPlan())
                     .tourId(tour.getId())
                     .location(locationMapper.toDTO(location))
-                    .serviceCategories(categoryNames) // Just the category names, no services yet
+                    .serviceCategories(categoryNames)
                     .deleted(tourDay.getDeleted())
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
@@ -257,7 +245,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update tour day", ex);
         }
     }
-
 //    @Override
 //    @Transactional
 //    public GeneralResponse<TourDayFullDTO> createTourDay(Long tourId, TourDayCreateRequestDTO request) {
@@ -557,29 +544,27 @@ public class TourDayServiceIImpl implements TourDayServiceI {
         }
     }
 
-    private void saveTourDayServiceCategory(Long tourDayId, Long categoryId) {
+    private void saveTourDayServiceCategory(TourDay tourDay, ServiceCategory serviceCategory) {
         TourDayServiceCategory association = new TourDayServiceCategory();
-        association.setTourDayId(tourDayId);
-        association.setServiceCategoryId(categoryId);
+        association.setTourDay(tourDay);
+        association.setServiceCategory(serviceCategory);
         tourDayServiceCategoryRepository.save(association);
     }
 
-    private void deleteTourDayServiceCategories(Long tourDayId) {
-        tourDayServiceCategoryRepository.deleteByTourDayId(tourDayId);
+    private void deleteTourDayServiceCategories(TourDay tourDay) {
+        tourDayServiceCategoryRepository.deleteByTourDay(tourDay);
     }
 
-    private List<String> getServiceCategoriesForTourDay(Long tourDayId) {
-        List<TourDayServiceCategory> associations = tourDayServiceCategoryRepository.findByTourDayId(tourDayId);
+    private List<String> getServiceCategoriesForTourDay(TourDay tourDay) {
+        List<TourDayServiceCategory> associations = tourDayServiceCategoryRepository.findByTourDay(tourDay);
 
         if (associations.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<Long> categoryIds = associations.stream()
-                .map(TourDayServiceCategory::getServiceCategoryId)
+        return associations.stream()
+                .map(assoc -> assoc.getServiceCategory().getCategoryName())
                 .collect(Collectors.toList());
-
-        return serviceCategoryRepository.findCategoryNamesByIds(categoryIds);
     }
 }
 

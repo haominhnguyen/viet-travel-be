@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.MealType;
+import com.fpt.capstone.tourism.model.enums.ServiceCategoryEnum;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fpt.capstone.tourism.service.TourDiscountService;
@@ -73,10 +74,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             RoomDetailDTO roomDetail = null;
             MealDetailDTO mealDetail = null;
             TransportDetailDTO transportDetail = null;
+            ActivityDetailDTO activityDetail = null;
 
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
-            if (HOTEL.equalsIgnoreCase(categoryName)) {
+            if (ServiceCategoryEnum.HOTEL.name().equalsIgnoreCase(categoryName)) {
                 Optional<Room> roomOpt = roomRepository.findByServiceId(serviceId);
                 if (roomOpt.isPresent()) {
                     Room room = roomOpt.get();
@@ -87,7 +89,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .facilities(room.getFacilities())
                             .build();
                 }
-            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+            } else if (ServiceCategoryEnum.RESTAURANT.name().equalsIgnoreCase(categoryName)) {
                 Optional<Meal> mealOpt = mealRepository.findByServiceId(serviceId);
                 if (mealOpt.isPresent()) {
                     Meal meal = mealOpt.get();
@@ -97,7 +99,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .mealDetail(meal.getMealDetail())
                             .build();
                 }
-            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+            } else if (ServiceCategoryEnum.TRANSPORT.name().equalsIgnoreCase(categoryName)) {
                 Optional<Transport> transportOpt = transportRepository.findByServiceId(serviceId);
                 if (transportOpt.isPresent()) {
                     Transport transport = transportOpt.get();
@@ -162,7 +164,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 MealDetailDTO mealDetail = null;
                 TransportDetailDTO transportDetail = null;
 
-                if ("Hotel".equalsIgnoreCase(categoryName)) {
+                if (HOTEL.equalsIgnoreCase(categoryName)) {
                     Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
                     if (roomOpt.isPresent()) {
                         Room room = roomOpt.get();
@@ -173,7 +175,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 .facilities(room.getFacilities())
                                 .build();
                     }
-                } else if ("Restaurant".equalsIgnoreCase(categoryName)) {
+                } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                     Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
                     if (mealOpt.isPresent()) {
                         Meal meal = mealOpt.get();
@@ -183,7 +185,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 .mealDetail(meal.getMealDetail())
                                 .build();
                     }
-                } else if ("Transport".equalsIgnoreCase(categoryName)) {
+                } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                     Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
                     if (transportOpt.isPresent()) {
                         Transport transport = transportOpt.get();
@@ -193,7 +195,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 .build();
                     }
                 }
-
                 AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
                         .id(service.getId())
                         .name(service.getName())
@@ -207,10 +208,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                         .mealDetail(mealDetail)
                         .transportDetail(transportDetail)
                         .build();
-
                 availableServices.add(serviceDTO);
             }
-
             // 5. Build response
             ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
                     .providerId(providerId)
@@ -219,7 +218,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .locationName(location.getName())
                     .availableServices(availableServices)
                     .build();
-
             return new GeneralResponse<>(HttpStatus.OK.value(), PROVIDER_SERVICES_LOAD_SUCCESS, response);
         } catch (BusinessException ex) {
             throw ex;
@@ -317,7 +315,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 8. Update service-specific details
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
-            if ("Hotel".equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
+            if (HOTEL.equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
                 Room room = roomRepository.findByServiceId(service.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + service.getId()));
 
@@ -335,7 +333,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                 roomRepository.save(room);
             }
-            else if ("Restaurant".equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
+            else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
                 Meal meal = mealRepository.findByServiceId(service.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + service.getId()));
 
@@ -349,7 +347,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                 mealRepository.save(meal);
             }
-            else if ("Transport".equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
+            else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
                 Transport transport = transportRepository.findByServiceId(service.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + service.getId()));
 
@@ -360,20 +358,39 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 transportRepository.save(transport);
             }
 
-            // 9. Update pax-specific pricing if provided
+            // 9. Handle pax-specific pricing if provided
             if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
-                // Calculate an average price from all the pax prices to use as the base price
-                Double avgPrice = request.getPaxPrices().values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .average()
-                        .orElse(tourDayService.getSellingPrice() != null ? tourDayService.getSellingPrice() : service.getSellingPrice());
+                // Save to TourPax table instead of calculating average price
+                for (Map.Entry<String, Double> entry : request.getPaxPrices().entrySet()) {
+                    Long paxId;
+                    try {
+                        paxId = Long.parseLong(entry.getKey());
+                    } catch (NumberFormatException e) {
+                        throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid pax ID format: " + entry.getKey());
+                    }
 
-                tourDayService.setSellingPrice(avgPrice);
+                    // Check if this pax range already exists for this tour
+                    Optional<TourPax> existingTourPax = tourPaxRepository.findById(paxId);
+
+                    if (!existingTourPax.isPresent()) {
+                        throw BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId);
+                    }
+
+                    TourPax tourPax = existingTourPax.get();
+
+                    // Verify this tourPax belongs to the current tour
+                    if (!tourPax.getTour().getId().equals(tourId)) {
+                        throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                                "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                    }
+                    // Update the selling price for this pax range
+                    tourPax.setSellingPrice(entry.getValue());
+                    // Save the updated tourPax
+                    tourPaxRepository.save(tourPax);
+                }
             }
-
             // 10. Save the tour day service entry
             tourDayService = tourDayServiceRepository.save(tourDayService);
-
             // 11. Return service details
             return getServiceDetail(tourId, tourDayService.getService().getId());
         } catch (BusinessException ex) {
@@ -485,6 +502,137 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     }
 
     @Override
+    public GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId) {
+        try {
+            // 1. Validate service provider exists
+            ServiceProvider provider = serviceProviderRepository.findById(providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
+            // 2. Validate service category exists
+            ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + categoryName));
+            // 3. Validate location exists
+            Location location = locationRepository.findById(locationId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            LOCATION_NOT_FOUND + " with id: " + locationId));
+            // 4. Get services by provider, category, and location
+            List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderIdAndLocationId(
+                    categoryName, providerId, locationId);
+            // 5. Convert to DTOs with type-specific details
+            List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
+            // 6. Build response
+            ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
+                    .providerId(providerId)
+                    .providerName(provider.getName())
+                    .categoryId(category.getId())
+                    .categoryName(category.getCategoryName())
+                    .locationId(locationId)
+                    .locationName(location.getName())
+                    .availableServices(availableServices)
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS, response);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, PROVIDER_CATEGORY_SERVICES_LOAD_FAIL, ex);
+        }
+    }
+
+//    @Override
+//    public GeneralResponse<ServiceProviderServicesDTO> getServicesByCategory(Long categoryId, Long locationId) {
+//        try {
+//            // 1. Validate service category exists
+//            ServiceCategory category = serviceCategoryRepository.findById(categoryId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND + " with id: " + categoryId));
+//
+//            // 2. Validate location exists
+//            Location location = locationRepository.findById(locationId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+//
+//            // 3. Get services that match this category and location
+//            List<Service> services = serviceRepository.findByServiceCategoryIdAndLocationId(categoryId, locationId);
+//
+//            // 4. Convert to DTOs with type-specific details
+//            List<AvailableServiceDTO> availableServices = new ArrayList<>();
+//
+//            for (Service service : services) {
+//                String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+//                String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+//
+//                // Get type-specific details based on service category
+//                RoomDetailDTO roomDetail = null;
+//                MealDetailDTO mealDetail = null;
+//                TransportDetailDTO transportDetail = null;
+//
+//                if (HOTEL.equalsIgnoreCase(categoryName)) {
+//                    Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (roomOpt.isPresent()) {
+//                        Room room = roomOpt.get();
+//                        roomDetail = RoomDetailDTO.builder()
+//                                .id(room.getId())
+//                                .capacity(room.getCapacity())
+//                                .availableQuantity(room.getAvailableQuantity())
+//                                .facilities(room.getFacilities())
+//                                .build();
+//                    }
+//                } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+//                    Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (mealOpt.isPresent()) {
+//                        Meal meal = mealOpt.get();
+//                        mealDetail = MealDetailDTO.builder()
+//                                .id(meal.getId())
+//                                .type(meal.getType().name())
+//                                .mealDetail(meal.getMealDetail())
+//                                .build();
+//                    }
+//                } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+//                    Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (transportOpt.isPresent()) {
+//                        Transport transport = transportOpt.get();
+//                        transportDetail = TransportDetailDTO.builder()
+//                                .id(transport.getId())
+//                                .seatCapacity(transport.getSeatCapacity())
+//                                .build();
+//                    }
+//                }
+//
+//                AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
+//                        .id(service.getId())
+//                        .name(service.getName())
+//                        .categoryName(categoryName)
+//                        .nettPrice(service.getNettPrice())
+//                        .sellingPrice(service.getSellingPrice())
+//                        .status(status)
+//                        .startDate(service.getStartDate())
+//                        .endDate(service.getEndDate())
+//                        .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+//                        .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+//                        .roomDetail(roomDetail)
+//                        .mealDetail(mealDetail)
+//                        .transportDetail(transportDetail)
+//                        .build();
+//                availableServices.add(serviceDTO);
+//            }
+//
+//            // 5. Build response
+//            ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
+//                    .categoryId(categoryId)
+//                    .categoryName(category.getCategoryName())
+//                    .locationId(locationId)
+//                    .locationName(location.getName())
+//                    .availableServices(availableServices)
+//                    .build();
+//
+//            return new GeneralResponse<>(HttpStatus.OK.value(), CATEGORY_SERVICES_LOAD_SUCCESS, response);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, CATEGORY_SERVICES_LOAD_FAIL, ex);
+//        }
+//    }
+
+    @Override
     @Transactional
     public GeneralResponse<ServiceByCategoryDTO> updateServiceDetail(Long tourId, Long serviceId, ServiceUpdateRequestDTO request) {
         try {
@@ -544,7 +692,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Either serviceId parameter or serviceId in request body is required");
             }
 
-            // 4. If service provider or location changed and we're updating an existing service
+            // 4. If service provider or location changed, updating an existing service
             if (currentService != null &&
                     ((request.getServiceProviderId() != null && !request.getServiceProviderId().equals(service.getServiceProvider().getId())) ||
                             (request.getLocationId() != null && tourDay.getLocation() != null &&
@@ -572,7 +720,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 5. Update service-specific details
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
-            if ("Hotel".equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
+            if (HOTEL.equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
                 final Service hotelService = service; // Create a final copy
                 Room room = roomRepository.findByServiceId(hotelService.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + hotelService.getId()));
@@ -591,7 +739,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                 roomRepository.save(room);
             }
-            else if ("Restaurant".equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
+            else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
                 final Service restaurantService = service;
                 Meal meal = mealRepository.findByServiceId(restaurantService.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + restaurantService.getId()));
@@ -606,15 +754,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                 mealRepository.save(meal);
             }
-            else if ("Transport".equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
-                final Service transportService = service; // Create a final copy
+            else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
+                final Service transportService = service;
                 Transport transport = transportRepository.findByServiceId(transportService.getId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + transportService.getId()));
 
                 if (request.getTransportDetail().getSeatCapacity() != null) {
                     transport.setSeatCapacity(request.getTransportDetail().getSeatCapacity());
                 }
-
                 transportRepository.save(transport);
             }
 
@@ -630,15 +777,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             // 7. Update pax-specific pricing if provided
             if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
-                // Since we're not using a separate ServicePrice model, we'll store the base price
-                // and use the TourPax information to calculate dynamic prices
-
                 // Calculate an average price from all the pax prices to use as the base price
                 Double avgPrice = request.getPaxPrices().values().stream()
                         .mapToDouble(Double::doubleValue)
                         .average()
                         .orElse(tourDayService.getSellingPrice() != null ? tourDayService.getSellingPrice() : service.getSellingPrice());
-
                 tourDayService.setSellingPrice(avgPrice);
             }
 
@@ -761,6 +904,72 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICES_LOAD_FAIL, ex);
         }
+    }
+
+    private List<AvailableServiceDTO> buildAvailableServicesDTO(List<Service> services) {
+        List<AvailableServiceDTO> availableServices = new ArrayList<>();
+
+        for (Service service : services) {
+            String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+
+            // Get type-specific details based on service category
+            RoomDetailDTO roomDetail = null;
+            MealDetailDTO mealDetail = null;
+            TransportDetailDTO transportDetail = null;
+
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (roomOpt.isPresent()) {
+                    Room room = roomOpt.get();
+                    roomDetail = RoomDetailDTO.builder()
+                            .id(room.getId())
+                            .capacity(room.getCapacity())
+                            .availableQuantity(room.getAvailableQuantity())
+                            .facilities(room.getFacilities())
+                            .build();
+                }
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (mealOpt.isPresent()) {
+                    Meal meal = mealOpt.get();
+                    mealDetail = MealDetailDTO.builder()
+                            .id(meal.getId())
+                            .type(meal.getType().name())
+                            .mealDetail(meal.getMealDetail())
+                            .build();
+                }
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+                Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (transportOpt.isPresent()) {
+                    Transport transport = transportOpt.get();
+                    transportDetail = TransportDetailDTO.builder()
+                            .id(transport.getId())
+                            .seatCapacity(transport.getSeatCapacity())
+                            .build();
+                }
+            }
+
+            AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .categoryName(categoryName)
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .status(status)
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+                    .roomDetail(roomDetail)
+                    .mealDetail(mealDetail)
+                    .transportDetail(transportDetail)
+                    .build();
+
+            availableServices.add(serviceDTO);
+        }
+
+        return availableServices;
     }
 
     private String determineServiceStatus(LocalDateTime startDateTime, LocalDateTime endDateTime) {

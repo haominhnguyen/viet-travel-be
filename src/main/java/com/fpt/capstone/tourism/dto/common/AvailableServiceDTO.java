@@ -18,7 +18,8 @@ public class AvailableServiceDTO {
     private String status; // ACTIVE, EXPIRED, UPCOMING
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-
+    private Long providerId;
+    private String providerName;
     private RoomDetailDTO roomDetail;
     private MealDetailDTO mealDetail;
     private TransportDetailDTO transportDetail;

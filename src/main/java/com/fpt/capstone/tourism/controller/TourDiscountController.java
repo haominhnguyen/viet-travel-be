@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ActivityDetailResponseDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
@@ -48,12 +49,13 @@ public class TourDiscountController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @GetMapping("/provider/{providerId}/location/{locationId}")
-    public ResponseEntity<GeneralResponse<ServiceProviderServicesDTO>> getServiceProviderServices(
+    @GetMapping("/provider/{providerId}/category/{categoryName}/location/{locationId}")
+    public ResponseEntity<GeneralResponse<ServiceProviderServicesDTO>> getServicesByProviderAndCategory(
             @PathVariable Long tourId,
             @PathVariable Long providerId,
+            @PathVariable String categoryName,
             @PathVariable Long locationId) {
-        return ResponseEntity.ok(tourDiscountService.getServiceProviderServices(providerId, locationId));
+        return ResponseEntity.ok(tourDiscountService.getServicesByProviderAndCategory(providerId, categoryName, locationId));
     }
 
     @PutMapping("/{serviceId}")
@@ -94,7 +96,7 @@ public class TourDiscountController {
     }
 
     @GetMapping("/activity/{activityId}")
-    public ResponseEntity<GeneralResponse<ActivityDetailDTO>> getActivityDetail(
+    public ResponseEntity<GeneralResponse<ActivityDetailResponseDTO>> getActivityDetail(
             @PathVariable Long tourId,
             @PathVariable Long activityId) {
         return ResponseEntity.ok(activityService.getActivityDetail(tourId, activityId));
