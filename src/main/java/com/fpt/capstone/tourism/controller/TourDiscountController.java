@@ -49,7 +49,7 @@ public class TourDiscountController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
-    @GetMapping("/{tourId}/provider/{providerId}/category/{categoryName}/location/{locationId}")
+    @GetMapping("/provider/{providerId}/category/{categoryName}/location/{locationId}")
     public ResponseEntity<GeneralResponse<ServiceProviderServicesDTO>> getServicesByProviderAndCategory(
             @PathVariable Long tourId,
             @PathVariable Long providerId,
