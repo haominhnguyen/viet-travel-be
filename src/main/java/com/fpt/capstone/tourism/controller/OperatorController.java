@@ -140,10 +140,10 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.sendMailToProvider(mailServiceDTO));
     }
 
-    @GetMapping("/list-change-service-request")
-    public ResponseEntity<GeneralResponse<?>> getListChangeServiceRequest(@RequestParam(defaultValue = "0") int page,
+    @GetMapping("/list-service-request")
+    public ResponseEntity<GeneralResponse<?>> getListServiceRequest(@RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(operatorService.getListChangeServiceRequest(page, size));
+        return ResponseEntity.ok(operatorService.getListServiceRequest(page, size));
     }
 
     @GetMapping("/change-service-request-detail/{tourBookingServiceId}")
@@ -159,6 +159,15 @@ public class OperatorController {
     @PutMapping("/approve-service-request/{tourBookingServiceId}")
     public ResponseEntity<GeneralResponse<?>> approveServiceRequest(@PathVariable Long tourBookingServiceId) {
         return ResponseEntity.ok(operatorService.approveServiceRequest(tourBookingServiceId));
+    }
+
+    @PutMapping("/update-service-quantity")
+    public ResponseEntity<GeneralResponse<?>> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO) {
+        return ResponseEntity.ok(operatorService.updateServiceQuantity(requestDTO));
+    }
+    @PutMapping("/cancel-service/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> cancelService(@PathVariable("tourBookingServiceId") Long tourBookingServiceId) {
+        return ResponseEntity.ok(operatorService.cancelService(tourBookingServiceId));
     }
 
 }

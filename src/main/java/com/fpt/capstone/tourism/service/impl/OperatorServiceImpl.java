@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.AddServiceRequestDTO;
-import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
-import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
@@ -78,10 +75,52 @@ public class OperatorServiceImpl implements OperatorService {
             + "Số lượng: {2}\n"
             + "Ngày yêu cầu: {3}.\n\n"
             + "Tổng số tiền: {4,number,#,###.##} (đ)\n\n"
-            + "Vui lòng cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
+            + "**Vui lòng xác nhận yêu cầu tại đường link sau:**\n"
+            + "{5}\n\n"
+            + "Kính mong quý đối tác cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
             + "Best Regards,\n"
             + "Viet Travel";
     final String emailOrderServiceSubject = "[Viet Travel - {0}] - Thông tin đặt hàng dịch vụ.";
+    final String emailChangeServiceContent = "Kính gửi: {0},\n\n"
+            + "Chúng tôi xin thông báo về sự thay đổi số lượng dịch vụ đã đặt với quý đối tác như sau:\n\n"
+            + "Dịch vụ: {1}\n"
+            + "Số lượng cũ: {2}\n"
+            + "Số lượng mới: {3}\n"
+            + "Ngày yêu cầu: {4}.\n\n"
+            + "Tổng số tiền mới: {5,number,#,###.##} (đ)\n\n"
+            + "Lưu ý: Đây chỉ là thông báo về sự thay đổi số lượng dịch vụ. Nếu có bất kỳ vấn đề gì, vui lòng phản hồi trong thời gian sớm nhất.\n\n"
+            + "Trân trọng,\n"
+            + "Viet Travel";
+    final String emailChangeServiceSubject = "[Viet Travel - {0}] - Thông báo thay đổi số lượng dịch vụ.";
+
+    final String emailUpdateServiceContent = "Kính gửi: {0},\n\n"
+            + "Chúng tôi xin thông báo về việc thay đổi số lượng dịch vụ đã đặt trước đó. Vui lòng xem thông tin chi tiết dưới đây và xác nhận lại khả năng đáp ứng:\n\n"
+            + "**Dịch vụ:** {1}\n"
+            + "**Số lượng ban đầu đã xác nhận:** {2}\n"
+            + "**Số lượng mới yêu cầu:** {3}\n"
+            + "**Ngày yêu cầu:** {4}.\n\n"
+            + "**Lưu ý:** Dịch vụ với số lượng **{2}** đã được xác nhận trước đó. Chúng tôi cần xác nhận từ quý đối tác về việc có thể đáp ứng dịch vụ thay đổi hay không.\n\n"
+            + "Tổng số tiền điều chỉnh (dự kiến): {5,number,#,###.##} (đ)\n\n"
+            + "**Vui lòng xác nhận yêu cầu tại đường link sau:**\n"
+            + "{6}\n\n"
+            + "Kính mong quý đối tác phản hồi lại trong thời gian sớm nhất để chúng tôi có thể cập nhật thông tin đặt hàng.\n\n"
+            + "Trân trọng,\n"
+            + "**Viet Travel**";
+    final String emailUpdateServiceSubject = "[Viet Travel - {0}] - Yêu cầu xác nhận thay đổi số lượng dịch vụ.";
+
+    final String emailCancelServiceContent = "Kính gửi: {0},\n\n"
+            + "Chúng tôi xin thông báo về việc hủy dịch vụ đã đặt với quý đối tác như sau:\n\n"
+            + "Dịch vụ: {1}\n"
+            + "Số lượng: {2}\n"
+            + "Ngày yêu cầu: {3}.\n\n"
+            + "Tổng số tiền đã đặt: {4,number,#,###.##} (đ)\n"
+            + "Mọi vấn đề về hoàn tiền có liên quan sẽ được thực hiện theo thỏa thuận hợp đồng đã ký.\n\n"
+            + "Lưu ý: Nếu có bất kỳ thắc mắc hoặc vấn đề gì, vui lòng phản hồi trong thời gian sớm nhất.\n\n"
+            + "Trân trọng,\n"
+            + "Viet Travel";
+
+    final String emailCancelServiceSubject = "[Viet Travel - {0}] - Thông báo hủy dịch vụ.";
+
 
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
@@ -238,6 +277,7 @@ public class OperatorServiceImpl implements OperatorService {
 
                 OperatorTourCustomerDTO responseDTO = OperatorTourCustomerDTO.builder()
                         .tourBookingId(booking.getId())
+                        .tourBookingCode(booking.getBookingCode())
                         .tourBookingCategory(booking.getTourBookingCategory())
                         .listCustomer(customers)
                         .build();
@@ -513,6 +553,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .receivedBy(requestDTO.getReceivedBy())
                     .paymentMethod(requestDTO.getPaymentMethod())
                     .notes(requestDTO.getNotes())
+                    .transactionStatus(TransactionStatus.PENDING)
                     .build();
 
             Transaction transaction1 = transactionRepository.save(transaction);
@@ -639,43 +680,23 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId());
 
-            //Dịch vụ chưa được đặt => update số lượng
-            if (bookingService != null && bookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)) {
-                bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
-                bookingService.setRequestDate(requestDTO.getRequestDate());
-                bookingServiceRepository.save(bookingService);
+            //kiểm tra xem dịch vụ đã có trong tour booking chưa
+            if (bookingService != null) {
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Dịch vụ đã tồn tại trong tour", requestDTO);
             } else {
-                //dịch vụ chưa có thì add vào db
-                if (bookingService == null) {
-                    bookingService = TourBookingService.builder()
-                            .booking(booking)
-                            .service(service)
-                            .currentQuantity(requestDTO.getAddQuantity())
-                            .requestDate(requestDTO.getRequestDate())
-                            .deleted(Boolean.FALSE)
-                            .reason(requestDTO.getReason())
-                            .status(TourBookingServiceStatus.NOT_ORDERED)
-                            .build();
-                    bookingServiceRepository.save(bookingService);
-                }
-                if (bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
-                    bookingService.setCurrentQuantity(bookingService.getCurrentQuantity() + requestDTO.getAddQuantity());
-                    bookingService.setStatus(TourBookingServiceStatus.CHANGED);
-                    bookingServiceRepository.save(bookingService);
-                }
-
-                PreviewMailDTO previewMailDTO = PreviewMailDTO.builder()
-                        .bookingServiceId(bookingService.getId())
-                        .serviceId(service.getId())
-                        .orderQuantity(requestDTO.getAddQuantity())
+                bookingService = TourBookingService.builder()
+                        .booking(booking)
+                        .service(service)
+                        .currentQuantity(requestDTO.getAddQuantity())
                         .requestDate(requestDTO.getRequestDate())
+                        .deleted(Boolean.FALSE)
+                        .reason(requestDTO.getReason())
+                        .status(TourBookingServiceStatus.AVAILABLE)
                         .build();
-
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Need send mail", previewMailDTO);
-
+                bookingServiceRepository.save(bookingService);
             }
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", "Update quantity successfully");
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Thêm dịch vụ vào booking thành công", requestDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }
@@ -699,7 +720,8 @@ public class OperatorServiceImpl implements OperatorService {
                     service.getName(),
                     previewMailDTO.getOrderQuantity(),
                     previewMailDTO.getRequestDate(),
-                    previewMailDTO.getOrderQuantity() * service.getNettPrice()
+                    previewMailDTO.getOrderQuantity() * service.getNettPrice(),
+                    "http://localhost:8080/"
             );
             String emailSubject = MessageFormat.format(
                     emailOrderServiceSubject,
@@ -739,14 +761,184 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
+    public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
         try {
-            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
                     () -> BusinessException.of("Booking service not found")
             );
-            emailService.sendMailServiceProvider(mailServiceDTO);
-            bookingService.setStatus(TourBookingServiceStatus.PENDING);
+            TourBookingServiceStatus currentStatus = bookingService.getStatus();
+
+            if (currentStatus.equals(TourBookingServiceStatus.PENDING)
+                    || currentStatus.equals(TourBookingServiceStatus.APPROVED)) {
+
+                //Gửi mail hủy cho nhà cung cấp (chỉ là thông báo)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of("Service not found")
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of("Service Provider not found")
+                );
+                String content = MessageFormat.format(emailCancelServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestDate(),
+                        bookingService.getCurrentQuantity() * service.getNettPrice());
+
+                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(tourBookingServiceId)
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+            }
+
+
+            bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+
             bookingServiceRepository.save(bookingService);
+
+            TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
+                    () -> BusinessException.of("No booking service found")
+            );
+
+            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
+            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+            }
+
+            //Trường hợp thay đổi số lượng ở trạng thái PENDING
+            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of("Service not found")
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of("Service Provider not found")
+                );
+                String content = MessageFormat.format(emailChangeServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        requestDTO.getNewQuantity(),
+                        bookingService.getRequestDate(),
+                        requestDTO.getNewQuantity() * service.getNettPrice());
+
+                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(requestDTO.getTourBookingServiceId())
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+
+                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+            }
+
+            //Trường hợp thay đổi số lượng ở trạng thái APPROVED
+            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
+                bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of("Service not found")
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of("Service Provider not found")
+                );
+                String content = MessageFormat.format(emailUpdateServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        requestDTO.getNewQuantity(),
+                        bookingService.getRequestDate(),
+                        requestDTO.getNewQuantity() * service.getNettPrice(),
+                        "http://localhost:8080/");
+
+                String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(requestDTO.getTourBookingServiceId())
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+
+            }
+            bookingServiceRepository.save(bookingService);
+
+            TourBooking booking = bookingService.getBooking();
+            Service service = bookingService.getService();
+            Tour tour = (booking != null) ? booking.getTour() : null;
+            TourSchedule tourSchedule = (booking != null) ? booking.getTourSchedule() : null;
+            TourDay tourDay = bookingService.getTourDay();
+
+            ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
+                    .tourBookingServiceId(requestDTO.getTourBookingServiceId())
+                    .tourName((tour != null) ? tour.getName() : null)
+                    .tourType((tour != null) ? tour.getTourType().toString() : null)
+                    .startDate((tourSchedule != null) ? tourSchedule.getStartDate() : null)
+                    .endDate((tourSchedule != null) ? tourSchedule.getEndDate() : null)
+                    .dayNumber((tourDay != null) ? tourDay.getDayNumber() : null)
+                    .bookingCode((booking != null) ? booking.getBookingCode() : null)
+                    .status((bookingService.getStatus() != null) ? bookingService.getStatus().name() : null)
+                    .reason(bookingService.getReason())
+                    .proposer((booking != null && booking.getUser() != null) ? booking.getUser().getFullName() : null)
+                    .updatedAt(bookingService.getUpdatedAt())
+                    .serviceName((service != null) ? service.getName() : null)
+                    .nettPrice((service != null) ? service.getNettPrice() : null)
+                    .requestQuantity(bookingService.getRequestedQuantity())
+                    .currentQuantity(bookingService.getCurrentQuantity())
+                    .totalPrice(Optional.ofNullable(service)
+                            .map(s -> s.getNettPrice() * bookingService.getCurrentQuantity())
+                            .orElse(null))
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Update service quantity success", resultDTO);
+        } catch (
+                Exception ex) {
+            throw BusinessException.of("Fail", ex);
+
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
+        try {
+//            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
+//                    () -> BusinessException.of("Booking service not found")
+//            );
+            emailService.sendMailServiceProvider(mailServiceDTO);
+//            bookingService.setStatus(TourBookingServiceStatus.PENDING);
+//            bookingServiceRepository.save(bookingService);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
@@ -754,28 +946,13 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<?> getListChangeServiceRequest(int page, int size) {
+    public GeneralResponse<?> getListServiceRequest(int page, int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByStatusIn(
-                    List.of(TourBookingServiceStatus.ADD_REQUEST, TourBookingServiceStatus.CANCEL_REQUEST),
-                    pageable
-            );
-
+            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByRequestedQuantityGreaterThanOrStatus(TourBookingServiceStatus.CHECKING, pageable);
             List<ChangeServiceDTO> resultDTO = bookingServicePage.getContent().stream()
-                    .map(service -> new ChangeServiceDTO(
-                            service.getId(),
-                            service.getBooking() != null ? service.getBooking().getTour().getName() : null, // tourName
-                            service.getBooking() != null ? service.getBooking().getTour().getTourType().toString() : null, // tourType
-                            service.getTourDay() != null ? service.getTourDay().getDayNumber() : null, // dayNumber
-                            service.getBooking() != null ? service.getBooking().getBookingCode() : null, // bookingCode
-                            service.getReason(), // reason
-                            service.getBooking() != null && service.getBooking().getUser() != null
-                                    ? service.getBooking().getUser().getFullName()
-                                    : null, // proposer
-                            service.getStatus() != null ? service.getStatus().name() : null, // status
-                            service.getUpdatedAt() // updatedAt
-                    ))
+                    .map(bookingServiceMapper::toChangeServiceDTO
+                    )
                     .collect(Collectors.toList());
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
@@ -787,30 +964,34 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> getChangeServiceRequestDetail(Long tourBookingServiceId) {
         try {
-            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("No booking sservice found")
-            );
+            TourBookingService bookingService = bookingServiceRepository.findByIdWithDetails(tourBookingServiceId)
+                    .orElseThrow(() -> BusinessException.of("No booking service found"));
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();
+            Tour tour = (booking != null) ? booking.getTour() : null;
+            TourSchedule tourSchedule = (booking != null) ? booking.getTourSchedule() : null;
+            TourDay tourDay = bookingService.getTourDay();
+
             ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
                     .tourBookingServiceId(tourBookingServiceId)
-                    .tourName(booking != null ? booking.getTour().getName() : null)
-                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
-                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
-                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
-                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
-                    .bookingCode(booking != null ? booking.getBookingCode() : null)
-                    .status(bookingService.getStatus() != null ? bookingService.getStatus().name() : null)
+                    .tourName((tour != null) ? tour.getName() : null)
+                    .tourType((tour != null) ? tour.getTourType().toString() : null)
+                    .startDate((tourSchedule != null) ? tourSchedule.getStartDate() : null)
+                    .endDate((tourSchedule != null) ? tourSchedule.getEndDate() : null)
+                    .dayNumber((tourDay != null) ? tourDay.getDayNumber() : null)
+                    .bookingCode((booking != null) ? booking.getBookingCode() : null)
+                    .status((bookingService.getStatus() != null) ? bookingService.getStatus().name() : null)
                     .reason(bookingService.getReason())
-                    .proposer(booking != null && booking.getUser() != null
-                            ? booking.getUser().getFullName()
-                            : null)
+                    .proposer((booking != null && booking.getUser() != null) ? booking.getUser().getFullName() : null)
                     .updatedAt(bookingService.getUpdatedAt())
-                    .serviceName(service != null ? service.getName() : null)
-                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .serviceName((service != null) ? service.getName() : null)
+                    .nettPrice((service != null) ? service.getNettPrice() : null)
                     .requestQuantity(bookingService.getRequestedQuantity())
-                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .currentQuantity(bookingService.getCurrentQuantity())
+                    .totalPrice(Optional.ofNullable(service)
+                            .map(s -> s.getNettPrice() * bookingService.getCurrentQuantity())
+                            .orElse(null))
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
@@ -826,37 +1007,46 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
-                bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
+            //Trường hợp kiểm tra khả dụng của dịch vụ
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
+                bookingService.setStatus(TourBookingServiceStatus.NOT_AVAILABLE);
             }
-            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
-                bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+
+            //Trường hợp thay đổi số lượng
+            if (bookingService.getRequestedQuantity() > 0) {
+                bookingService.setRequestedQuantity(0);
             }
-            TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
+
+            bookingServiceRepository.save(bookingService);
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();
+            Tour tour = (booking != null) ? booking.getTour() : null;
+            TourSchedule tourSchedule = (booking != null) ? booking.getTourSchedule() : null;
+            TourDay tourDay = bookingService.getTourDay();
+
             ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
                     .tourBookingServiceId(tourBookingServiceId)
-                    .tourName(booking != null ? booking.getTour().getName() : null)
-                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
-                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
-                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
-                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
-                    .bookingCode(booking != null ? booking.getBookingCode() : null)
-                    .status(newBookingService.getStatus() != null ? newBookingService.getStatus().name() : null)
+                    .tourName((tour != null) ? tour.getName() : null)
+                    .tourType((tour != null) ? tour.getTourType().toString() : null)
+                    .startDate((tourSchedule != null) ? tourSchedule.getStartDate() : null)
+                    .endDate((tourSchedule != null) ? tourSchedule.getEndDate() : null)
+                    .dayNumber((tourDay != null) ? tourDay.getDayNumber() : null)
+                    .bookingCode((booking != null) ? booking.getBookingCode() : null)
+                    .status((bookingService.getStatus() != null) ? bookingService.getStatus().name() : null)
                     .reason(bookingService.getReason())
-                    .proposer(booking != null && booking.getUser() != null
-                            ? booking.getUser().getFullName()
-                            : null)
+                    .proposer((booking != null && booking.getUser() != null) ? booking.getUser().getFullName() : null)
                     .updatedAt(bookingService.getUpdatedAt())
-                    .serviceName(service != null ? service.getName() : null)
-                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .serviceName((service != null) ? service.getName() : null)
+                    .nettPrice((service != null) ? service.getNettPrice() : null)
                     .requestQuantity(bookingService.getRequestedQuantity())
-                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .currentQuantity(bookingService.getCurrentQuantity())
+                    .totalPrice(Optional.ofNullable(service)
+                            .map(s -> s.getNettPrice() * bookingService.getCurrentQuantity())
+                            .orElse(null))
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service request success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }
@@ -869,35 +1059,111 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("No booking service found")
             );
 
-            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
-                bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
-                bookingService.setDeleted(Boolean.TRUE);
+            //Trường hợp kiểm tra khả dụng của dịch vụ
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
+                bookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
             }
-            if (bookingService.getStatus().equals(TourBookingServiceStatus.ADD_REQUEST)) {
-                bookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
+
+            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
+            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
+                bookingService.setRequestedQuantity(0);
             }
-            TourBookingService newBookingService = bookingServiceRepository.save(bookingService);
+
+            //Trường hợp thay đổi số lượng ở trạng thái PENDING
+            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+                bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
+                bookingService.setRequestedQuantity(0);
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of("Service not found")
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of("Service Provider not found")
+                );
+                String content = MessageFormat.format(emailChangeServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestedQuantity(),
+                        bookingService.getRequestDate(),
+                        bookingService.getRequestedQuantity() * service.getNettPrice());
+
+                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(tourBookingServiceId)
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+            }
+
+            //Trường hợp thay đổi số lượng ở trạng thái APPROVED
+            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
+                bookingService.setStatus(TourBookingServiceStatus.PENDING);
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of("Service not found")
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of("Service Provider not found")
+                );
+                String content = MessageFormat.format(emailUpdateServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestedQuantity(),
+                        bookingService.getRequestDate(),
+                        bookingService.getRequestedQuantity() * service.getNettPrice(),
+                        "http://localhost:8080/");
+
+                String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(tourBookingServiceId)
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+            }
+            bookingServiceRepository.save(bookingService);
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();
+            Tour tour = (booking != null) ? booking.getTour() : null;
+            TourSchedule tourSchedule = (booking != null) ? booking.getTourSchedule() : null;
+            TourDay tourDay = bookingService.getTourDay();
+
             ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
                     .tourBookingServiceId(tourBookingServiceId)
-                    .tourName(booking != null ? booking.getTour().getName() : null)
-                    .tourType(booking != null ? booking.getTour().getTourType().toString() : null)
-                    .startDate(booking != null ? booking.getTourSchedule().getStartDate() : null)
-                    .endDate(booking != null ? booking.getTourSchedule().getEndDate() : null)
-                    .dayNumber(bookingService.getTourDay() != null ? bookingService.getTourDay().getDayNumber() : null)
-                    .bookingCode(booking != null ? booking.getBookingCode() : null)
-                    .status(newBookingService.getStatus() != null ? newBookingService.getStatus().name() : null)
+                    .tourName((tour != null) ? tour.getName() : null)
+                    .tourType((tour != null) ? tour.getTourType().toString() : null)
+                    .startDate((tourSchedule != null) ? tourSchedule.getStartDate() : null)
+                    .endDate((tourSchedule != null) ? tourSchedule.getEndDate() : null)
+                    .dayNumber((tourDay != null) ? tourDay.getDayNumber() : null)
+                    .bookingCode((booking != null) ? booking.getBookingCode() : null)
+                    .status((bookingService.getStatus() != null) ? bookingService.getStatus().name() : null)
                     .reason(bookingService.getReason())
-                    .proposer(booking != null && booking.getUser() != null
-                            ? booking.getUser().getFullName()
-                            : null)
+                    .proposer((booking != null && booking.getUser() != null) ? booking.getUser().getFullName() : null)
                     .updatedAt(bookingService.getUpdatedAt())
-                    .serviceName(service != null ? service.getName() : null)
-                    .nettPrice(service != null ? service.getNettPrice() : null)
+                    .serviceName((service != null) ? service.getName() : null)
+                    .nettPrice((service != null) ? service.getNettPrice() : null)
                     .requestQuantity(bookingService.getRequestedQuantity())
-                    .totalPrice(service != null ? service.getNettPrice() * bookingService.getRequestedQuantity() : null)
+                    .currentQuantity(bookingService.getCurrentQuantity())
+                    .totalPrice(Optional.ofNullable(service)
+                            .map(s -> s.getNettPrice() * bookingService.getCurrentQuantity())
+                            .orElse(null))
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
