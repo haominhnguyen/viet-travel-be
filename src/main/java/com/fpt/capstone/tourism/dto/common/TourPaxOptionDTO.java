@@ -11,4 +11,5 @@ public class TourPaxOptionDTO {
     private int minPax;
     private int maxPax;
     private String paxRange;
+    private Double price;
 }
