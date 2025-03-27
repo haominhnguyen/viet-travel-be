@@ -826,7 +826,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 .minPax(pax.getMinPax())
                                 .maxPax(pax.getMaxPax())
                                 .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
-                                //.price(adjustedPrice)
+                                .price(pax.getNettPricePerPax())
                                 .build());
                     }
 
