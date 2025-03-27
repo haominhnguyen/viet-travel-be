@@ -22,5 +22,5 @@ public interface TourDiscountService {
 
     GeneralResponse<List<Integer>> getDayNumbersByServiceAndTour(Long tourId, Long serviceId);
 
-    GeneralResponse<ServiceProviderServicesDTO> getServicesByCategory(Long categoryId, Long locationId);
+    GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId);
 }

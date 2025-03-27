@@ -502,97 +502,141 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     }
 
     @Override
-    public GeneralResponse<ServiceProviderServicesDTO> getServicesByCategory(Long categoryId, Long locationId) {
+    public GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId) {
         try {
-            // 1. Validate service category exists
-            ServiceCategory category = serviceCategoryRepository.findById(categoryId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND + " with id: " + categoryId));
+            // 1. Validate service provider exists
+            ServiceProvider provider = serviceProviderRepository.findById(providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
 
-            // 2. Validate location exists
+            // 2. Validate service category exists
+            ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + categoryName));
+
+            // 3. Validate location exists
             Location location = locationRepository.findById(locationId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            LOCATION_NOT_FOUND + " with id: " + locationId));
 
-            // 3. Get services that match this category and location
-            List<Service> services = serviceRepository.findByServiceCategoryIdAndLocationId(categoryId, locationId);
+            // 4. Get services by provider, category, and location
+            List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderIdAndLocationId(
+                    categoryName, providerId, locationId);
 
-            // 4. Convert to DTOs with type-specific details
-            List<AvailableServiceDTO> availableServices = new ArrayList<>();
+            // 5. Convert to DTOs with type-specific details
+            List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
 
-            for (Service service : services) {
-                String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
-                String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
-
-                // Get type-specific details based on service category
-                RoomDetailDTO roomDetail = null;
-                MealDetailDTO mealDetail = null;
-                TransportDetailDTO transportDetail = null;
-
-                if (HOTEL.equalsIgnoreCase(categoryName)) {
-                    Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
-                    if (roomOpt.isPresent()) {
-                        Room room = roomOpt.get();
-                        roomDetail = RoomDetailDTO.builder()
-                                .id(room.getId())
-                                .capacity(room.getCapacity())
-                                .availableQuantity(room.getAvailableQuantity())
-                                .facilities(room.getFacilities())
-                                .build();
-                    }
-                } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
-                    Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
-                    if (mealOpt.isPresent()) {
-                        Meal meal = mealOpt.get();
-                        mealDetail = MealDetailDTO.builder()
-                                .id(meal.getId())
-                                .type(meal.getType().name())
-                                .mealDetail(meal.getMealDetail())
-                                .build();
-                    }
-                } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
-                    Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
-                    if (transportOpt.isPresent()) {
-                        Transport transport = transportOpt.get();
-                        transportDetail = TransportDetailDTO.builder()
-                                .id(transport.getId())
-                                .seatCapacity(transport.getSeatCapacity())
-                                .build();
-                    }
-                }
-
-                AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
-                        .id(service.getId())
-                        .name(service.getName())
-                        .categoryName(categoryName)
-                        .nettPrice(service.getNettPrice())
-                        .sellingPrice(service.getSellingPrice())
-                        .status(status)
-                        .startDate(service.getStartDate())
-                        .endDate(service.getEndDate())
-                        .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
-                        .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
-                        .roomDetail(roomDetail)
-                        .mealDetail(mealDetail)
-                        .transportDetail(transportDetail)
-                        .build();
-                availableServices.add(serviceDTO);
-            }
-
-            // 5. Build response
+            // 6. Build response
             ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
-                    .categoryId(categoryId)
+                    .providerId(providerId)
+                    .providerName(provider.getName())
+                    .categoryId(category.getId())
                     .categoryName(category.getCategoryName())
                     .locationId(locationId)
                     .locationName(location.getName())
                     .availableServices(availableServices)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), CATEGORY_SERVICES_LOAD_SUCCESS, response);
+            return new GeneralResponse<>(HttpStatus.OK.value(), PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS, response);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, CATEGORY_SERVICES_LOAD_FAIL, ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, PROVIDER_CATEGORY_SERVICES_LOAD_FAIL, ex);
         }
     }
+
+//    @Override
+//    public GeneralResponse<ServiceProviderServicesDTO> getServicesByCategory(Long categoryId, Long locationId) {
+//        try {
+//            // 1. Validate service category exists
+//            ServiceCategory category = serviceCategoryRepository.findById(categoryId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_CATEGORY_NOT_FOUND + " with id: " + categoryId));
+//
+//            // 2. Validate location exists
+//            Location location = locationRepository.findById(locationId)
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+//
+//            // 3. Get services that match this category and location
+//            List<Service> services = serviceRepository.findByServiceCategoryIdAndLocationId(categoryId, locationId);
+//
+//            // 4. Convert to DTOs with type-specific details
+//            List<AvailableServiceDTO> availableServices = new ArrayList<>();
+//
+//            for (Service service : services) {
+//                String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+//                String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+//
+//                // Get type-specific details based on service category
+//                RoomDetailDTO roomDetail = null;
+//                MealDetailDTO mealDetail = null;
+//                TransportDetailDTO transportDetail = null;
+//
+//                if (HOTEL.equalsIgnoreCase(categoryName)) {
+//                    Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (roomOpt.isPresent()) {
+//                        Room room = roomOpt.get();
+//                        roomDetail = RoomDetailDTO.builder()
+//                                .id(room.getId())
+//                                .capacity(room.getCapacity())
+//                                .availableQuantity(room.getAvailableQuantity())
+//                                .facilities(room.getFacilities())
+//                                .build();
+//                    }
+//                } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+//                    Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (mealOpt.isPresent()) {
+//                        Meal meal = mealOpt.get();
+//                        mealDetail = MealDetailDTO.builder()
+//                                .id(meal.getId())
+//                                .type(meal.getType().name())
+//                                .mealDetail(meal.getMealDetail())
+//                                .build();
+//                    }
+//                } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+//                    Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
+//                    if (transportOpt.isPresent()) {
+//                        Transport transport = transportOpt.get();
+//                        transportDetail = TransportDetailDTO.builder()
+//                                .id(transport.getId())
+//                                .seatCapacity(transport.getSeatCapacity())
+//                                .build();
+//                    }
+//                }
+//
+//                AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
+//                        .id(service.getId())
+//                        .name(service.getName())
+//                        .categoryName(categoryName)
+//                        .nettPrice(service.getNettPrice())
+//                        .sellingPrice(service.getSellingPrice())
+//                        .status(status)
+//                        .startDate(service.getStartDate())
+//                        .endDate(service.getEndDate())
+//                        .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+//                        .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+//                        .roomDetail(roomDetail)
+//                        .mealDetail(mealDetail)
+//                        .transportDetail(transportDetail)
+//                        .build();
+//                availableServices.add(serviceDTO);
+//            }
+//
+//            // 5. Build response
+//            ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
+//                    .categoryId(categoryId)
+//                    .categoryName(category.getCategoryName())
+//                    .locationId(locationId)
+//                    .locationName(location.getName())
+//                    .availableServices(availableServices)
+//                    .build();
+//
+//            return new GeneralResponse<>(HttpStatus.OK.value(), CATEGORY_SERVICES_LOAD_SUCCESS, response);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, CATEGORY_SERVICES_LOAD_FAIL, ex);
+//        }
+//    }
 
     @Override
     @Transactional
@@ -866,6 +910,72 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICES_LOAD_FAIL, ex);
         }
+    }
+
+    private List<AvailableServiceDTO> buildAvailableServicesDTO(List<Service> services) {
+        List<AvailableServiceDTO> availableServices = new ArrayList<>();
+
+        for (Service service : services) {
+            String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+
+            // Get type-specific details based on service category
+            RoomDetailDTO roomDetail = null;
+            MealDetailDTO mealDetail = null;
+            TransportDetailDTO transportDetail = null;
+
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (roomOpt.isPresent()) {
+                    Room room = roomOpt.get();
+                    roomDetail = RoomDetailDTO.builder()
+                            .id(room.getId())
+                            .capacity(room.getCapacity())
+                            .availableQuantity(room.getAvailableQuantity())
+                            .facilities(room.getFacilities())
+                            .build();
+                }
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (mealOpt.isPresent()) {
+                    Meal meal = mealOpt.get();
+                    mealDetail = MealDetailDTO.builder()
+                            .id(meal.getId())
+                            .type(meal.getType().name())
+                            .mealDetail(meal.getMealDetail())
+                            .build();
+                }
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+                Optional<Transport> transportOpt = transportRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (transportOpt.isPresent()) {
+                    Transport transport = transportOpt.get();
+                    transportDetail = TransportDetailDTO.builder()
+                            .id(transport.getId())
+                            .seatCapacity(transport.getSeatCapacity())
+                            .build();
+                }
+            }
+
+            AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .categoryName(categoryName)
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .status(status)
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+                    .roomDetail(roomDetail)
+                    .mealDetail(mealDetail)
+                    .transportDetail(transportDetail)
+                    .build();
+
+            availableServices.add(serviceDTO);
+        }
+
+        return availableServices;
     }
 
     private String determineServiceStatus(LocalDateTime startDateTime, LocalDateTime endDateTime) {
