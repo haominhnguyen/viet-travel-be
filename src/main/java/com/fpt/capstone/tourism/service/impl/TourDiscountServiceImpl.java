@@ -508,24 +508,19 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             ServiceProvider provider = serviceProviderRepository.findById(providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
                             SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
-
             // 2. Validate service category exists
             ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
                             SERVICE_CATEGORY_NOT_FOUND + " with name: " + categoryName));
-
             // 3. Validate location exists
             Location location = locationRepository.findById(locationId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
                             LOCATION_NOT_FOUND + " with id: " + locationId));
-
             // 4. Get services by provider, category, and location
             List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderIdAndLocationId(
                     categoryName, providerId, locationId);
-
             // 5. Convert to DTOs with type-specific details
             List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
-
             // 6. Build response
             ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
                     .providerId(providerId)
@@ -536,7 +531,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .locationName(location.getName())
                     .availableServices(availableServices)
                     .build();
-
             return new GeneralResponse<>(HttpStatus.OK.value(), PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS, response);
         } catch (BusinessException ex) {
             throw ex;
