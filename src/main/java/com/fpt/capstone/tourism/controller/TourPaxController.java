@@ -31,7 +31,7 @@ public class TourPaxController {
         return ResponseEntity.ok(tourPaxService.getTourPaxConfiguration(tourId, paxId));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<GeneralResponse<TourPaxFullDTO>> createTourPaxConfiguration(
             @PathVariable Long tourId,
             @RequestBody TourPaxCreateRequestDTO request) {

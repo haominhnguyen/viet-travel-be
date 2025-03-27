@@ -25,4 +25,5 @@ public class TourPaxFullDTO {
     private Date validFrom;
     private Date validTo;
     private boolean isValid;
+    private boolean isDeleted;
 }
