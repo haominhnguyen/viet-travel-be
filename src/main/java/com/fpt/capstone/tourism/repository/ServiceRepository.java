@@ -75,5 +75,14 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findByServiceProviderIdAndCategoryId(
             @Param("providerId") Long providerId,
             @Param("categoryId") Long categoryId);
+
+    @Query("SELECT s FROM Service s " +
+            "WHERE s.serviceCategory.id = :categoryId " +
+            "AND :locationId IN (SELECT l.id FROM Location l " +
+            "JOIN ServiceProvider sp ON sp.location.id = l.id " +
+            "WHERE sp.id = s.serviceProvider.id)")
+    List<Service> findByServiceCategoryIdAndLocationId(
+            @Param("categoryId") Long categoryId,
+            @Param("locationId") Long locationId);
 }
 

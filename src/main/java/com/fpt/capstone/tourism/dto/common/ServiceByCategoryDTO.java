@@ -29,7 +29,6 @@ public class ServiceByCategoryDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Map<String, PaxPriceInfoDTO> paxPrices; // Key: paxId, Value: PaxPriceInfoDTO
-
     private RoomDetailDTO roomDetail;
     private MealDetailDTO mealDetail;
     private TransportDetailDTO transportDetail;

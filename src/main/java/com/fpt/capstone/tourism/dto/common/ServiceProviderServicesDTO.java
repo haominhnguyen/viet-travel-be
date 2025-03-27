@@ -9,6 +9,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceProviderServicesDTO {
+    private Long categoryId;
+    private String categoryName;
     private Long providerId;
     private String providerName;
     private Long locationId;

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.GeoPositionRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ActivityDetailResponseDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.service.impl.ServiceProviderServiceImpl.removeAccents;
 
 
-@Service
+@org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepository activityRepository;
@@ -48,7 +48,9 @@ public class ActivityServiceImpl implements ActivityService {
     private final TourDayActivityRepository tourDayActivityRepository;
     private final ActivityCategoryRepository activityCategoryRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final ServiceRepository serviceRepository;
     private final LocationRepository locationRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
 
     @Override
     public List<ActivityDTO> findRecommendedActivities(int numberActivity) {
@@ -248,39 +250,44 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public GeneralResponse<ActivityDetailDTO> getActivityDetail(Long tourId, Long activityId) {
+    public GeneralResponse<ActivityDetailResponseDTO> getActivityDetail(Long tourId, Long serviceId) {
         try {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
 
-            // 2. Get activity
-            Activity activity = activityRepository.findById(activityId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ACTIVITY_NOT_FOUND + " with id: " + activityId));
+            // 2. Validate service exists
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
 
-            // 3. Find the TourDayActivity entry
-            TourDayActivity tourDayActivity = tourDayActivityRepository.findByActivityIdAndTourDayTourId(activityId, tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ACTIVITY_NOT_ASSOCIATED));
+            // 3. Find the TourDayService entry
+            TourDayService tourDayService = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED));
 
-            TourDay tourDay = tourDayActivity.getTourDay();
-            // 4. Get pax options and calculate adjusted prices
+            TourDay tourDay = tourDayService.getTourDay();
+
+            // 4. Get pax options
             List<TourPax> paxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+
             // 5. Build response
-            ActivityDetailDTO response = ActivityDetailDTO.builder()
-                    .id(activity.getId())
-                    .title(activity.getTitle())
-                    .content(activity.getContent())
-                    .imageUrl(activity.getImageUrl())
+            ActivityDetailResponseDTO response = ActivityDetailResponseDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .imageUrl(service.getImageUrl())
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .deleted(service.getDeleted())
+                    .categoryId(service.getServiceCategory() != null ? service.getServiceCategory().getId() : null)
+                    .categoryName(service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null)
+                    .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
                     .dayNumber(tourDay.getDayNumber())
                     .locationId(tourDay.getLocation() != null ? tourDay.getLocation().getId() : null)
                     .locationName(tourDay.getLocation() != null ? tourDay.getLocation().getName() : null)
-                    .categoryId(activity.getActivityCategory() != null ? activity.getActivityCategory().getId() : null)
-                    .categoryName(activity.getActivityCategory() != null ? activity.getActivityCategory().getName() : null)
-                    .pricePerPerson(activity.getPricePerPerson())
-                    .numberTicket(tourDayActivity.getNumberTicket())
-                    .latitude(activity.getGeoPosition() != null ? activity.getGeoPosition().getLatitude() : null)
-                    .longitude(activity.getGeoPosition() != null ? activity.getGeoPosition().getLongitude() : null)
                     .build();
+
             return new GeneralResponse<>(HttpStatus.OK.value(), ACTIVITY_DETAIL_LOAD_SUCCESS, response);
         } catch (BusinessException ex) {
             throw ex;
