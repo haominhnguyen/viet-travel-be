@@ -2,10 +2,12 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourBasicDTO;
+import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
 import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.TourMarkupResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
 import com.fpt.capstone.tourism.model.User;
 import org.springframework.data.domain.Pageable;
@@ -32,4 +34,7 @@ public interface TourService {
 
     @Transactional
     GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO, User currentUser);
+
+    GeneralResponse<TourMarkupResponseDTO> getTourMarkupPercentage(Long tourId);
+    GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent);
 }

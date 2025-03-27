@@ -298,6 +298,10 @@ public class Constants {
         public static final String CATEGORY_SERVICES_LOAD_FAIL = "Failed to load category services";
         public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Provider category services loaded successfully";
         public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Failed to load provider category services";
+        public static final String MARKUP_UPDATE_SUCCESS = "Markup updated successfully";
+        public static final String MARKUP_UPDATE_FAIL = "Failed to update markup";
+        public static final String MARKUP_RETRIEVE_SUCCESS = "Markup retrieved successfully";
+        public static final String MARKUP_RETRIEVE_FAIL = "Failed to retrieve markup";
     }
 
 

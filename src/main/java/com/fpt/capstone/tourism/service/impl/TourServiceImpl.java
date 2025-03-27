@@ -514,6 +514,49 @@ public class TourServiceImpl implements TourService {
         }
     }
 
+    @Override
+    @Transactional
+    public GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Update markup percentage only, without calculating any prices
+            tour.setMarkUpPercent(markUpPercent);
+
+            // 3. Save the updated tour
+            tour = tourRepository.save(tour);
+
+            // 4. Map to TourResponseDTO using the specified function
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(tour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), MARKUP_UPDATE_SUCCESS, tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, MARKUP_UPDATE_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourMarkupResponseDTO> getTourMarkupPercentage(Long tourId) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Create response DTO
+            TourMarkupResponseDTO responseDTO = mapTourToMarkupResponseDTO(tour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), MARKUP_RETRIEVE_SUCCESS, responseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, MARKUP_RETRIEVE_FAIL, ex);
+        }
+    }
+
     private TourResponseDTO mapToTourResponseDTO(Tour tour) {
         return TourResponseDTO.builder()
                 .id(tour.getId())
@@ -687,4 +730,15 @@ public class TourServiceImpl implements TourService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
     }
 
+    private TourMarkupResponseDTO mapTourToMarkupResponseDTO(Tour tour) {
+        if (tour == null) {
+            return null;
+        }
+
+        return TourMarkupResponseDTO.builder()
+                .tourId(tour.getId())
+                .tourName(tour.getName())
+                .markUpPercent(tour.getMarkUpPercent())
+                .build();
+    }
 }

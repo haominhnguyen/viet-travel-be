@@ -36,6 +36,7 @@ public class TourDTO {
     private int numberDays;
     private int numberNights;
     private String note;
+    private double markUpPercent;
     private TourType tourType;
     private TourStatus tourStatus;
     private List<LocationDTO> locations;
