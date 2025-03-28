@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/head-business/activity")
+@RequestMapping("/head-of-business/activity")
 public class ActivityController {
     private final ActivityService activityService;
 

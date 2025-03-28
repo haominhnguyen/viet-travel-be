@@ -5,6 +5,8 @@ import com.fpt.capstone.tourism.dto.request.ServiceCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 
+import java.util.List;
+
 public interface TourDiscountService {
     GeneralResponse<ServiceByCategoryDTO> getServiceDetail(Long tourId, Long serviceId);
     GeneralResponse<ServiceProviderServicesDTO> getServiceProviderServices(Long providerId, Long locationId);
@@ -17,4 +19,8 @@ public interface TourDiscountService {
     GeneralResponse<ServiceByCategoryDTO> createServiceDetail(Long tourId, ServiceCreateRequestDTO request);
 
     GeneralResponse<Void> changeServiceStatus(Long tourId, Long serviceId, Boolean delete);
+
+    GeneralResponse<List<Integer>> getDayNumbersByServiceAndTour(Long tourId, Long serviceId);
+
+    GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId);
 }

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.GeoPositionRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ActivityDetailResponseDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
@@ -10,7 +11,7 @@ import com.fpt.capstone.tourism.mapper.ActivityMapper;
 import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.repository.ActivityRepository;
+import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ActivityService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
@@ -23,18 +24,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.service.impl.ServiceProviderServiceImpl.removeAccents;
 
 
-@Service
+@org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepository activityRepository;
@@ -42,6 +44,13 @@ public class ActivityServiceImpl implements ActivityService {
     private final GeoPositionMapper geoPositionMapper;
     private final LocationMapper locationMapper;
     private final ActivityCategoryMapper activityCategoryMapper;
+    private final TourRepository tourRepository;
+    private final TourDayActivityRepository tourDayActivityRepository;
+    private final ActivityCategoryRepository activityCategoryRepository;
+    private final TourPaxRepository tourPaxRepository;
+    private final ServiceRepository serviceRepository;
+    private final LocationRepository locationRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
 
     @Override
     public List<ActivityDTO> findRecommendedActivities(int numberActivity) {
@@ -126,7 +135,7 @@ public class ActivityServiceImpl implements ActivityService {
             if(!activityDTO.getTitle().equals(activity.getTitle())){
                 //Check duplicate activity
                 if(activityRepository.findByTitle(activityDTO.getTitle()) != null){
-                    throw BusinessException.of("Existed activity");
+                    throw BusinessException.of(ACTIVITY_EXISTED);
                 }
                 activity.setTitle(activityDTO.getTitle());
             }
@@ -201,6 +210,133 @@ public class ActivityServiceImpl implements ActivityService {
         }
     }
 
+    @Override
+    public GeneralResponse<List<ActivityListDTO>> getActivityList(Long tourId) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Get all tour day activities for this tour
+            List<TourDayActivity> tourDayActivities = tourDayActivityRepository.findByTourDayTourIdAndDeletedFalse(tourId);
+
+            List<ActivityListDTO> activityList = new ArrayList<>();
+
+            for (TourDayActivity tourDayActivity : tourDayActivities) {
+                TourDay tourDay = tourDayActivity.getTourDay();
+                Activity activity = tourDayActivity.getActivity();
+
+                // Calculate pax prices for this activity
+                List<TourPax> paxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+
+                ActivityListDTO activityDTO = ActivityListDTO.builder()
+                        .id(activity.getId())
+                        .dayNumber(tourDay.getDayNumber())
+                        .locationName(tourDay.getLocation() != null ? tourDay.getLocation().getName() : null)
+                        .activityName(activity.getTitle())
+                        .categoryName(activity.getActivityCategory() != null ? activity.getActivityCategory().getName() : null)
+                        .pricePerPerson(activity.getPricePerPerson())
+                        .build();
+
+                activityList.add(activityDTO);
+            }
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), ACTIVITY_LIST_LOAD_SUCCESS, activityList);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, ACTIVITY_LIST_LOAD_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ActivityDetailResponseDTO> getActivityDetail(Long tourId, Long serviceId) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Validate service exists
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+
+            // 3. Find the TourDayService entry
+            TourDayService tourDayService = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED));
+
+            TourDay tourDay = tourDayService.getTourDay();
+
+            // 4. Get pax options
+            List<TourPax> paxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+
+            // 5. Build response
+            ActivityDetailResponseDTO response = ActivityDetailResponseDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .imageUrl(service.getImageUrl())
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .deleted(service.getDeleted())
+                    .categoryId(service.getServiceCategory() != null ? service.getServiceCategory().getId() : null)
+                    .categoryName(service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null)
+                    .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+                    .dayNumber(tourDay.getDayNumber())
+                    .locationId(tourDay.getLocation() != null ? tourDay.getLocation().getId() : null)
+                    .locationName(tourDay.getLocation() != null ? tourDay.getLocation().getName() : null)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), ACTIVITY_DETAIL_LOAD_SUCCESS, response);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, ACTIVITY_DETAIL_LOAD_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<ActivityBasicDTO>> getActivitiesByLocationAndCategory(Long locationId, Long categoryId) {
+        try {
+            // Validate location exists
+            locationRepository.findById(locationId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+
+            // Validate category exists
+            activityCategoryRepository.findById(categoryId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, CATEGORY_NOT_FOUND + " with id: " + categoryId));
+
+            // Get activities by location and category
+            List<Activity> activities = activityRepository.findByLocationIdAndActivityCategoryIdAndDeletedFalse(locationId, categoryId);
+
+            List<ActivityBasicDTO> activityDTOs = activities.stream()
+                    .map(activity -> ActivityBasicDTO.builder()
+                            .id(activity.getId())
+                            .title(activity.getTitle())
+                            .pricePerPerson(activity.getPricePerPerson())
+                            .imageUrl(activity.getImageUrl())
+                            .build())
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), ACTIVITY_LOADED_SUCCESS, activityDTOs);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, ACTIVITY_LOADED_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ActivityDetailDTO> createActivity(Long tourId, ActivityCreateUpdateRequestDTO request) {
+        return null;
+    }
+
+    @Override
+    public GeneralResponse<ActivityDetailDTO> updateActivity(Long tourId, Long activityId, ActivityCreateUpdateRequestDTO request) {
+        return null;
+    }
+
     private Specification<Activity> buildSearchSpecification(String keyword, Boolean isDeleted, Long categoryId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -244,10 +380,6 @@ public class ActivityServiceImpl implements ActivityService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
-
-
-
     private GeneralResponse<PagingDTO<List<ActivityDTO>>> buildPagedResponse(Page<Activity> activityPage, List<ActivityDTO> activityDTOS) {
         PagingDTO<List<ActivityDTO>> pagingDTO = PagingDTO.<List<ActivityDTO>>builder()
                 .page(activityPage.getNumber())

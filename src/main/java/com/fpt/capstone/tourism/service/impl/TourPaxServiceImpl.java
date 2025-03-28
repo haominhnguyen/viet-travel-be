@@ -42,7 +42,8 @@ public class TourPaxServiceImpl implements TourPaxService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
 
-            List<TourPax> paxConfigurations = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+            // Updated to use the repository method that filters by deleted=false
+            List<TourPax> paxConfigurations = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
             Date now = new Date();
 
             List<TourPaxFullDTO> paxDTOs = paxConfigurations.stream()
@@ -142,6 +143,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .sellingPrice(request.getSellingPrice())
                     .validFrom(request.getValidFrom())
                     .validTo(request.getValidTo())
+                    .deleted(false) // Explicitly set deleted to false
                     .build();
 
             pax = tourPaxRepository.save(pax);
@@ -160,6 +162,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .validFrom(pax.getValidFrom())
                     .validTo(pax.getValidTo())
                     .isValid(now.after(pax.getValidFrom()) && now.before(pax.getValidTo()))
+                    .isDeleted(false)
                     .build();
 
             return new GeneralResponse<>(HttpStatus.CREATED.value(), PAX_CONFIG_CREATE_SUCCESS, paxDTO);
@@ -233,6 +236,7 @@ public class TourPaxServiceImpl implements TourPaxService {
 
             pax.setValidFrom(validFrom);
             pax.setValidTo(validTo);
+            pax.setDeleted(false); // Explicitly set deleted to false when updating
 
             pax = tourPaxRepository.save(pax);
 
@@ -250,6 +254,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .validFrom(pax.getValidFrom())
                     .validTo(pax.getValidTo())
                     .isValid(now.after(pax.getValidFrom()) && now.before(pax.getValidTo()))
+                    .isDeleted(false) // Also ensure DTO has correct value
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_UPDATE_SUCCESS, paxDTO);
@@ -273,12 +278,11 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (!pax.getTour().getId().equals(tourId)) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
             }
-
-            // Delete the pax configuration
-            tourPaxRepository.delete(pax);
+            pax.setDeleted(true);
+            tourPaxRepository.save(pax);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_DELETE_SUCCESS,
-                    "Pax configuration with id " + paxId + " has been deleted");
+                    "Pax configuration with id " + paxId + " has been marked as deleted");
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -291,14 +295,6 @@ public class TourPaxServiceImpl implements TourPaxService {
      * Overlap occurs when:
      * 1. Pax ranges overlap (e.g. 1-3 and 2-5)
      * 2. Date ranges overlap (e.g. Jan 1 - Jan 10 and Jan 5 - Jan 15)
-     *
-     * @param tourId The tour ID
-     * @param excludePaxId Pax ID to exclude from check (for updates)
-     * @param minPax Min pax
-     * @param maxPax Max pax
-     * @param validFrom Valid from date
-     * @param validTo Valid to date
-     * @return true if overlap exists, false otherwise
      */
     private boolean checkForOverlappingPaxConfigurations(Long tourId, Long excludePaxId,
                                                          int minPax, int maxPax, Date validFrom, Date validTo) {

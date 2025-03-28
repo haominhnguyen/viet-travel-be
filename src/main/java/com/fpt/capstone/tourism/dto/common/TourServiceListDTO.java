@@ -16,5 +16,5 @@ public class TourServiceListDTO {
     private Long tourId;
     private String tourName;
     private List<TourServiceCategoryDTO> serviceCategories;
-    //private List<TourPaxOptionDTO> paxOptions;
+    private List<TourPaxOptionDTO> paxOptions;
 }

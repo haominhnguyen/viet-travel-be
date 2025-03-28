@@ -37,8 +37,6 @@ public class Room extends BaseEntity{
     @Column(columnDefinition = "text")
     private String facilities; // Danh sách các dịch vụ trong phòng (bồn tắm, tủ lạnh, wifi)
 
-
-
 //    @Column(name = "check_in_date")
 //    private LocalDate checkInDate; // Thời gian check-in
 //

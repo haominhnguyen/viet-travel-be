@@ -276,6 +276,32 @@ public class Constants {
         public static final String SERVICE_ALREADY_ASSOCIATED = "Service already associated with this tour day";
         public static final String SERVICE_CREATE_FAIL = "Service creation failed";
         public static final String SERVICE_DELETE_FAIL = "Service delete failed";
+
+        public static final String ACTIVITY_LIST_LOAD_SUCCESS = "Activity list loaded successfully";
+        public static final String ACTIVITY_LIST_LOAD_FAIL = "Failed to load activity list";
+        public static final String ACTIVITY_DETAIL_LOAD_SUCCESS = "Activity detail loaded successfully";
+        public static final String ACTIVITY_DETAIL_LOAD_FAIL = "Failed to load activity detail";
+        public static final String ACTIVITY_NOT_FOUND = "Activity not found";
+        public static final String ACTIVITY_NOT_ASSOCIATED = "Activity is not associated with the tour";
+        public static final String ACTIVITY_EXISTED = "Existed activity";
+
+        public static final String CATEGORY_LIST_LOAD_SUCCESS = "Activity categories loaded successfully";
+        public static final String CATEGORY_LIST_LOAD_FAIL = "Failed to load activity categories";
+        public static final String ACTIVITY_CREATE_SUCCESS = "Activity created successfully";
+        public static final String ACTIVITY_CREATE_FAIL = "Failed to create activity";
+        public static final String ACTIVITY_UPDATE_SUCCESS = "Activity updated successfully";
+        public static final String ACTIVITY_UPDATE_FAIL = "Failed to update activity";
+        public static final String ACTIVITY_ALREADY_EXISTS = "Activity already exists for this tour day";
+        public static final String ACTIVITY_LOADED_SUCCESS = "Activity loaded successfully";
+        public static final String ACTIVITY_LOADED_FAIL = "Failed to load activity";
+        public static final String CATEGORY_SERVICES_LOAD_SUCCESS = "Category services loaded successfully";
+        public static final String CATEGORY_SERVICES_LOAD_FAIL = "Failed to load category services";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Provider category services loaded successfully";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Failed to load provider category services";
+        public static final String MARKUP_UPDATE_SUCCESS = "Markup updated successfully";
+        public static final String MARKUP_UPDATE_FAIL = "Failed to update markup";
+        public static final String MARKUP_RETRIEVE_SUCCESS = "Markup retrieved successfully";
+        public static final String MARKUP_RETRIEVE_FAIL = "Failed to retrieve markup";
     }
 
 

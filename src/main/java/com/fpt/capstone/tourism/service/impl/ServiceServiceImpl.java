@@ -11,8 +11,6 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -83,6 +81,7 @@ public class ServiceServiceImpl implements ServiceService {
         }
     }
 
+
     public GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId) {
         try{
             Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
@@ -134,19 +133,31 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
 
-    private Specification<Service> buildSearchSpecification(String keyword, Boolean isDeleted, Long providerId) {
+    private Specification buildSearchSpecification(
+            String keyword,
+            Boolean isDeleted,
+            Long providerId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
             // Filter by providerId
             predicates.add(cb.equal(root.get("serviceProvider").get("id"), providerId));
-
             // Search by name (ignoring accents and case)
             if (keyword != null && !keyword.trim().isEmpty()) {
-                Expression<String> normalizedKeyword = cb.function("unaccent", String.class, cb.literal(keyword.toLowerCase()));
-                Expression<String> normalizedName = cb.function("unaccent", String.class, cb.lower(root.get("name")));
+                Expression<String> normalizedKeyword = cb.function(
+                        "unaccent",
+                        String.class,
+                        cb.literal(keyword.toLowerCase())
+                );
+                Expression<String> normalizedName = cb.function(
+                        "unaccent",
+                        String.class,
+                        cb.lower(root.get("name"))
+                );
 
-                Predicate namePredicate = cb.like(normalizedName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+                Predicate namePredicate = cb.like(
+                        normalizedName,
+                        cb.concat("%", cb.concat(normalizedKeyword, "%"))
+                );
                 predicates.add(namePredicate);
             }
 
@@ -154,7 +165,6 @@ public class ServiceServiceImpl implements ServiceService {
             if (isDeleted != null) {
                 predicates.add(cb.equal(root.get("deleted"), isDeleted));
             }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -364,6 +374,7 @@ public class ServiceServiceImpl implements ServiceService {
 
         return responseDTO;
     }
+
 
     @Override
     public GeneralResponse<ServiceResponseDTO> changeServiceStatus(Long serviceId, Boolean isDeleted, Long providerId) {

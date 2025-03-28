@@ -46,5 +46,4 @@ public class Activity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private ActivityCategory activityCategory;
-
 }
