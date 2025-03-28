@@ -1198,6 +1198,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> getTourSummary(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
             //Tìm tất cả các booking thuộc schedule
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
@@ -1236,6 +1237,30 @@ public class OperatorServiceImpl implements OperatorService {
                     TransactionType.PAYMENT
             );
 
+            //Tìm số tiền ước tính phải chi cho cả tour
+            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId);
+            BigDecimal estimatedPaymentAmount = services.stream()
+                    .map(result -> {
+                        Service service = (Service) result[0];
+                        Integer quantity = (Integer) result[1];
+                        return BigDecimal.valueOf(service.getNettPrice() * quantity);
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            //Tìm số tiền ước tính thu được cả tour
+            BigDecimal estimateReceiptAmount = bookings.stream()
+                    .map(result -> {
+                        return BigDecimal.valueOf(result.getTotalAmount());
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            //Tìm lợi nhuận ước tính
+            BigDecimal estimateProfitAmount = estimateReceiptAmount.subtract(estimatedPaymentAmount);
+
+            //Tìm lợi nhuận thực tế
+            BigDecimal actualReceiptAmount = receiptedAmount.add(collectionAmount); //Số tiền đã thu thực tế (công ty thu + HDV thu hộ)
+            BigDecimal actualPaymentAmount = paymentAmount.add(advanceAmount); //Số tiền đã chi thực tế (công ty chi + HDV đã chi)
+            BigDecimal actualProfitAmount = actualReceiptAmount.subtract(actualPaymentAmount);
 
             TourSummaryDTO resultDTO = TourSummaryDTO.builder()
                     .tourScheduleId(scheduleId)
@@ -1247,6 +1272,10 @@ public class OperatorServiceImpl implements OperatorService {
                     .remainingPaymentAmount(totalPaymentAmount.subtract(paymentAmount).subtract(advanceAmount))
                     .advanceAmount(advanceAmount)
                     .totalPaymentAmount(totalPaymentAmount)
+                    .estimatedPaymentAmount(estimatedPaymentAmount)
+                    .estimateReceiptAmount(estimateReceiptAmount)
+                    .estimateProfitAmount(estimateProfitAmount)
+                    .actualProfitAmount(actualProfitAmount)
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);

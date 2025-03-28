@@ -314,5 +314,4 @@ public class Constants {
         public static final String REGEX_PHONE = "^[0-9]{10,15}$";
 
     }
-    final String baseUrl = "https://viettravel.com"; //Đây là link
 }

@@ -94,5 +94,13 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findByServiceCategoryNameAndProviderIdAndLocationId(
             @Param("categoryName") String categoryName,
             @Param("providerId") Long providerId,
-            @Param("locationId") Long locationId);}
+            @Param("locationId") Long locationId);
+
+    @Query("""
+    SELECT s, tbs.currentQuantity FROM Service s
+    JOIN FETCH TourBookingService tbs ON s.id = tbs.service.id
+    WHERE tbs.booking.tourSchedule.id = :scheduleId
+""")
+    List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId);
+}
 
