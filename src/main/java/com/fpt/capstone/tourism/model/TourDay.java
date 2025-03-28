@@ -45,4 +45,9 @@ public class TourDay extends BaseEntity{
     @OneToMany(mappedBy = "tourDay")
     @ToString.Exclude
     private List<TourDayService> tourDayServices;
+
+
+    @OneToMany(mappedBy = "tourDay")
+    @ToString.Exclude
+    private List<TourDayServiceCategory> tourDayServiceCategories;
 }

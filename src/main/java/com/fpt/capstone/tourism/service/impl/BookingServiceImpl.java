@@ -25,7 +25,10 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,8 @@ public class BookingServiceImpl implements BookingService {
     private final TourBookingServiceRepository tourBookingServiceRepository;
     private final TourDayRepository tourDayRepository;
     private final ServiceRepository serviceRepository;
+    private final ServiceCategoryRepository serviceCategoryRepository;
+    private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
 
 
     private final LocationMapper locationMapper;
@@ -663,16 +668,101 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public GeneralResponse<?> updateTourPrivate(UpdateTourPrivateContentRequestDTO tour) {
         try {
 
-            TourSchedule tourSchedule = TourSchedule.builder().build();
+            List<TourPax> tourPaxEntities = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tour.getTourId());
+
+            TourPax tourPax = tourPaxEntities.get(0);
+
+            Tour tourEntity = tourRepository.findById(tour.getTourId()).orElseThrow();
+
+            tourEntity.setHighlights(tour.getHighlights());
+            tourEntity.setNote(tour.getNotes());
+            tourEntity.setPrivacy(tour.getPrivacy());
+            tourEntity.setTourStatus(TourStatus.PENDING_PRICING);
+
+            Tour savedTour = tourRepository.save(tourEntity);
+
+            TourSchedule tourSchedule = TourSchedule.builder()
+                    .startDate(tour.getStartDate())
+                    .endDate(tour.getEndDate())
+                    .tour(savedTour)
+                    .tourPax(tourPax)
+                    .deleted(false)
+                    .status(TourScheduleStatus.FULLY_BOOKED)
+                    .build();
+
+            tourScheduleRepository.save(tourSchedule);
+
+            List<Long> tourDayIds = tour.getTourDays().stream()
+                    .map(TourDayPrivateRequestDTO::getId)
+                    .toList();
+
+
+            Set<Long> allServiceCategoryIds = tour.getTourDays().stream()
+                    .flatMap(dto -> dto.getServiceCategoryIds().stream())
+                    .collect(Collectors.toSet());
+
+            Map<Long, ServiceCategory> serviceCategoryMap = serviceCategoryRepository.findAllById(allServiceCategoryIds)
+                    .stream()
+                    .collect(Collectors.toMap(ServiceCategory::getId, sc -> sc));
+
+
+            List<TourDay> tourDays = tourDayRepository.findAllById(tourDayIds);
+
+            Map<Long, TourDay> tourDayMap = tourDays.stream()
+                    .collect(Collectors.toMap(TourDay::getId, td -> td));
+
+
+            for (TourDayPrivateRequestDTO dto : tour.getTourDays()) {
+                TourDay tourDay = tourDayMap.get(dto.getId());
+                if (tourDay != null) {
+                    tourDay.setTitle(dto.getTitle());
+                    tourDay.setContent(dto.getContent());
+                    tourDay.setLocation(Location.builder().id(dto.getLocationId()).build());
+                    tourDay.setMealPlan(dto.getMeals());
+
+
+                    List<TourDayServiceCategory> tourDayServiceCategories = new ArrayList<>();
+
+                    for (Long serviceCategoryId : dto.getServiceCategoryIds()) {
+                        ServiceCategory serviceCategory = serviceCategoryMap.get(serviceCategoryId);
+                        if (serviceCategory != null) {
+                            tourDayServiceCategories.add(
+                                    TourDayServiceCategory.builder()
+                                            .tourDay(tourDay)
+                                            .serviceCategory(serviceCategory)
+                                            .build()
+                            );
+                        }
+                    }
+
+                    tourDayServiceCategoryRepository.saveAll(tourDayServiceCategories);
+
+                }
+            }
+
+            tourDayRepository.saveAll(tourDays);
+
+            return GeneralResponse.of(bookingMapper.toTourDetailSaleResponseDTO(savedTour));
 
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot get tour private list", ex);
+            throw BusinessException.of("Cannot Update tour private", ex);
         }
+    }
 
-        return null;
+    @Override
+    public GeneralResponse<?> updateTourPrivateStatus(ChangeStatusTourPrivateRequestDTO tour) {
+        try {
+            Tour tourEntity = tourRepository.findById(tour.getId()).orElseThrow();
+            tourEntity.setTourStatus(tour.getTourStatus());
+            Tour savedTour = tourRepository.save(tourEntity);
+            return GeneralResponse.of(bookingMapper.toTourDetailSaleResponseDTO(savedTour));
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot update status tour", ex);
+        }
     }
 
     public static String removeAccents(String text) {

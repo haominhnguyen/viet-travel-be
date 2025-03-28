@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.*;
+import com.fpt.capstone.tourism.dto.request.TourDayPrivateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.mapper.custom.TourImageCustom;
 import com.fpt.capstone.tourism.model.*;
@@ -75,5 +76,13 @@ public interface BookingMapper {
 
     PublicTourDayDTO toPublicTourDayDTO(TourDay tourDay);
 
+
+    @Mapping(source = "meals", target = "mealPlan")
+    TourDay toEntity(TourDayPrivateRequestDTO tourDayPrivateRequestDTO);
+
+
+    TourDayServiceCategoryDTO toTourDayServiceCategoryDTO(TourDayServiceCategory tourDayServiceCategory);
+
+    SaleTourDayResponseDTO toSaleTourDayResponseDTO(TourDay tourDay);
 
 }

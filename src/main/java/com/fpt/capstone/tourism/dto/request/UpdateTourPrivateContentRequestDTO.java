@@ -14,6 +14,9 @@ import java.util.List;
 @Builder
 public class UpdateTourPrivateContentRequestDTO {
 
+    @NotNull
+    private Long tourId;
+
     @NotNull(message = "Start date cannot be null")
     private LocalDateTime startDate;
 

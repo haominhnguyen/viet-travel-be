@@ -20,6 +20,6 @@ public class TourContentSaleResponseDTO {
     private List<PublicLocationDTO> locations;
     private List<TagDTO> tags;
     private PublicLocationDTO departLocation;
-    private List<PublicTourDayDTO> tourDays;
+    private List<SaleTourDayResponseDTO> tourDays;
     private LocalDateTime createdAt;
 }
