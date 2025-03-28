@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public class OperatorTourCustomerDTO {
     private Long tourBookingId;
+    private String tourBookingCode;
     private TourBookingCategory tourBookingCategory;
     private List<TourBookingCustomerDTO> listCustomer;
 }

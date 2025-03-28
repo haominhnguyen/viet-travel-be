@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.ChangableServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.ServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -50,5 +51,6 @@ public class ServiceProviderController {
     public ResponseEntity<GeneralResponse<ServiceProviderDTO>> deleteServiceProvider(@PathVariable Long id, @RequestParam boolean isDeleted) {
         return ResponseEntity.ok(serviceProviderService.deleteServiceProvider(id, isDeleted));
     }
+
 }
 

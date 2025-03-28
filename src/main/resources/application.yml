@@ -53,3 +53,12 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        jdbc:
+#          core:
+#            JdbcTemplate: DEBUG
+#      hibernate:
+#        SQL: DEBUG

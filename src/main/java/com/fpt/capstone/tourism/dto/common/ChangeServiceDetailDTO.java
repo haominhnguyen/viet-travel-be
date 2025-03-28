@@ -23,6 +23,7 @@ public class ChangeServiceDetailDTO {
     private LocalDateTime updatedAt;
     private String serviceName;
     private Double nettPrice;
+    private Integer currentQuantity;
     private Integer requestQuantity;
     private Double totalPrice;
 }

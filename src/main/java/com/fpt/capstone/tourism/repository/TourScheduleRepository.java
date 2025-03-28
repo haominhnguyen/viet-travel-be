@@ -128,4 +128,13 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
+
+    @Query("""
+    SELECT ts
+    FROM TourSchedule ts
+    JOIN TourBooking tb ON ts.id = tb.tourSchedule.id 
+    JOIN TourBookingService tbs ON tbs.booking.id = tb.id
+    WHERE tbs.id = :tourBookingServiceId
+""")
+    TourSchedule findByTourBookingServiceId(Long tourBookingServiceId);
 }
