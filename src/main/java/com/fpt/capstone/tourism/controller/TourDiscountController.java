@@ -74,12 +74,12 @@ public class TourDiscountController {
         return ResponseEntity.ok(tourDiscountService.getServiceProviderOptions(locationId, categoryName));
     }
 
-//    @PostMapping("/create")
-//    public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> createServiceDetail(
-//            @PathVariable Long tourId,
-//            @RequestBody ServiceCreateRequestDTO request) {
-//        return ResponseEntity.ok(tourDiscountService.createServiceDetail(tourId, request));
-//    }
+    @PostMapping("/create")
+    public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> createServiceDetail(
+            @PathVariable Long tourId,
+            @RequestBody ServiceCreateRequestDTO request) {
+        return ResponseEntity.ok(tourDiscountService.createServiceDetail(tourId, request));
+    }
 //    @DeleteMapping("/{serviceId}")
 //    public ResponseEntity<GeneralResponse<Void>> changeServiceStatus(
 //            @PathVariable Long tourId,

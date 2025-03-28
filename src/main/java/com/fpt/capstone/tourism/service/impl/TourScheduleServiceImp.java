@@ -106,7 +106,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
     @Override
     public GeneralResponse<TourScheduleBasicResponseDTO> setTourSchedule(TourScheduleRequestDTO requestDTO, User user) {
         Tour tour = tourRepository.findById(requestDTO.getTourId())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
         // Get the selected operator
         User operator = userRepository.findById(requestDTO.getOperatorId())
