@@ -28,4 +28,12 @@ public class TourSummaryDTO {
     private BigDecimal advanceAmount;               //Số tiền HDV đã chi hộ
     @JsonSerialize(using = ToStringSerializer.class)
     private BigDecimal totalPaymentAmount;         //Tổng tiền phải chi
+    @JsonSerialize(using = ToStringSerializer.class)
+    private BigDecimal estimatedPaymentAmount;    //Số tiền ước tính phải chi
+    @JsonSerialize(using = ToStringSerializer.class)
+    private BigDecimal estimateReceiptAmount;    //Số tiền ước tính thu được
+    @JsonSerialize(using = ToStringSerializer.class)
+    private BigDecimal estimateProfitAmount;    //Lợi nhuận ước tính
+    @JsonSerialize(using = ToStringSerializer.class)
+    private BigDecimal actualProfitAmount;     //Lợi nhuận thực tế
 }

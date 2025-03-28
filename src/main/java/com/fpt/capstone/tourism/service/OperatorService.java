@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.AddServiceRequestDTO;
-import com.fpt.capstone.tourism.dto.request.AssignTourGuideRequestDTO;
-import com.fpt.capstone.tourism.dto.request.PayServiceRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourOperationLogRequestDTO;
+import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 
 import java.util.List;
@@ -51,7 +48,7 @@ public interface OperatorService {
 
     GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO);
 
-    GeneralResponse<?> getListChangeServiceRequest(int page, int size);
+    GeneralResponse<?> getListServiceRequest(int page, int size);
 
     GeneralResponse<?> getChangeServiceRequestDetail(Long tourBookingServiceId);
 
@@ -64,4 +61,10 @@ public interface OperatorService {
     GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO);
 
     GeneralResponse<?> getListBookingForAddService(Long scheduleId);
+
+    GeneralResponse<?> cancelService(Long tourBookingServiceId);
+
+    GeneralResponse<?> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO);
+
+//    GeneralResponse<?> getListServiceRequest(int page, int size);
 }

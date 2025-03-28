@@ -143,6 +143,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .sellingPrice(request.getSellingPrice())
                     .validFrom(request.getValidFrom())
                     .validTo(request.getValidTo())
+                    .deleted(false) // Explicitly set deleted to false
                     .build();
 
             pax = tourPaxRepository.save(pax);
@@ -161,6 +162,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .validFrom(pax.getValidFrom())
                     .validTo(pax.getValidTo())
                     .isValid(now.after(pax.getValidFrom()) && now.before(pax.getValidTo()))
+                    .isDeleted(false)
                     .build();
 
             return new GeneralResponse<>(HttpStatus.CREATED.value(), PAX_CONFIG_CREATE_SUCCESS, paxDTO);
@@ -234,6 +236,7 @@ public class TourPaxServiceImpl implements TourPaxService {
 
             pax.setValidFrom(validFrom);
             pax.setValidTo(validTo);
+            pax.setDeleted(false); // Explicitly set deleted to false when updating
 
             pax = tourPaxRepository.save(pax);
 
@@ -251,6 +254,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .validFrom(pax.getValidFrom())
                     .validTo(pax.getValidTo())
                     .isValid(now.after(pax.getValidFrom()) && now.before(pax.getValidTo()))
+                    .isDeleted(false) // Also ensure DTO has correct value
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_UPDATE_SUCCESS, paxDTO);

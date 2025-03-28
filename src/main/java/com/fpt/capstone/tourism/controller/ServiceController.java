@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.service.ServiceService;
@@ -22,6 +23,7 @@ import java.util.List;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.*;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USER_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -120,5 +122,29 @@ public class ServiceController {
         ServiceProvider serviceProvider = serviceProviderRepository.findByUserId(user.getId())
                 .orElseThrow(() -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND));
         return serviceProvider.getId();
+    }
+
+    @GetMapping("/list-service-request")
+    public ResponseEntity<GeneralResponse<?>> getListServiceRequest(@RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "10") int size,
+                                                                    @RequestParam(required = false) String keyword,
+                                                                    @RequestParam(required = false) TourBookingServiceStatus status,
+                                                                    @RequestParam(defaultValue = "desc") String orderDate) {
+        return ResponseEntity.ok(serviceService.getListServiceRequest(page, size, keyword, status, orderDate));
+    }
+
+    @GetMapping("/service-request-detail/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> getServiceRequestDetail(@PathVariable Long tourBookingServiceId) {
+        return ResponseEntity.ok(serviceService.getServiceRequestDetail(tourBookingServiceId));
+    }
+
+    @PutMapping("/approve/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> approveService(@PathVariable Long tourBookingServiceId) {
+        return ResponseEntity.ok(serviceService.approveService(tourBookingServiceId));
+    }
+
+    @PutMapping("/reject/{tourBookingServiceId}")
+    public ResponseEntity<GeneralResponse<?>> rejectService(@PathVariable Long tourBookingServiceId) {
+        return ResponseEntity.ok(serviceService.rejectService(tourBookingServiceId));
     }
 }

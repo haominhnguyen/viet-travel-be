@@ -6,12 +6,10 @@ import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.helper.validator.Validator;
-import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
-import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
-import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.Role;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
@@ -21,16 +19,20 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.grammars.hql.HqlParser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,11 +55,13 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     private final ServiceCategoryMapper serviceCategoryMapper;
     private final LocationMapper locationMapper;
     private final GeoPositionMapper geoPositionMapper;
+    private final TourBookingServiceMapper bookingServiceMapper;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
     private final GeoPositionRepository geoPositionRepository;
+    private final TourBookingServiceRepository bookingServiceRepository;
     private final EmailConfirmationService emailConfirmationService;
     private final UserService userService;
     private final PasswordGenerateImpl passwordGenerate;
@@ -267,8 +271,6 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         }
     }
 
-
-
     private Specification<ServiceProvider> buildSearchSpecification(String keyword, Boolean isDeleted) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -353,6 +355,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
+
 
     private Specification<ServiceProvider> buildSearchSpecification(String keyword, String categoryName, Integer star) {
         return (root, query, cb) -> {
@@ -450,10 +453,6 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             throw BusinessException.of("Create account service provider fail");
         }
     }
-
-
-
-
 
 }
 

@@ -8,9 +8,12 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +22,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,9 +46,12 @@ public class ServiceServiceImpl implements ServiceService {
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
     private final TransportRepository transportRepository;
+    private final UserRepository userRepository;
+    private final TourBookingServiceRepository bookingServiceRepository;
     private final RoomMapper roomMapper;
     private final MealMapper mealMapper;
     private final TransportMapper transportMapper;
+    private final TourBookingServiceMapper bookingServiceMapper;
 
     @Override
     public GeneralResponse<PagingDTO<List<ServiceBaseDTO>>> getAllServices(
@@ -419,6 +428,224 @@ public class ServiceServiceImpl implements ServiceService {
         } catch (Exception ex) {
             throw BusinessException.of(CHANGE_SERVICE_STATUS_FAIL, ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> getListServiceRequest(int page, int size, String keyword, TourBookingServiceStatus status, String orderDate) {
+        try {
+            Long currentUserId = getCurrentUserProviderId();
+
+            //Find provider
+            ServiceProvider serviceProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
+                    () -> BusinessException.of("Không tìm thấy nhà cung cấp")
+            );
+            Long currentProviderId = serviceProvider.getId();
+            Sort sort = "asc".equalsIgnoreCase(orderDate) ?
+                    Sort.by("requestDate").ascending() :
+                    Sort.by("requestDate").descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            // Build Specification with providerId filter
+            Specification<TourBookingService> spec = buildSearchSpecificationForService(keyword, status)
+                    .and((root, query, criteriaBuilder) -> {
+                        Join<TourBookingService, Service> serviceJoin = root.join("service"); // Join bảng Service
+                        Join<com.fpt.capstone.tourism.model.Service, ServiceProvider> providerJoin = serviceJoin.join("serviceProvider"); // Join bảng Provider
+                        return criteriaBuilder.equal(providerJoin.get("id"), currentProviderId); // Lọc theo providerId
+                    });
+//            Specification<TourBookingService> spec = buildSearchSpecificationForService(keyword, status);
+
+            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findAll(spec, pageable);
+            List<ServiceProviderBookingServiceDTO> resultDTO = bookingServicePage.getContent().stream()
+                    .map(bookingServiceMapper::toProviderBookingServiceDTO)
+                    .collect(Collectors.toList());
+
+            return buildPagedResponseService(bookingServicePage, resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> approveService(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
+                    () -> BusinessException.of("No booking service found")
+            );
+
+            //Kiểm tra đơn hàng có phải của nhà cung cấp không
+            Long currentUserId = getCurrentUserProviderId();
+            Service service = bookingService.getService();
+            ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
+                    () -> BusinessException.of("No provider found")
+            );
+            if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
+                throw BusinessException.of("Unauthorized");
+            }
+
+            //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
+            LocalDateTime currentDateTime = LocalDateTime.now();
+            if(currentDateTime.isAfter(bookingService.getRequestDate())){
+                throw BusinessException.of("Booking service has expired");
+            }
+
+            //Chỉ có thể approve khi đơn hàng là pending
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+
+                //Nếu là đơn hàng yêu cầu update số lượng
+                Integer updateQuantity = bookingService.getRequestedQuantity();
+                if(updateQuantity > 0){
+                    bookingService.setCurrentQuantity(updateQuantity);
+                    bookingService.setRequestedQuantity(0);
+                }
+                bookingService.setStatus(TourBookingServiceStatus.APPROVED);
+                bookingServiceRepository.save(bookingService);
+
+                //Map to DTO
+                ServiceProviderBookingServiceDTO resultDTO = bookingServiceMapper.toProviderBookingServiceDTO(bookingService);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
+            }
+
+            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Forbidden", tourBookingServiceId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> rejectService(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
+                    () -> BusinessException.of("No booking service found")
+            );
+
+            //Kiểm tra đơn hàng có phải của nhà cung cấp không
+            Long currentUserId = getCurrentUserProviderId();
+            Service service = bookingService.getService();
+            ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
+                    () -> BusinessException.of("No provider found")
+            );
+            if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
+                throw BusinessException.of("Unauthorized");
+            }
+
+            //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
+            LocalDateTime currentDateTime = LocalDateTime.now();
+            if(currentDateTime.isAfter(bookingService.getRequestDate())){
+                throw BusinessException.of("Booking service has expired");
+            }
+
+            //Chỉ có thể reject khi đơn hàng là pending
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+
+                bookingService.setStatus(TourBookingServiceStatus.REJECTED);
+                bookingServiceRepository.save(bookingService);
+
+                //Map to DTO
+                ServiceProviderBookingServiceDTO resultDTO = bookingServiceMapper.toProviderBookingServiceDTO(bookingService);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service success", resultDTO);
+            }
+
+            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Forbidden", tourBookingServiceId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getServiceRequestDetail(Long tourBookingServiceId) {
+        try {
+            TourBookingService bookingService = bookingServiceRepository.findByIdWithDetails(tourBookingServiceId)
+                    .orElseThrow(() -> BusinessException.of("No booking service found"));
+
+            //Kiểm tra đơn hàng có phải của nhà cung cấp không
+            Long currentUserId = getCurrentUserProviderId();
+            Service service = bookingService.getService();
+            ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
+                    () -> BusinessException.of("No provider found")
+            );
+            if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
+                throw BusinessException.of("Unauthorized");
+            }
+
+            //Kiểm tra trạng thái đơn hàng
+            List<TourBookingServiceStatus> allowedStatuses = Arrays.asList(
+                    TourBookingServiceStatus.PENDING,
+                    TourBookingServiceStatus.REJECTED,
+                    TourBookingServiceStatus.APPROVED
+            );
+
+            if (!allowedStatuses.contains(bookingService.getStatus())) {
+                throw BusinessException.of("You are not allowed to view this order.");
+            }
+
+            TourBooking booking = bookingService.getBooking();
+            Tour tour = (booking != null) ? booking.getTour() : null;
+            TourSchedule tourSchedule = (booking != null) ? booking.getTourSchedule() : null;
+            TourDay tourDay = bookingService.getTourDay();
+
+            ChangeServiceDetailDTO resultDTO = ChangeServiceDetailDTO.builder()
+                    .tourBookingServiceId(tourBookingServiceId)
+                    .tourName((tour != null) ? tour.getName() : null)
+                    .tourType((tour != null) ? tour.getTourType().toString() : null)
+                    .startDate((tourSchedule != null) ? tourSchedule.getStartDate() : null)
+                    .endDate((tourSchedule != null) ? tourSchedule.getEndDate() : null)
+                    .dayNumber((tourDay != null) ? tourDay.getDayNumber() : null)
+                    .status((bookingService.getStatus() != null) ? bookingService.getStatus().name() : null)
+                    .reason(bookingService.getReason())
+                    .updatedAt(bookingService.getUpdatedAt())
+                    .serviceName(service.getName())
+                    .nettPrice(service.getNettPrice())
+                    .requestQuantity(bookingService.getRequestedQuantity())
+                    .currentQuantity(bookingService.getCurrentQuantity())
+                    .totalPrice(Optional.ofNullable(service)
+                            .map(s -> s.getNettPrice() * bookingService.getCurrentQuantity())
+                            .orElse(null))
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Xem chi tiết thành công", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    private Specification<TourBookingService> buildSearchSpecificationForService(String keyword, TourBookingServiceStatus status) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (keyword != null && !keyword.isEmpty()) {
+                Join<TourBookingService, com.fpt.capstone.tourism.model.Service> serviceJoin =
+                        root.join("service", JoinType.LEFT);
+                Predicate namePredicate = cb.like(serviceJoin.get("name"), "%" + keyword + "%");
+                predicates.add(namePredicate);
+            }
+            predicates.add(root.get("status").in(TourBookingServiceStatus.PENDING,
+                    TourBookingServiceStatus.APPROVED,
+                    TourBookingServiceStatus.REJECTED));
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+    private <T>GeneralResponse<PagingDTO<List<T>>> buildPagedResponseService(Page<TourBookingService> page, List<T> list) {
+        PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
+                .page(page.getNumber())
+                .size(page.getSize())
+                .total(page.getTotalElements())
+                .items(list)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+    }
+    private Long getCurrentUserProviderId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getName() != null) {
+            User user = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() ->  BusinessException.of("User not found"));
+            return user.getId();
+        }
+        throw BusinessException.of("Không tìm thấy thông tin người dùng");
     }
 
 }

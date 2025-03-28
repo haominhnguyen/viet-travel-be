@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -27,4 +30,11 @@ public class TourDayService {
 
     @Column(name = "selling_price")
     private Double sellingPrice;
+
+//    @ManyToOne
+//    @JoinColumn(name = "tour_pax_id")
+//    private TourPax tourPax;
+
+    @OneToMany(mappedBy = "tourDayService", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ServicePaxPricing> paxPricings = new ArrayList<>();
 }
