@@ -53,72 +53,72 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             Service service = serviceRepository.findById(serviceId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
 
-            // 3. Find the TourDayService entries using a direct approach to avoid the "non-unique result" error
-            // Use a native query with LIMIT 1 to ensure only one result is returned
-            TourDayService tourDayService;
+            // 3. Find all TourDayService entries related to this service and tour
+            List<TourDayService> allTourDayServices = entityManager.createQuery(
+                            "SELECT tds FROM TourDayService tds " +
+                                    "JOIN tds.tourDay td " +
+                                    "WHERE tds.service.id = :serviceId " +
+                                    "AND td.tour.id = :tourId", TourDayService.class)
+                    .setParameter("serviceId", serviceId)
+                    .setParameter("tourId", tourId)
+                    .getResultList();
 
-            try {
-                // Using native query to get just one result
-                List<TourDayService> services = entityManager.createQuery(
-                                "SELECT tds FROM TourDayService tds " +
-                                        "JOIN tds.tourDay td " +
-                                        "WHERE tds.service.id = :serviceId " +
-                                        "AND td.tour.id = :tourId " +
-                                        "ORDER BY td.dayNumber ASC", TourDayService.class)
-                        .setParameter("serviceId", serviceId)
-                        .setParameter("tourId", tourId)
-                        .setMaxResults(1)
-                        .getResultList();
-
-                if (services.isEmpty()) {
-                    throw BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED);
-                }
-
-                tourDayService = services.get(0);
-            } catch (Exception e) {
-                // Alternative approach if the above fails
-                List<TourDayService> allServices = tourDayServiceRepository.findAll();
-                List<TourDayService> filteredServices = new ArrayList<>();
-
-                for (TourDayService tds : allServices) {
-                    if (tds.getService().getId().equals(serviceId) &&
-                            tds.getTourDay().getTour().getId().equals(tourId)) {
-                        filteredServices.add(tds);
-                    }
-                }
-
-                if (filteredServices.isEmpty()) {
-                    throw BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED);
-                }
-
-                // Sort by day number if needed
-                filteredServices.sort(Comparator.comparing(tds -> tds.getTourDay().getDayNumber()));
-                tourDayService = filteredServices.get(0);
+            if (allTourDayServices.isEmpty()) {
+                throw BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED);
             }
 
-            TourDay tourDay = tourDayService.getTourDay();
+            // For general service details, prefer a TourDayService without a specific pax association
+            TourDayService primaryTourDayService = allTourDayServices.stream()
+                    .filter(tds -> tds.getTourPax() == null)
+                    .findFirst()
+                    .orElse(allTourDayServices.get(0));
 
-            // 4. Get pax options and calculate adjusted prices
+            TourDay tourDay = primaryTourDayService.getTourDay();
+
+            // 4. Create a map of tourPax IDs to their associated TourDayService objects
+            Map<Long, TourDayService> paxToServiceMap = new HashMap<>();
+            for (TourDayService tds : allTourDayServices) {
+                if (tds.getTourPax() != null) {
+                    paxToServiceMap.put(tds.getTourPax().getId(), tds);
+                }
+            }
+
+            // 5. Get pax options with a fresh query to ensure we have the latest data
             List<TourPax> paxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
             Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
 
             for (TourPax pax : paxOptions) {
+                Double sellingPrice = null;
+
+                // Check if we have a specific TourDayService for this pax
+                TourDayService paxService = paxToServiceMap.get(pax.getId());
+                if (paxService != null) {
+                    sellingPrice = paxService.getSellingPrice();
+                } else {
+                    // If no specific TourDayService exists, use the price from TourPax
+                    sellingPrice = pax.getSellingPrice();
+                }
+
+                // Build the PaxPriceInfoDTO with all required fields
                 paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                         .paxId(pax.getId())
                         .minPax(pax.getMinPax())
                         .maxPax(pax.getMaxPax())
                         .price(pax.getNettPricePerPax())
+                        .sellingPrice(sellingPrice)
+                        .fixedCost(pax.getFixedCost())          // Added fixedCost
+                        .extraHotelCost(pax.getExtraHotelCost()) // Added extraHotelCost
                         .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
                         .build());
             }
 
-            // 5. Determine service status
+            // 6. Determine service status
             String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
-            // 6. Get type-specific details based on service category
+
+            // 7. Get type-specific details based on service category
             RoomDetailDTO roomDetail = null;
             MealDetailDTO mealDetail = null;
             TransportDetailDTO transportDetail = null;
-            ActivityDetailDTO activityDetail = null;
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
             if (ServiceCategoryEnum.HOTEL.name().equalsIgnoreCase(categoryName)) {
@@ -153,14 +153,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 }
             }
 
-            // 7. Build response
+            // 8. Build response
             ServiceByCategoryDTO response = ServiceByCategoryDTO.builder()
                     .id(service.getId())
                     .name(service.getName())
                     .dayNumber(tourDay.getDayNumber())
                     .status(status)
                     .nettPrice(service.getNettPrice())
-                    .sellingPrice(tourDayService.getSellingPrice())
+                    .sellingPrice(primaryTourDayService.getSellingPrice())
                     .locationId(tourDay.getLocation() != null ? tourDay.getLocation().getId() : null)
                     .locationName(tourDay.getLocation() != null ? tourDay.getLocation().getName() : null)
                     .serviceProviderId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
@@ -326,8 +326,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
             }
 
-            Service service = serviceRepository.findById(request.getServiceId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + request.getServiceId()));
+            // Create a final reference that will be used with lambda expressions
+            final Long requestServiceId = request.getServiceId();
+
+            Service service = serviceRepository.findById(requestServiceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + requestServiceId));
 
             // 3. Validate day number is provided
             if (request.getDayNumber() == null) {
@@ -339,37 +342,63 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + ": " + request.getDayNumber()));
 
             // 5. Check if the service is already associated with this tour day
-            // Use a more robust query that won't throw non-unique result exception
             List<TourDayService> existingAssociations = entityManager.createQuery(
                             "SELECT tds FROM TourDayService tds " +
                                     "WHERE tds.service.id = :serviceId AND tds.tourDay.id = :tourDayId", TourDayService.class)
-                    .setParameter("serviceId", request.getServiceId())
+                    .setParameter("serviceId", requestServiceId)
                     .setParameter("tourDayId", tourDay.getId())
                     .getResultList();
 
             if (!existingAssociations.isEmpty()) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_ASSOCIATED);
+                // Clear existing associations to prevent conflicts
+                for (TourDayService tds : existingAssociations) {
+                    tourDayServiceRepository.delete(tds);
+                }
+                // Flush the changes to ensure they're committed
+                tourDayServiceRepository.flush();
             }
 
-            // 6. Create a new tour day service
-            TourDayService tourDayService = new TourDayService();
-            tourDayService.setTourDay(tourDay);
-            tourDayService.setService(service);
-            tourDayService.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1); // Default quantity is 1
+            // 6. Handle service provider change if requested
+            if (request.getServiceProviderId() != null &&
+                    (service.getServiceProvider() == null || !request.getServiceProviderId().equals(service.getServiceProvider().getId()))) {
 
-            // 7. Set selling price if provided, otherwise use service's default price
-            if (request.getSellingPrice() != null) {
-                tourDayService.setSellingPrice(request.getSellingPrice());
-            } else {
-                tourDayService.setSellingPrice(service.getSellingPrice());
+                // Create a final copy of variables needed in lambda
+                final Long categoryId = service.getServiceCategory().getId();
+                final Long providerIdToUse = request.getServiceProviderId();
+
+                List<Service> availableServices = serviceRepository.findByServiceProviderIdAndCategoryId(
+                        providerIdToUse, categoryId);
+
+                if (!availableServices.isEmpty()) {
+                    // Select the first available service
+                    service = availableServices.get(0);
+                } else {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, NO_SERVICES_AVAILABLE);
+                }
+            }
+
+            // Store service ID for lambda use
+            final Long serviceId = service.getId();
+
+            // 7. Update tour day location if requested
+            if (request.getLocationId() != null &&
+                    (tourDay.getLocation() == null || !request.getLocationId().equals(tourDay.getLocation().getId()))) {
+
+                final Long locationIdToUse = request.getLocationId();
+
+                Location location = locationRepository.findById(locationIdToUse)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found with id: " + locationIdToUse));
+
+                tourDay.setLocation(location);
+                tourDayRepository.save(tourDay);
             }
 
             // 8. Update service-specific details
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
             if (HOTEL.equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
-                Room room = roomRepository.findByServiceId(service.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + service.getId()));
+                Room room = roomRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + serviceId));
 
                 if (request.getRoomDetail().getCapacity() != null) {
                     room.setCapacity(request.getRoomDetail().getCapacity());
@@ -386,8 +415,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 roomRepository.save(room);
             }
             else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
-                Meal meal = mealRepository.findByServiceId(service.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + service.getId()));
+                Meal meal = mealRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
 
                 if (request.getMealDetail().getType() != null) {
                     meal.setType(MealType.valueOf(request.getMealDetail().getType()));
@@ -400,8 +429,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 mealRepository.save(meal);
             }
             else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
-                Transport transport = transportRepository.findByServiceId(service.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + service.getId()));
+                Transport transport = transportRepository.findByServiceId(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
 
                 if (request.getTransportDetail().getSeatCapacity() != null) {
                     transport.setSeatCapacity(request.getTransportDetail().getSeatCapacity());
@@ -410,9 +439,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 transportRepository.save(transport);
             }
 
-            // 9. Handle pax-specific pricing if provided
+            // 9. Handle pax-specific pricing
+            List<TourDayService> createdServices = new ArrayList<>();
+
+            // Working with original Map<String, Double> if that's what the DTO has
             if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
-                // Save to TourPax table instead of calculating average price
+                // Process each pax price and create a separate TourDayService for each
                 for (Map.Entry<String, Double> entry : request.getPaxPrices().entrySet()) {
                     Long paxId;
                     try {
@@ -420,31 +452,58 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     } catch (NumberFormatException e) {
                         throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid pax ID format: " + entry.getKey());
                     }
-                    // Check if this pax range already exists for this tour
-                    Optional<TourPax> existingTourPax = tourPaxRepository.findById(paxId);
 
-                    if (!existingTourPax.isPresent()) {
-                        throw BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId);
-                    }
-                    TourPax tourPax = existingTourPax.get();
+                    // Find the tourPax entity by ID
+                    TourPax tourPax = tourPaxRepository.findById(paxId)
+                            .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
 
                     // Verify this tourPax belongs to the current tour
                     if (!tourPax.getTour().getId().equals(tourId)) {
                         throw BusinessException.of(HttpStatus.BAD_REQUEST,
                                 "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
                     }
-                    // Update the selling price for this pax range
+
+                    // Create a TourDayService with the specific TourPax
+                    TourDayService tourDayService = new TourDayService();
+                    tourDayService.setTourDay(tourDay);
+                    tourDayService.setService(service);
+                    tourDayService.setTourPax(tourPax);
+                    tourDayService.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+                    tourDayService.setSellingPrice(entry.getValue());
+
+                    // Save the tour day service with pax association
+                    TourDayService savedService = tourDayServiceRepository.save(tourDayService);
+                    createdServices.add(savedService);
+
+                    // Also update the selling price in the tourPax entity
                     tourPax.setSellingPrice(entry.getValue());
-                    // Save the updated tourPax
                     tourPaxRepository.save(tourPax);
+                    tourPaxRepository.flush();  // Ensure the update is committed to the database
                 }
+            } else {
+                // Create a standard TourDayService without specific pax association
+                TourDayService tourDayService = new TourDayService();
+                tourDayService.setTourDay(tourDay);
+                tourDayService.setService(service);
+                tourDayService.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+
+                // Set selling price if provided, otherwise use service's default price
+                if (request.getSellingPrice() != null) {
+                    tourDayService.setSellingPrice(request.getSellingPrice());
+                } else {
+                    tourDayService.setSellingPrice(service.getSellingPrice());
+                }
+
+                TourDayService savedService = tourDayServiceRepository.save(tourDayService);
+                createdServices.add(savedService);
             }
 
-            // 10. Save the tour day service entry
-            tourDayService = tourDayServiceRepository.save(tourDayService);
+            // Flush all changes to ensure they're committed to the database
+            entityManager.flush();
 
-            // 11. Return service details
-            return getServiceDetail(tourId, tourDayService.getService().getId());
+            // Return the updated service details
+            final Long finalServiceId = service.getId();
+            return getServiceDetail(tourId, finalServiceId);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -612,23 +671,26 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             // If we're updating an existing service
             if (currentService != null) {
-                // Use EntityManager to find the first tourDayService to avoid the non-unique result exception
-                List<TourDayService> tourDayServices = entityManager.createQuery(
+                // Use EntityManager to find all tourDayServices for this service and tour
+                List<TourDayService> allTourDayServices = entityManager.createQuery(
                                 "SELECT tds FROM TourDayService tds " +
                                         "JOIN tds.tourDay td " +
                                         "WHERE tds.service.id = :serviceId " +
-                                        "AND td.tour.id = :tourId " +
-                                        "ORDER BY td.dayNumber ASC", TourDayService.class)
+                                        "AND td.tour.id = :tourId", TourDayService.class)
                         .setParameter("serviceId", serviceId)
                         .setParameter("tourId", tourId)
-                        .setMaxResults(1)
                         .getResultList();
 
-                if (tourDayServices.isEmpty()) {
+                if (allTourDayServices.isEmpty()) {
                     throw BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED);
                 }
 
-                tourDayService = tourDayServices.get(0);
+                // Find non-pax-specific TourDayService or use the first one
+                tourDayService = allTourDayServices.stream()
+                        .filter(tds -> tds.getTourPax() == null)
+                        .findFirst()
+                        .orElse(allTourDayServices.get(0));
+
                 tourDay = tourDayService.getTourDay();
                 service = currentService;
 
@@ -637,8 +699,74 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     TourDay newTourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, request.getDayNumber())
                             .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + ": " + request.getDayNumber()));
 
-                    tourDayService.setTourDay(newTourDay);
+                    // Update all TourDayService entries for this service to the new tour day
+                    for (TourDayService tds : allTourDayServices) {
+                        tds.setTourDay(newTourDay);
+                        tourDayServiceRepository.save(tds);
+                    }
+
                     tourDay = newTourDay;
+                    tourDayService.setTourDay(newTourDay);
+                }
+
+                // Create a map of existing pax-specific TourDayService entries
+                Map<Long, TourDayService> paxToServiceMap = new HashMap<>();
+                for (TourDayService tds : allTourDayServices) {
+                    if (tds.getTourPax() != null) {
+                        paxToServiceMap.put(tds.getTourPax().getId(), tds);
+                    }
+                }
+
+                // Update pax-specific pricing if provided
+                if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
+                    for (Map.Entry<Long, Double> entry : request.getPaxPrices().entrySet()) {
+                        Long paxId = entry.getKey();
+
+                        // Find the tourPax entity
+                        TourPax tourPax = tourPaxRepository.findById(paxId)
+                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
+
+                        // Verify this tourPax belongs to the current tour
+                        if (!tourPax.getTour().getId().equals(tourId)) {
+                            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                                    "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                        }
+
+                        // Check if we already have a TourDayService for this pax
+                        TourDayService paxService = paxToServiceMap.get(paxId);
+
+                        if (paxService != null) {
+                            // Update existing pax-specific service
+                            paxService.setSellingPrice(entry.getValue());
+                            tourDayServiceRepository.save(paxService);
+                        } else {
+                            // Create new pax-specific service
+                            TourDayService newPaxService = new TourDayService();
+                            newPaxService.setTourDay(tourDay);
+                            newPaxService.setService(service);
+                            newPaxService.setTourPax(tourPax);
+                            newPaxService.setQuantity(tourDayService.getQuantity());
+                            newPaxService.setSellingPrice(entry.getValue());
+                            tourDayServiceRepository.save(newPaxService);
+                        }
+
+                        // Also update the selling price in the TourPax entity
+                        tourPax.setSellingPrice(entry.getValue());
+                        tourPaxRepository.save(tourPax);
+                        tourPaxRepository.flush();  // Ensure the update is committed to the database
+                    }
+
+                    // Calculate average price for the base TourDayService
+                    Double avgPrice = request.getPaxPrices().values().stream()
+                            .mapToDouble(Double::doubleValue)
+                            .average()
+                            .orElse(tourDayService.getSellingPrice() != null ?
+                                    tourDayService.getSellingPrice() : service.getSellingPrice());
+
+                    tourDayService.setSellingPrice(avgPrice);
+                } else if (request.getSellingPrice() != null) {
+                    // Update the selling price of the base TourDayService
+                    tourDayService.setSellingPrice(request.getSellingPrice());
                 }
             }
             // If we're creating a new service
@@ -660,6 +788,46 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 tourDayService.setTourDay(tourDay);
                 tourDayService.setService(service);
                 tourDayService.setQuantity(1); // Default quantity
+
+                // Set selling price if provided
+                if (request.getSellingPrice() != null) {
+                    tourDayService.setSellingPrice(request.getSellingPrice());
+                } else {
+                    tourDayService.setSellingPrice(service.getSellingPrice());
+                }
+
+                // Save the base service
+                tourDayService = tourDayServiceRepository.save(tourDayService);
+
+                // Handle pax-specific pricing if provided
+                if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
+                    for (Map.Entry<Long, Double> entry : request.getPaxPrices().entrySet()) {
+                        Long paxId = entry.getKey();
+
+                        // Find the tourPax entity
+                        TourPax tourPax = tourPaxRepository.findById(paxId)
+                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
+
+                        // Verify this tourPax belongs to the current tour
+                        if (!tourPax.getTour().getId().equals(tourId)) {
+                            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                                    "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                        }
+
+                        // Create a pax-specific TourDayService
+                        TourDayService paxService = new TourDayService();
+                        paxService.setTourDay(tourDay);
+                        paxService.setService(service);
+                        paxService.setTourPax(tourPax);
+                        paxService.setQuantity(tourDayService.getQuantity());
+                        paxService.setSellingPrice(entry.getValue());
+                        tourDayServiceRepository.save(paxService);
+
+                        // Also update the selling price in the TourPax entity
+                        tourPax.setSellingPrice(entry.getValue());
+                        tourPaxRepository.save(tourPax);
+                    }
+                }
             } else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Either serviceId parameter or serviceId in request body is required");
             }
@@ -737,30 +905,13 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 transportRepository.save(transport);
             }
 
-            // 6. Update pricing
-            if (request.getNettPrice() != null) {
-                service.setNettPrice(request.getNettPrice());
-                serviceRepository.save(service);
-            }
-
-            if (request.getSellingPrice() != null) {
-                tourDayService.setSellingPrice(request.getSellingPrice());
-            }
-
-            // 7. Update pax-specific pricing if provided
-            if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
-                // Calculate an average price from all the pax prices to use as the base price
-                Double avgPrice = request.getPaxPrices().values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .average()
-                        .orElse(tourDayService.getSellingPrice() != null ? tourDayService.getSellingPrice() : service.getSellingPrice());
-                tourDayService.setSellingPrice(avgPrice);
-            }
-
-            // 8. Save the tour day service entry
+            // 6. Save the tour day service entry
             tourDayService = tourDayServiceRepository.save(tourDayService);
 
-            // 9. Return updated service details
+            // 7. Flush all changes to ensure they're committed to the database
+            entityManager.flush();
+
+            // 8. Return updated service details
             return getServiceDetail(tourId, tourDayService.getService().getId());
         } catch (BusinessException ex) {
             throw ex;
@@ -768,6 +919,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_UPDATE_FAIL, ex);
         }
     }
+
     @Override
     public GeneralResponse<TourServiceListDTO> getTourServicesList(Long tourId, Integer paxCount) {
         try {
@@ -787,17 +939,40 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // Get all tour day services
             List<TourDayService> allTourDayServices = tourDayServiceRepository.findByTourDayIdIn(tourDayIds);
 
-            // Get pax options
+            // Get pax options with a fresh database query to ensure we have the latest data
             List<TourPax> paxOptions = paxCount != null
                     ? tourPaxRepository.findByTourIdAndPaxRange(tourId, paxCount)
                     : tourPaxRepository.findByTourIdOrderByMinPax(tourId);
 
+            // Create a map to find TourDayService entities with specific pax associations
+            Map<Long, Map<Long, TourDayService>> serviceIdToPaxServiceMap = new HashMap<>();
+
+            // Collect all TourDayService entities that have pax associations
+            for (TourDayService tds : allTourDayServices) {
+                if (tds.getTourPax() != null) {
+                    Long serviceId = tds.getService().getId();
+                    Long paxId = tds.getTourPax().getId();
+
+                    // Initialize the inner map if needed
+                    if (!serviceIdToPaxServiceMap.containsKey(serviceId)) {
+                        serviceIdToPaxServiceMap.put(serviceId, new HashMap<>());
+                    }
+
+                    // Store the TourDayService by pax ID
+                    serviceIdToPaxServiceMap.get(serviceId).put(paxId, tds);
+                }
+            }
+
+            // Updated to include fixedCost and extraHotelCost
             List<TourPaxOptionDTO> paxOptionDTOs = paxOptions.stream()
                     .map(pax -> TourPaxOptionDTO.builder()
                             .id(pax.getId())
                             .minPax(pax.getMinPax())
                             .maxPax(pax.getMaxPax())
                             .price(pax.getNettPricePerPax())
+                            .sellingPrice(pax.getSellingPrice())
+                            .fixedCost(pax.getFixedCost())         // Added fixedCost
+                            .extraHotelCost(pax.getExtraHotelCost()) // Added extraHotelCost
                             .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
                             .build())
                     .collect(Collectors.toList());
@@ -806,6 +981,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             Map<String, List<ServiceSummaryDTO>> servicesByCategoryName = new HashMap<>();
 
             for (TourDayService tds : allTourDayServices) {
+                // Skip pax-specific TourDayService entries, we'll handle those separately
+                if (tds.getTourPax() != null) {
+                    continue;
+                }
+
                 Service service = tds.getService();
                 TourDay tourDay = tds.getTourDay();
 
@@ -815,18 +995,37 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     // Determine service status
                     String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
 
-                    // Calculate pax prices for this service using TourPax information
+                    // Calculate pax prices for this service
                     Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
                     for (TourPax pax : paxOptions) {
-                        // Calculate price based on TourPax settings and service selling price
-                        //Double adjustedPrice = calculatePriceForPax(tds.getSellingPrice(), pax);
+                        // Check if we have a specific TourDayService for this service and pax
+                        Double sellingPrice = null;
 
+                        // Check if we have pax-specific pricing for this service
+                        if (serviceIdToPaxServiceMap.containsKey(service.getId())) {
+                            Map<Long, TourDayService> paxServiceMap = serviceIdToPaxServiceMap.get(service.getId());
+                            TourDayService paxSpecificService = paxServiceMap.get(pax.getId());
+
+                            if (paxSpecificService != null) {
+                                sellingPrice = paxSpecificService.getSellingPrice();
+                            }
+                        }
+
+                        // If no specific pricing was found, use the default from TourPax
+                        if (sellingPrice == null) {
+                            sellingPrice = pax.getSellingPrice();
+                        }
+
+                        // Now include additional pax details in the DTO
                         paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                                 .paxId(pax.getId())
                                 .minPax(pax.getMinPax())
                                 .maxPax(pax.getMaxPax())
                                 .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
                                 .price(pax.getNettPricePerPax())
+                                .sellingPrice(sellingPrice)
+                                .fixedCost(pax.getFixedCost())         // Added fixedCost
+                                .extraHotelCost(pax.getExtraHotelCost()) // Added extraHotelCost
                                 .build());
                     }
 

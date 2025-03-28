@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.USER_NOT_AUTHENTICATED;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USER_NOT_FOUND;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/head-of-business/tour")
@@ -52,9 +55,9 @@ public class TourManagementController {
         return ResponseEntity.ok(tourService.getAllTours(keyword, isDeleted, isOpened,pageable));
     }
 
-        @GetMapping("/detail/{id}")
-        public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourById(@PathVariable Long id) {
-            return ResponseEntity.ok(tourService.getTourDetail(id));
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourById(@PathVariable Long id) {
+        return ResponseEntity.ok(tourService.getTourDetail(id));
     }
 
     @PostMapping("/create")
@@ -68,11 +71,11 @@ public class TourManagementController {
 
     private User getLoggedInUser(UserDetails userDetails) {
         if (userDetails == null) {
-            throw BusinessException.of(HttpStatus.UNAUTHORIZED, "User not authenticated");
+            throw BusinessException.of(HttpStatus.UNAUTHORIZED, USER_NOT_AUTHENTICATED);
         }
 
         return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, USER_NOT_FOUND));
     }
 
     @PutMapping("/update/{id}")
@@ -100,15 +103,6 @@ public class TourManagementController {
         return ResponseEntity.ok(tagService.findAll());
     }
 
-//    @PostMapping("/{tourId}/tour-days/{tourDayId}/services/add")
-//    public ResponseEntity<GeneralResponse<TourDayServiceResponseDTO>> addServiceToTourDay(
-//            @PathVariable Long tourId,
-//            @PathVariable Long tourDayId,
-//            @RequestBody TourDayServiceRequestDTO requestDTO,
-//            @AuthenticationPrincipal UserDetails userDetails) {
-//        User user = getLoggedInUser(userDetails);
-//        requestDTO.setId(tourDayId);
-//        return ResponseEntity.ok(tourDayServiceI.addServiceToTourDay(requestDTO, user));
-//    }
+
 
 }

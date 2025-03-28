@@ -27,4 +27,8 @@ public class TourDayService {
 
     @Column(name = "selling_price")
     private Double sellingPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "tour_pax_id")
+    private TourPax tourPax;
 }

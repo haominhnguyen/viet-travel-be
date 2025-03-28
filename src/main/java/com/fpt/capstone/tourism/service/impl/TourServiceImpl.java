@@ -518,6 +518,23 @@ public class TourServiceImpl implements TourService {
     @Transactional
     public GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent) {
         try {
+            if (markUpPercent == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, MARK_UP_REQUIRED);
+            }
+
+            // Check if the value is a valid number (not NaN or Infinity)
+            if (Double.isNaN(markUpPercent) || Double.isInfinite(markUpPercent)) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, MARK_UP_MUST_BE_NUMBER);
+            }
+
+            // Check range
+            if (markUpPercent < 0) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, MARK_UP_POSITIVE);
+            }
+
+            if (markUpPercent > 100) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, MARK_UP_LIMIT);
+            }
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));

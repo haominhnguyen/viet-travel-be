@@ -58,4 +58,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
         AND u.deleted = FALSE
 """)
     List<User> findAvailableTourGuideByScheduleId(@Param("scheduleId") Long scheduleId);
-}
+
+    @Query("SELECT DISTINCT u FROM User u " +
+            "JOIN u.userRoles ur " +
+            "WHERE ur.role.id = :roleId " +
+            "AND ur.deleted = false")
+    List<User> findUsersByRoleAndActive(
+            @Param("roleId") Long roleId,
+            @Param("active") boolean active);}
