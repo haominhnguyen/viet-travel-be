@@ -17,6 +17,7 @@ import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.OperatorService;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -125,9 +127,14 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTour(int page, int size, String keyword, String status, String orderDate) {
         try {
+            Long currentOperatorId = getCurrentUserOperatorId();
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status);
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
+                    .and((root, query, criteriaBuilder) -> {
+                Join<TourSchedule, User> userJoin = root.join("Operator");
+                return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
+            });
 
             Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
 
@@ -207,6 +214,8 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<OperatorTourDetailDTO> getTourDetail(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
+
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() -> BusinessException.of("Tour schedule not found"));
 
             Tour tour = tourRepository.findByScheduleId(scheduleId);
@@ -266,6 +275,8 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<OperatorTourCustomerDTO>> getListCustomerOfTourDetail(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
+
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
             List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
@@ -293,6 +304,8 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<OperatorTourBookingDTO>> getListBookingOfTourDetail(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
+
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
             List<OperatorTourBookingDTO> responseList = bookings.stream().map(booking -> {
@@ -332,6 +345,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<TourOperationLogDTO>> getListOperationLogOfTourDetail(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
             List<TourOperationLog> logs = logRepository.findByTourSchedule_IdAndDeletedFalse(scheduleId);
 
             List<TourOperationLogDTO> responseList = logs.stream()
@@ -346,6 +360,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<TourOperationLogDTO> createOperationLog(Long scheduleId, TourOperationLogRequestDTO logRequestDTO) {
         try {
+            checkAuthor(scheduleId);
             //Validate input data
             Validator.validateLog(logRequestDTO);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
@@ -374,6 +389,7 @@ public class OperatorServiceImpl implements OperatorService {
             TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
                     BusinessException.of("Not found tour log"));
 
+            checkAuthor(log.getTourSchedule().getId());
             log.setDeleted(true);
             log.setUpdatedAt(LocalDateTime.now());
             logRepository.save(log);
@@ -390,6 +406,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<AssignTourGuideRequestDTO> assignTourGuide(Long scheduleId, AssignTourGuideRequestDTO requestDTO) {
         try {
+            checkAuthor(scheduleId);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
                     () -> BusinessException.of("Not found tour schedule"));
 
@@ -426,6 +443,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<List<OperatorTransactionDTO>> getListTransaction(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
             List<TourBooking> tourBookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
             List<Transaction> transactions = transactionRepository.findAllByBookingIn(tourBookings);
 
@@ -441,6 +459,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<OperatorServiceListDTO> getListService(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
             // Tìm danh sách tất cả dịch vụ liên quan đến scheduleId
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
             List<TourBookingService> bookingServices = scheduleServiceRepository.findAllByBookingIn(bookings);
@@ -678,6 +697,7 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("Tour booking not found")
             );
 
+            checkAuthor(booking.getTourSchedule().getId());
             TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId());
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
@@ -745,6 +765,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> getListBookingForAddService(Long scheduleId) {
         try {
+            checkAuthor(scheduleId);
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
             List<TourBookingSimpleDTO> resultDTO = bookings.stream()
                     .map(booking ->
@@ -763,6 +784,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
         try {
+            checkAuthorByTourBookingService(tourBookingServiceId);
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
                     () -> BusinessException.of("Booking service not found")
             );
@@ -786,7 +808,7 @@ public class OperatorServiceImpl implements OperatorService {
                         bookingService.getRequestDate(),
                         bookingService.getCurrentQuantity() * service.getNettPrice());
 
-                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+                String subject = MessageFormat.format(emailCancelServiceSubject, serviceProvider.getId());
 
                 MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
                         .bookingServiceId(tourBookingServiceId)
@@ -815,6 +837,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO) {
         try {
+            checkAuthorByTourBookingService(requestDTO.getTourBookingServiceId());
             TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
                     () -> BusinessException.of("No booking service found")
             );
@@ -933,12 +956,12 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
         try {
-//            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
-//                    () -> BusinessException.of("Booking service not found")
-//            );
+            TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
+                    () -> BusinessException.of("Booking service not found")
+            );
             emailService.sendMailServiceProvider(mailServiceDTO);
-//            bookingService.setStatus(TourBookingServiceStatus.PENDING);
-//            bookingServiceRepository.save(bookingService);
+            bookingService.setStatus(TourBookingServiceStatus.PENDING);
+            bookingServiceRepository.save(bookingService);
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
@@ -1275,4 +1298,37 @@ public class OperatorServiceImpl implements OperatorService {
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
+
+    private Long getCurrentUserOperatorId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getName() != null) {
+            User user = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() ->  BusinessException.of("User not found"));
+            return user.getId();
+        }
+        throw BusinessException.of("Không tìm thấy thông tin người dùng");
+    }
+
+    private boolean checkAuthor(Long scheduleId){
+        //Kiểm tra đơn tour có phải của nhà điều hành không
+        Long currentOperatorId = getCurrentUserOperatorId();
+        TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
+                () -> BusinessException.of("No tour schedule found")
+        );
+        if (!tourSchedule.getOperator().getId().equals(currentOperatorId)) {
+            throw BusinessException.of("Unauthorized");
+        }
+        return true;
+    }
+
+    private boolean checkAuthorByTourBookingService(Long tourBookingServiceId){
+        //Kiểm tra đơn tour có phải của nhà điều hành không
+        Long currentOperatorId = getCurrentUserOperatorId();
+        TourSchedule tourSchedule = tourScheduleRepository.findByTourBookingServiceId(tourBookingServiceId);
+        if (!tourSchedule.getOperator().getId().equals(currentOperatorId)) {
+            throw BusinessException.of("Unauthorized");
+        }
+        return true;
+    }
+
 }

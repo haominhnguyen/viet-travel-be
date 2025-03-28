@@ -162,7 +162,7 @@ public class OperatorController {
     }
 
     @PutMapping("/update-service-quantity")
-    public ResponseEntity<GeneralResponse<?>> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO) {
+    public ResponseEntity<GeneralResponse<?>> updateServiceQuantity(@RequestBody ServiceQuantityUpdateDTO requestDTO) {
         return ResponseEntity.ok(operatorService.updateServiceQuantity(requestDTO));
     }
     @PutMapping("/cancel-service/{tourBookingServiceId}")

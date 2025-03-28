@@ -114,4 +114,13 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
                          com.fpt.capstone.tourism.model.TransactionType.COLLECTION)
 """)
     Double findRevenueCostByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("""
+    SELECT ts
+    FROM TourSchedule ts
+    JOIN TourBooking tb ON ts.id = tb.tourSchedule.id 
+    JOIN TourBookingService tbs ON tbs.booking.id = tb.id
+    WHERE tbs.id = :tourBookingServiceId
+""")
+    TourSchedule findByTourBookingServiceId(Long tourBookingServiceId);
 }

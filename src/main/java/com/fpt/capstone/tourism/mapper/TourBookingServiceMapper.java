@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.ChangeServiceDTO;
+import com.fpt.capstone.tourism.dto.common.ServiceProviderBookingServiceDTO;
 import com.fpt.capstone.tourism.dto.common.TourBookingServiceCommonDTO;
 import com.fpt.capstone.tourism.dto.common.TourDayDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingServiceDTO;
@@ -24,4 +25,7 @@ public interface TourBookingServiceMapper  extends EntityMapper<TourBookingServi
     @Mapping(target = "updatedAt", source = "updatedAt")
     @Mapping(target = "tourBookingServiceId", source = "id")
     ChangeServiceDTO toChangeServiceDTO(TourBookingService entity);
+
+    @Mapping(target = "serviceName", source = "service.name")
+    ServiceProviderBookingServiceDTO toProviderBookingServiceDTO(TourBookingService entity);
 }
