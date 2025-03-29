@@ -1104,6 +1104,62 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         }
     }
 
+    @Override
+    @Transactional
+    public GeneralResponse<Void> removeServiceFromTour(Long tourId, Long serviceId, Integer dayNumber) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Validate service exists
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+
+            // 3. Find the specific tour day by day number
+            TourDay tourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, dayNumber)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + " with day number: " + dayNumber));
+
+            // 4. Find TourDayService entries for the specific day
+            List<TourDayService> tourDayServices = entityManager.createQuery(
+                            "SELECT tds FROM TourDayService tds " +
+                                    "WHERE tds.service.id = :serviceId " +
+                                    "AND tds.tourDay.id = :tourDayId", TourDayService.class)
+                    .setParameter("serviceId", serviceId)
+                    .setParameter("tourDayId", tourDay.getId())
+                    .getResultList();
+
+            if (tourDayServices.isEmpty()) {
+                throw BusinessException.of(HttpStatus.NOT_FOUND,
+                        "Service with id " + serviceId + " is not associated with tour day " + dayNumber);
+            }
+
+            // 5. For each TourDayService, find and delete associated ServicePaxPricing records
+            for (TourDayService tds : tourDayServices) {
+                // Find all ServicePaxPricing records for this TourDayService
+                List<ServicePaxPricing> paxPricings = servicePaxPricingRepository.findByTourDayServiceId(tds.getId());
+
+                // Delete all ServicePaxPricing records
+                if (!paxPricings.isEmpty()) {
+                    servicePaxPricingRepository.deleteAll(paxPricings);
+                }
+            }
+
+            // 6. Delete all TourDayService records for this specific day
+            tourDayServiceRepository.deleteAll(tourDayServices);
+
+            // 7. Flush to ensure changes are committed
+            entityManager.flush();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(),
+                    "Service successfully removed from tour day " + dayNumber, null);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_REMOVE_FAIL, ex);
+        }
+    }
+
     private List<AvailableServiceDTO> buildAvailableServicesDTO(List<Service> services) {
         List<AvailableServiceDTO> availableServices = new ArrayList<>();
 
