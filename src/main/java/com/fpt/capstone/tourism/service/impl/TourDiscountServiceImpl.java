@@ -252,24 +252,24 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             TourDayService primaryTourDayService = allTourDayServices.get(0);
             TourDay tourDay = primaryTourDayService.getTourDay();
 
-            // 4. Get all pax associations for this service
+            // 4. Get all non-deleted pax associations for this service
             List<ServicePaxPricing> paxAssociations = new ArrayList<>();
             for (TourDayService tds : allTourDayServices) {
-                List<ServicePaxPricing> associations = servicePaxPricingRepository.findByTourDayServiceId(tds.getId());
+                List<ServicePaxPricing> associations = servicePaxPricingRepository.findByTourDayServiceIdAndDeletedFalse(tds.getId());
                 paxAssociations.addAll(associations);
             }
 
-            // 5. Create a map of pax IDs to their pax objects
+            // 5. Create a map of pax IDs to their pax objects (only for non-deleted pax)
             Map<Long, TourPax> paxMap = new HashMap<>();
             for (ServicePaxPricing association : paxAssociations) {
                 TourPax pax = association.getTourPax();
-                if (pax != null) {
+                if (pax != null && !pax.getDeleted()) {
                     paxMap.put(pax.getId(), pax);
                 }
             }
 
-            // 6. Get pax options with a fresh query to ensure we have the latest data
-            List<TourPax> paxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+            // 6. Get non-deleted pax options with a fresh query to ensure we have the latest data
+            List<TourPax> paxOptions = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
             Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
 
             for (TourPax pax : paxOptions) {

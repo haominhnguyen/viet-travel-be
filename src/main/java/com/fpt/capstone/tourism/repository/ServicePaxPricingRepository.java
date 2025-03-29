@@ -24,4 +24,5 @@ public interface ServicePaxPricingRepository extends JpaRepository<ServicePaxPri
     @Query("SELECT spp FROM ServicePaxPricing spp WHERE spp.tourDayService.id IN :tourDayServiceIds AND spp.deleted = false")
     List<ServicePaxPricing> findByTourDayServiceIdInAndDeletedFalse(@Param("tourDayServiceIds") List<Long> tourDayServiceIds);
 
+    List<ServicePaxPricing> findByTourDayServiceIdAndDeletedFalse(Long id);
 }
