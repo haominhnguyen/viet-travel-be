@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -114,6 +115,19 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
                          com.fpt.capstone.tourism.model.TransactionType.COLLECTION)
 """)
     Double findRevenueCostByScheduleId(@Param("scheduleId")Long scheduleId);
+
+    @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
+            "WHERE ts.Operator.id = :operatorId " +
+            "AND ts.deleted = false " +
+            "AND ts.status IN ('ONGOING') " +
+            "AND ((ts.startDate BETWEEN :startDate AND :endDate) " +
+            "OR (ts.endDate BETWEEN :startDate AND :endDate) " +
+            "OR (:startDate BETWEEN ts.startDate AND ts.endDate))")
+    int countActiveToursForOperator(
+            @Param("operatorId") Long operatorId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
 
     @Query("""
     SELECT ts

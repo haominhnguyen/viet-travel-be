@@ -16,6 +16,8 @@ import java.util.Map;
 @Builder
 public class ServiceCreateRequestDTO {
         private Long serviceId;
+        private Long locationId;
+        private Long serviceProviderId;
         private Integer dayNumber;
         private Integer quantity;
         private Double sellingPrice;

@@ -302,6 +302,17 @@ public class Constants {
         public static final String MARKUP_UPDATE_FAIL = "Failed to update markup";
         public static final String MARKUP_RETRIEVE_SUCCESS = "Markup retrieved successfully";
         public static final String MARKUP_RETRIEVE_FAIL = "Failed to retrieve markup";
+        public static final String MARK_UP_REQUIRED = "Markup required";
+        public static final String MARK_UP_MUST_BE_NUMBER = "Markup must be a number";
+        public static final String MARK_UP_POSITIVE = "Markup must be positive";
+        public static final String MARK_UP_LIMIT  = "Markup must not exceed 100%";
+
+        public static final String USER_NOT_FOUND = "User not found";
+        public static final String OPERATOR_ROLE_NOT_FOUND = "Operator role not found";
+        public static final String USER_NOT_OPERATOR = "Selected user is not an operator";
+        public static final String OPERATOR_NOT_FOUND = "Operator not found";
+        public static final String OPERATOR_OVERBOOKED = "Operator already has more than 3 active tours during this period";
+        public static final String SCHEDULE_CREATED_SUCCESS = "Tour schedule created successfully";
     }
 
 

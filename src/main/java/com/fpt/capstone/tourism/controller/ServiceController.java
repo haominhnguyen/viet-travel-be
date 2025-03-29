@@ -23,6 +23,7 @@ import java.util.List;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.*;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USER_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
