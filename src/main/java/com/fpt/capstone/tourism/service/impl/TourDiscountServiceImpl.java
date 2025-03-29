@@ -102,7 +102,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .minPax(pax.getMinPax())
                             .maxPax(pax.getMaxPax())
                             .price(pax.getNettPricePerPax())
-                            .sellingPrice(pax.getSellingPrice())
+                            .sellingPrice(pax.getSellingPrice()) // Keep this for backward compatibility
                             .fixedCost(pax.getFixedCost())
                             .extraHotelCost(pax.getExtraHotelCost())
                             .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
@@ -132,11 +132,15 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     if (paxPricingMap.isEmpty()) {
                         // Create service-specific pax associations for each pax option
                         for (TourPax pax : paxOptions) {
-                            // Create a new association entry for this service and pax
+                            // Create a new association entry for this service and pax with default selling price
+                            Double defaultSellingPrice = tds.getSellingPrice() != null ?
+                                    tds.getSellingPrice() : service.getSellingPrice();
+
                             ServicePaxPricing newAssociation = ServicePaxPricing.builder()
                                     .tourDayService(tds)
                                     .tourPax(pax)
-                                    .deleted(false) // Ensure new associations are not deleted
+                                    .sellingPrice(defaultSellingPrice)
+                                    .deleted(false)
                                     .build();
 
                             // Save the new association
@@ -155,9 +159,21 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     for (TourPax pax : paxOptions) {
                         // Only include non-deleted pax configurations
                         if (!pax.getDeleted() && paxPricingMap.containsKey(pax.getId())) {
-                            // Get pricing from TourPax and Service
+                            ServicePaxPricing paxPricing = paxPricingMap.get(pax.getId());
+
+                            // Get pricing from TourPax for nett prices and from ServicePaxPricing for selling price
                             Double nettPricePerPax = pax.getNettPricePerPax();
-                            Double sellingPrice = pax.getSellingPrice();
+                            // Use the specific selling price from ServicePaxPricing
+                            Double sellingPrice = paxPricing.getSellingPrice();
+                            // If selling price is null, fall back to service selling price
+                            if (sellingPrice == null) {
+                                sellingPrice = tds.getSellingPrice() != null ?
+                                        tds.getSellingPrice() : service.getSellingPrice();
+                                // Update the association with the default price for next time
+                                paxPricing.setSellingPrice(sellingPrice);
+                                servicePaxPricingRepository.save(paxPricing);
+                            }
+
                             Double serviceNettPrice = service.getNettPrice();
 
                             // Build the DTO with the appropriate pricing
@@ -168,7 +184,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                     .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
                                     .price(nettPricePerPax)         // Using nett price per pax from TourPax
                                     .serviceNettPrice(serviceNettPrice) // Using nett price from Service
-                                    .sellingPrice(sellingPrice)     // Using selling price from TourPax
+                                    .sellingPrice(sellingPrice)     // Using service-specific selling price from ServicePaxPricing
                                     .fixedCost(pax.getFixedCost())
                                     .extraHotelCost(pax.getExtraHotelCost())
                                     .build());
@@ -259,12 +275,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 paxAssociations.addAll(associations);
             }
 
-            // 5. Create a map of pax IDs to their pax objects (only for non-deleted pax)
-            Map<Long, TourPax> paxMap = new HashMap<>();
+            // 5. Create a map of pax IDs to their service pax pricing (for pricing info)
+            Map<Long, ServicePaxPricing> paxPricingMap = new HashMap<>();
             for (ServicePaxPricing association : paxAssociations) {
                 TourPax pax = association.getTourPax();
                 if (pax != null && !pax.getDeleted()) {
-                    paxMap.put(pax.getId(), pax);
+                    paxPricingMap.put(pax.getId(), association);
                 }
             }
 
@@ -274,17 +290,31 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             for (TourPax pax : paxOptions) {
                 // Check if this pax is associated with the service
-                boolean isAssociated = paxMap.containsKey(pax.getId());
+                boolean isAssociated = paxPricingMap.containsKey(pax.getId());
 
-                // If associated, include it in the response with pricing from TourPax
+                // If associated, include it in the response with pricing from ServicePaxPricing
                 if (isAssociated) {
+                    ServicePaxPricing paxPricing = paxPricingMap.get(pax.getId());
+                    // Get the service-specific selling price
+                    Double sellingPrice = paxPricing.getSellingPrice();
+
+                    // If selling price is null, use default from service
+                    if (sellingPrice == null) {
+                        sellingPrice = primaryTourDayService.getSellingPrice() != null ?
+                                primaryTourDayService.getSellingPrice() : service.getSellingPrice();
+
+                        // Update the pricing record for next time
+                        paxPricing.setSellingPrice(sellingPrice);
+                        servicePaxPricingRepository.save(paxPricing);
+                    }
+
                     paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                             .paxId(pax.getId())
                             .minPax(pax.getMinPax())
                             .maxPax(pax.getMaxPax())
                             .price(pax.getNettPricePerPax())
                             .serviceNettPrice(service.getNettPrice()) // Include service nett price
-                            .sellingPrice(pax.getSellingPrice())
+                            .sellingPrice(sellingPrice) // Use service-specific selling price
                             .fixedCost(pax.getFixedCost())
                             .extraHotelCost(pax.getExtraHotelCost())
                             .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
@@ -600,8 +630,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 }
 
                 roomRepository.save(room);
-            }
-            else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
 
@@ -614,8 +643,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 }
 
                 mealRepository.save(meal);
-            }
-            else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
 
@@ -636,16 +664,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             tourDayService.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
 
             // Set selling price if provided, otherwise use service's default price
-            if (request.getSellingPrice() != null) {
-                tourDayService.setSellingPrice(request.getSellingPrice());
-            } else {
-                tourDayService.setSellingPrice(service.getSellingPrice());
-            }
+            Double mainSellingPrice = request.getSellingPrice() != null ?
+                    request.getSellingPrice() : service.getSellingPrice();
+            tourDayService.setSellingPrice(mainSellingPrice);
 
             mainTourDayService = tourDayServiceRepository.save(tourDayService);
 
             // Get all pax options for this tour
-            List<TourPax> allPaxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+            List<TourPax> allPaxOptions = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
 
             // If specific pax pricing is provided
             if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
@@ -668,31 +694,33 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
                     }
 
-                    // Create association in service_pax_pricing table
+                    // Create association in service_pax_pricing table with specific selling price
                     ServicePaxPricing paxPricing = ServicePaxPricing.builder()
                             .tourDayService(mainTourDayService)
                             .tourPax(tourPax)
+                            .sellingPrice(entry.getValue())
+                            .deleted(false)
                             .build();
 
                     servicePaxPricingRepository.save(paxPricing);
-
-                    // Update the TourPax selling price if needed
-                    tourPax.setSellingPrice(entry.getValue());
-                    tourPaxRepository.save(tourPax);
                 }
             } else {
-                // If no specific pricing, create associations for all pax options
+                // If no specific pricing, create associations for all pax options with default selling price
                 for (TourPax pax : allPaxOptions) {
                     ServicePaxPricing paxPricing = ServicePaxPricing.builder()
                             .tourDayService(mainTourDayService)
                             .tourPax(pax)
+                            .sellingPrice(mainSellingPrice)
+                            .deleted(false)
                             .build();
 
                     servicePaxPricingRepository.save(paxPricing);
                 }
             }
+
             // Flush all changes to ensure they're committed to the database
             entityManager.flush();
+
             // Return the updated service details
             return getServiceDetail(tourId, service.getId());
         } catch (BusinessException ex) {
@@ -755,18 +783,26 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     tourDay = newTourDay;
                 }
 
+                // Update main service selling price if provided
+                if (request.getSellingPrice() != null) {
+                    tourDayService.setSellingPrice(request.getSellingPrice());
+                    tourDayServiceRepository.save(tourDayService);
+                }
+
                 // Update pax-specific pricing if provided
                 if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
-                    // First, check and delete existing service pax pricing entries
+                    // Get existing service pax pricing entries
                     List<ServicePaxPricing> existingPricings = servicePaxPricingRepository.findByTourDayServiceId(tourDayService.getId());
-                    if (!existingPricings.isEmpty()) {
-                        servicePaxPricingRepository.deleteAll(existingPricings);
-                        servicePaxPricingRepository.flush();
-                    }
+                    Map<Long, ServicePaxPricing> pricingMap = existingPricings.stream()
+                            .collect(Collectors.toMap(
+                                    pricing -> pricing.getTourPax().getId(),
+                                    pricing -> pricing
+                            ));
 
-                    // Create new service pax pricing entries for each pax
+                    // Create or update service pax pricing entries for each pax
                     for (Map.Entry<Long, Double> entry : request.getPaxPrices().entrySet()) {
                         Long paxId = entry.getKey();
+                        Double sellingPrice = entry.getValue();
 
                         // Find the tourPax entity
                         TourPax tourPax = tourPaxRepository.findById(paxId)
@@ -778,30 +814,24 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                     "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
                         }
 
-                        // Create a new association in service_pax_pricing
-                        ServicePaxPricing paxPricing = ServicePaxPricing.builder()
-                                .tourDayService(tourDayService)
-                                .tourPax(tourPax)
-                                .build();
-
-                        servicePaxPricingRepository.save(paxPricing);
-
-                        // Also update the selling price in the TourPax entity
-                        tourPax.setSellingPrice(entry.getValue());
-                        tourPaxRepository.save(tourPax);
+                        // Check if we already have pricing for this pax
+                        if (pricingMap.containsKey(paxId)) {
+                            // Update existing pricing
+                            ServicePaxPricing existing = pricingMap.get(paxId);
+                            existing.setSellingPrice(sellingPrice);
+                            existing.setDeleted(false); // Ensure it's not deleted
+                            servicePaxPricingRepository.save(existing);
+                        } else {
+                            // Create a new pricing entry
+                            ServicePaxPricing paxPricing = ServicePaxPricing.builder()
+                                    .tourDayService(tourDayService)
+                                    .tourPax(tourPax)
+                                    .sellingPrice(sellingPrice)
+                                    .deleted(false)
+                                    .build();
+                            servicePaxPricingRepository.save(paxPricing);
+                        }
                     }
-
-                    // Calculate average price for the TourDayService
-                    Double avgPrice = request.getPaxPrices().values().stream()
-                            .mapToDouble(Double::doubleValue)
-                            .average()
-                            .orElse(tourDayService.getSellingPrice() != null ?
-                                    tourDayService.getSellingPrice() : service.getSellingPrice());
-
-                    tourDayService.setSellingPrice(avgPrice);
-                } else if (request.getSellingPrice() != null) {
-                    // Update the selling price of the TourDayService
-                    tourDayService.setSellingPrice(request.getSellingPrice());
                 }
             }
             // If we're creating a new service
@@ -825,22 +855,21 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 tourDayService.setQuantity(1); // Default quantity
 
                 // Set selling price if provided
-                if (request.getSellingPrice() != null) {
-                    tourDayService.setSellingPrice(request.getSellingPrice());
-                } else {
-                    tourDayService.setSellingPrice(service.getSellingPrice());
-                }
+                Double mainSellingPrice = request.getSellingPrice() != null ?
+                        request.getSellingPrice() : service.getSellingPrice();
+                tourDayService.setSellingPrice(mainSellingPrice);
 
                 // Save the base service
                 tourDayService = tourDayServiceRepository.save(tourDayService);
 
                 // Get all pax options for this tour
-                List<TourPax> allPaxOptions = tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+                List<TourPax> allPaxOptions = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
 
                 // Handle pax-specific pricing if provided
                 if (request.getPaxPrices() != null && !request.getPaxPrices().isEmpty()) {
                     for (Map.Entry<Long, Double> entry : request.getPaxPrices().entrySet()) {
                         Long paxId = entry.getKey();
+                        Double sellingPrice = entry.getValue();
 
                         // Find the tourPax entity
                         TourPax tourPax = tourPaxRepository.findById(paxId)
@@ -856,20 +885,20 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                         ServicePaxPricing paxPricing = ServicePaxPricing.builder()
                                 .tourDayService(tourDayService)
                                 .tourPax(tourPax)
+                                .sellingPrice(sellingPrice)
+                                .deleted(false)
                                 .build();
 
                         servicePaxPricingRepository.save(paxPricing);
-
-                        // Update the TourPax selling price
-                        tourPax.setSellingPrice(entry.getValue());
-                        tourPaxRepository.save(tourPax);
                     }
                 } else {
-                    // If no specific pricing provided, create associations for all pax options
+                    // If no specific pricing provided, create associations for all pax options with default price
                     for (TourPax pax : allPaxOptions) {
                         ServicePaxPricing paxPricing = ServicePaxPricing.builder()
                                 .tourDayService(tourDayService)
                                 .tourPax(pax)
+                                .sellingPrice(mainSellingPrice) // Use the default selling price
+                                .deleted(false)
                                 .build();
 
                         servicePaxPricingRepository.save(paxPricing);
