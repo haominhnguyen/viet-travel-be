@@ -82,5 +82,17 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             "WHERE sp.location.id = :locationId " +
             "AND (sp.deleted = false OR sp.deleted IS NULL)")
     List<String> findAvailableCategoriesByLocationId(@Param("locationId") Long locationId);
+
+
+    @Query("""
+            SELECT sp FROM ServiceProvider sp
+            JOIN sp.serviceCategories sc
+            WHERE sp.location.id = :locationId
+            AND sp.id!= :serviceProviderId
+            AND sp.deleted = false
+            AND sc.categoryName = 'Hotel'
+            ORDER BY RANDOM() LIMIT 6
+""")
+    List<ServiceProvider> findOtherHotelsInSameLocationByProviderId(Long serviceProviderId, Long locationId);
 }
 

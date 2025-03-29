@@ -30,11 +30,14 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findAllServicesByProviderId(@Param("providerId") Long providerId);
 
     @Query("""
-        SELECT s FROM Service s
+        SELECT new com.fpt.capstone.tourism.dto.response.PublicServiceDTO (
+            s.id, s.name, s.sellingPrice, s.imageUrl, r.id, r.capacity, r.availableQuantity, r.facilities)
+        FROM Service s
+        JOIN Room r ON s.id = r.service.id
         WHERE s.serviceProvider.id = :providerId AND s.serviceCategory.categoryName = 'Hotel'
         AND s.deleted = FALSE 
      """)
-    List<Service> findRoomsByProviderId(@Param("providerId") Long id);
+    List<PublicServiceDTO> findRoomsByProviderId(@Param("providerId") Long id);
 
     @Query("""
         SELECT s FROM Service s
