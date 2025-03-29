@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.ServiceProviderDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
+import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ import java.util.List;
 public class ServiceProviderController {
 
     private final ServiceProviderService serviceProviderService;
+    private final LocationService locationService;
 
     @PostMapping("/create")
     public ResponseEntity<GeneralResponse<ServiceProviderDTO>> create(@RequestBody ServiceProviderDTO serviceProviderDTO) {
@@ -50,6 +52,11 @@ public class ServiceProviderController {
     @DeleteMapping("/change-status/{id}")
     public ResponseEntity<GeneralResponse<ServiceProviderDTO>> deleteServiceProvider(@PathVariable Long id, @RequestParam boolean isDeleted) {
         return ResponseEntity.ok(serviceProviderService.deleteServiceProvider(id, isDeleted));
+    }
+
+    @GetMapping("/location/list-location")
+    public ResponseEntity<GeneralResponse<?>> getListLocation(){
+        return ResponseEntity.ok(locationService.getListLocation());
     }
 
 }

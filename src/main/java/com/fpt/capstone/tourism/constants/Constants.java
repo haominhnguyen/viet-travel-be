@@ -315,6 +315,14 @@ public class Constants {
         public static final String SCHEDULE_CREATED_SUCCESS = "Tour schedule created successfully";
         public static final String SERVICE_REMOVED = "Service removed successfully";
         public static final String SERVICE_REMOVE_FAIL = "Failed to remove service";
+
+        public static final String PAX_RANGE_INVALID = "Maximum pax must be greater than or equal to minimum pax";
+        public static final String DATE_RANGE_INVALID = "Valid to date must be after valid from date";
+        public static final String OVERLAP_EXISTS = "A price configuration with overlapping pax range and date range already exists";
+        public static final String CONFIG_CREATED = "Price configuration created successfully";
+        public static final String CONFIG_UPDATED = "Price configuration updated successfully";
+        public static final String CONFIG_DELETED = "Price configuration deleted successfully";
+        public static final String CONFIGS_RETRIEVED = "Price configurations retrieved successfully";
     }
 
 

@@ -23,4 +23,6 @@ public interface LocationService {
     List<PublicLocationDTO> findRecommendedLocations(int numberLocation, Long locationId);
 
     GeneralResponse<PagingDTO<List<LocationDTO>>> getLocationsByTourId(Long tourId, int page, int size, String keyword, Boolean isDeleted, String orderDate);
+
+    GeneralResponse<?> getListLocation();
 }
