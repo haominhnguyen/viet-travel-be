@@ -87,7 +87,6 @@ public class TourDiscountController {
             @RequestParam(required = true) Integer dayNumber,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // Get logged-in user (reuse your existing method or implement as needed)
         User user = getLoggedInUser(userDetails);
         GeneralResponse<Void> response = tourDiscountService.removeServiceFromTour(tourId, serviceId, dayNumber);
         return ResponseEntity.status(response.getCode()).body(response);

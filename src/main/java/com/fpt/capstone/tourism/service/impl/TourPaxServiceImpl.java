@@ -390,7 +390,7 @@ public class TourPaxServiceImpl implements TourPaxService {
             // Get all service-pax associations for this pax
             List<ServicePaxPricing> paxServicePricings = servicePaxPricingRepository.findByTourPaxId(paxId);
 
-            // Option 2: Mark all associations as deleted (using the deleted flag)
+            // Mark all associations as deleted
             for (ServicePaxPricing pricing : paxServicePricings) {
                 pricing.setDeleted(true);
                 servicePaxPricingRepository.save(pricing);
@@ -514,7 +514,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     private boolean checkForOverlappingPaxConfigurations(Long tourId, Long paxIdToExclude,
                                                          Integer minPax, Integer maxPax,
                                                          Date validFrom, Date validTo) {
-        // Get all pax configurations for this tour, excluding the one being updated if applicable
+        // Get all non-deleted pax configurations for this tour, excluding the one being updated if applicable
         List<TourPax> existingConfigs = paxIdToExclude == null ?
                 tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId) :
                 tourPaxRepository.findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(tourId, paxIdToExclude);

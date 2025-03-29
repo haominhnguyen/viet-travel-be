@@ -60,7 +60,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .map(TourDay::getId)
                     .collect(Collectors.toList());
 
-            // Get all tour day services
+            // Get all tour day services - no deleted filter needed here
             List<TourDayService> allTourDayServices = tourDayServiceRepository.findByTourDayIdIn(tourDayIds);
 
             // Get all tourDayService IDs
@@ -68,8 +68,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .map(TourDayService::getId)
                     .collect(Collectors.toList());
 
-            // Get all service-specific pax associations from the join table
-            List<ServicePaxPricing> allServicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdIn(tourDayServiceIds);
+            // Get all non-deleted service-specific pax associations from the join table
+            List<ServicePaxPricing> allServicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndDeletedFalse(tourDayServiceIds);
 
             // Create a map for quick lookup of service pax associations
             Map<Long, Map<Long, ServicePaxPricing>> serviceToPaxPricingMap = new HashMap<>();
@@ -86,9 +86,10 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             }
 
             // Get pax options with a fresh database query to ensure we have the latest data
+            // Only consider non-deleted pax configurations
             List<TourPax> paxOptions = paxCount != null
-                    ? tourPaxRepository.findByTourIdAndPaxRange(tourId, paxCount)
-                    : tourPaxRepository.findByTourIdOrderByMinPax(tourId);
+                    ? tourPaxRepository.findByTourIdAndPaxRangeNonDeleted(tourId, paxCount)
+                    : tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
 
             // Create a map to easily find TourPax by ID
             Map<Long, TourPax> paxMap = paxOptions.stream()
@@ -135,6 +136,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             ServicePaxPricing newAssociation = ServicePaxPricing.builder()
                                     .tourDayService(tds)
                                     .tourPax(pax)
+                                    .deleted(false) // Ensure new associations are not deleted
                                     .build();
 
                             // Save the new association
@@ -151,8 +153,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                     // Now build the DTO with pax-specific and service-specific pricing
                     for (TourPax pax : paxOptions) {
-                        // Check if this pax is associated with this service
-                        if (paxPricingMap.containsKey(pax.getId())) {
+                        // Only include non-deleted pax configurations
+                        if (!pax.getDeleted() && paxPricingMap.containsKey(pax.getId())) {
                             // Get pricing from TourPax and Service
                             Double nettPricePerPax = pax.getNettPricePerPax();
                             Double sellingPrice = pax.getSellingPrice();
