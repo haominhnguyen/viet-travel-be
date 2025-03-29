@@ -24,4 +24,7 @@ public interface TourDiscountService {
 
     GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId);
 
-    GeneralResponse<Void> removeServiceFromTour(Long tourId, Long serviceId, Integer dayNumber);}
+    GeneralResponse<Void> removeServiceFromTour(Long tourId, Long serviceId, Integer dayNumber);
+
+    GeneralResponse<ServiceByCategoryDTO> getServiceDetailByDayAndService(Long tourId, Integer dayNumber, Long serviceId);
+}

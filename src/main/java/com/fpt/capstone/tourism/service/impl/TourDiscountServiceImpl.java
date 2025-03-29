@@ -1191,6 +1191,147 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         }
     }
 
+    @Override
+    public GeneralResponse<ServiceByCategoryDTO> getServiceDetailByDayAndService(Long tourId, Integer dayNumber, Long serviceId) {
+        try {
+            // 1. Validate tour exists
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            // 2. Find the tour day
+            TourDay tourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, dayNumber)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + " with day number: " + dayNumber));
+
+            // 3. Get service
+            Service service = serviceRepository.findById(serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+
+            // 4. Find the specific TourDayService for this service on this day
+            TourDayService tourDayService = tourDayServiceRepository.findByTourDayIdAndServiceId(tourDay.getId(), serviceId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            "Service with id " + serviceId + " is not associated with day " + dayNumber + " of tour " + tourId));
+
+            // 5. Get all non-deleted pax associations for this service
+            List<ServicePaxPricing> paxAssociations =
+                    servicePaxPricingRepository.findByTourDayServiceIdAndDeletedFalse(tourDayService.getId());
+
+            // 6. Create a map of pax IDs to their service pax pricing (for pricing info)
+            Map<Long, ServicePaxPricing> paxPricingMap = new HashMap<>();
+            for (ServicePaxPricing association : paxAssociations) {
+                TourPax pax = association.getTourPax();
+                if (pax != null && !pax.getDeleted()) {
+                    paxPricingMap.put(pax.getId(), association);
+                }
+            }
+
+            // 7. Get non-deleted pax options with a fresh query to ensure we have the latest data
+            List<TourPax> paxOptions = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
+            Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
+
+            for (TourPax pax : paxOptions) {
+                // Check if this pax is associated with the service
+                boolean isAssociated = paxPricingMap.containsKey(pax.getId());
+
+                // If associated, include it in the response with pricing from ServicePaxPricing
+                if (isAssociated) {
+                    ServicePaxPricing paxPricing = paxPricingMap.get(pax.getId());
+                    // Get the service-specific selling price
+                    Double sellingPrice = paxPricing.getSellingPrice();
+
+                    // If selling price is null, use default from service
+                    if (sellingPrice == null) {
+                        sellingPrice = tourDayService.getSellingPrice() != null ?
+                                tourDayService.getSellingPrice() : service.getSellingPrice();
+
+                        // Update the pricing record for next time
+                        paxPricing.setSellingPrice(sellingPrice);
+                        servicePaxPricingRepository.save(paxPricing);
+                    }
+
+                    paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
+                            .paxId(pax.getId())
+                            .minPax(pax.getMinPax())
+                            .maxPax(pax.getMaxPax())
+                            .price(pax.getNettPricePerPax())
+                            .serviceNettPrice(service.getNettPrice()) // Include service nett price
+                            .sellingPrice(sellingPrice) // Use service-specific selling price
+                            .fixedCost(pax.getFixedCost())
+                            .extraHotelCost(pax.getExtraHotelCost())
+                            .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
+                            .build());
+                }
+            }
+
+            // 8. Determine service status
+            String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+
+            // 9. Get type-specific details based on service category
+            RoomDetailDTO roomDetail = null;
+            MealDetailDTO mealDetail = null;
+            TransportDetailDTO transportDetail = null;
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+
+            if (ServiceCategoryEnum.HOTEL.name().equalsIgnoreCase(categoryName)) {
+                Optional<Room> roomOpt = roomRepository.findByServiceId(serviceId);
+                if (roomOpt.isPresent()) {
+                    Room room = roomOpt.get();
+                    roomDetail = RoomDetailDTO.builder()
+                            .id(room.getId())
+                            .capacity(room.getCapacity())
+                            .availableQuantity(room.getAvailableQuantity())
+                            .facilities(room.getFacilities())
+                            .build();
+                }
+            } else if (ServiceCategoryEnum.RESTAURANT.name().equalsIgnoreCase(categoryName)) {
+                Optional<Meal> mealOpt = mealRepository.findByServiceId(serviceId);
+                if (mealOpt.isPresent()) {
+                    Meal meal = mealOpt.get();
+                    mealDetail = MealDetailDTO.builder()
+                            .id(meal.getId())
+                            .type(meal.getType().name())
+                            .mealDetail(meal.getMealDetail())
+                            .build();
+                }
+            } else if (ServiceCategoryEnum.TRANSPORT.name().equalsIgnoreCase(categoryName)) {
+                Optional<Transport> transportOpt = transportRepository.findByServiceId(serviceId);
+                if (transportOpt.isPresent()) {
+                    Transport transport = transportOpt.get();
+                    transportDetail = TransportDetailDTO.builder()
+                            .id(transport.getId())
+                            .seatCapacity(transport.getSeatCapacity())
+                            .build();
+                }
+            }
+
+            // 10. Build response
+            ServiceByCategoryDTO response = ServiceByCategoryDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .dayNumber(tourDay.getDayNumber())
+                    .status(status)
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(tourDayService.getSellingPrice())
+                    .locationId(tourDay.getLocation() != null ? tourDay.getLocation().getId() : null)
+                    .locationName(tourDay.getLocation() != null ? tourDay.getLocation().getName() : null)
+                    .serviceProviderId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .serviceProviderName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+                    .categoryName(categoryName)
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .paxPrices(paxPrices)
+                    .roomDetail(roomDetail)
+                    .mealDetail(mealDetail)
+                    .transportDetail(transportDetail)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), SERVICE_DETAIL_LOAD_SUCCESS, response);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_DETAIL_LOAD_FAIL, ex);
+        }
+    }
+
     private List<AvailableServiceDTO> buildAvailableServicesDTO(List<Service> services) {
         List<AvailableServiceDTO> availableServices = new ArrayList<>();
 
