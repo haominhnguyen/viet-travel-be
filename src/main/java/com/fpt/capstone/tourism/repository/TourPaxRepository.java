@@ -30,8 +30,9 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
     @Query("SELECT tp FROM TourPax tp WHERE tp.tour = :tour")
     List<TourPax> findAllByTourAndIsDefault(@Param("tour") Tour tour, @Param("isDefault") boolean isDefault);
 
+    @Query("SELECT tp FROM TourPax tp WHERE tp.tour.id = :tourId AND tp.minPax <= :paxCount AND tp.maxPax >= :paxCount AND tp.deleted = false ORDER BY tp.minPax")
+    List<TourPax> findByTourIdAndPaxRangeNonDeleted(@Param("tourId") Long tourId, @Param("paxCount") Integer paxCount);
 
-    @Query(value = "SELECT * FROM tour_pax WHERE tour_id = :tourId LIMIT 1", nativeQuery = true)
-    Optional<TourPax> findDefaultByTourId(@Param("tourId") Long tourId);
+    List<TourPax> findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(Long tourId, Long paxIdToExclude);
 
 }

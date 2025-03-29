@@ -30,13 +30,11 @@ public interface TourDayServiceRepository extends JpaRepository<TourDayService, 
             @Param("serviceId") Long serviceId,
             @Param("tourId") Long tourId);
 
-    // Add this method if you want to use it elsewhere
     @Query("SELECT tds FROM TourDayService tds JOIN tds.tourDay td WHERE tds.service.id = :serviceId AND td.tour.id = :tourId ORDER BY td.dayNumber ASC")
     List<TourDayService> findByServiceIdAndTourIdOrderByDayNumberAsc(
             @Param("serviceId") Long serviceId,
             @Param("tourId") Long tourId);
 
-    // If you need to limit to just one result
     @Query(value = "SELECT tds.* FROM tour_day_service tds " +
             "JOIN tour_day td ON tds.tour_day_id = td.id " +
             "WHERE tds.service_id = :serviceId AND td.tour_id = :tourId " +

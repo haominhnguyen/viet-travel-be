@@ -152,4 +152,9 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.updateTourPrivate(tour));
     }
 
+    @PostMapping("/tours/private/change-status")
+    public ResponseEntity<?> updateTourPrivateStatus(@RequestBody ChangeStatusTourPrivateRequestDTO tour) {
+        return ResponseEntity.ok(bookingService.updateTourPrivateStatus(tour));
+    }
+
 }

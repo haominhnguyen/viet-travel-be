@@ -313,6 +313,8 @@ public class Constants {
         public static final String OPERATOR_NOT_FOUND = "Operator not found";
         public static final String OPERATOR_OVERBOOKED = "Operator already has more than 3 active tours during this period";
         public static final String SCHEDULE_CREATED_SUCCESS = "Tour schedule created successfully";
+        public static final String SERVICE_REMOVED = "Service removed successfully";
+        public static final String SERVICE_REMOVE_FAIL = "Failed to remove service";
     }
 
 
