@@ -34,7 +34,8 @@ public class TourDayService {
 //    @ManyToOne
 //    @JoinColumn(name = "tour_pax_id")
 //    private TourPax tourPax;
-
+    @Column(name = "deleted")
+    private Boolean deleted = false;
     @OneToMany(mappedBy = "tourDayService", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ServicePaxPricing> paxPricings = new ArrayList<>();
 }

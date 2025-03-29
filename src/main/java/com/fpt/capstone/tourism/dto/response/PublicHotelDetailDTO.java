@@ -14,5 +14,5 @@ import java.util.List;
 public class PublicHotelDetailDTO {
     PublicServiceProviderDTO serviceProvider;
     List<PublicServiceDTO> rooms;
-    List<PublicServiceDTO> otherServices;
+    List<PublicServiceProviderDTO> otherHotels;
 }

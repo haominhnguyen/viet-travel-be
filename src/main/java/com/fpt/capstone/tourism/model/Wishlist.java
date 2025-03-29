@@ -21,7 +21,7 @@ public class Wishlist {
     private Long id;
 
     @Column(name = "item_id")
-    private String itemId;
+    private Long itemId;
 
     @Column(name = "item_type")
     private String itemType;
@@ -32,4 +32,9 @@ public class Wishlist {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }
