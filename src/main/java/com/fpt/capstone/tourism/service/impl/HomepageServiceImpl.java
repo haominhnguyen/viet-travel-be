@@ -173,24 +173,27 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     @Override
-    public GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long id) {
+    public GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long serviceProviderId) {
         try {
             //Find service provider
-            ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
+            ServiceProvider serviceProvider = serviceProviderRepository.findById(serviceProviderId).orElseThrow(
+                    () -> BusinessException.of("Service provider not found")
+            );
 
             //Find list rooms of the service provider
-            List<PublicServiceDTO> rooms = serviceRepository.findRoomsByProviderId(id)
-                    .stream().map(serviceMapper::toPublicServiceDTO).collect(Collectors.toList());;
+            List<PublicServiceDTO> rooms = serviceRepository.findRoomsByProviderId(serviceProviderId);
 
-            //Find list other services of the service provider
-            List<PublicServiceDTO> otherServices = serviceRepository.findOtherServicesByProviderId(id)
-                    .stream().map(serviceMapper::toPublicServiceDTO).collect(Collectors.toList());
+            //Find list other hotel in the same location
+            List<ServiceProvider> otherHotels = serviceProviderRepository
+                    .findOtherHotelsInSameLocationByProviderId(serviceProviderId, serviceProvider.getLocation().getId());
 
+            List<PublicServiceProviderDTO> otherHotelsDTO = otherHotels.stream()
+                    .map(serviceProviderMapper::toPublicServiceProviderDTO).collect(Collectors.toList());
             //Mapping to Dto
             PublicHotelDetailDTO publicHotelDetailDTO = PublicHotelDetailDTO.builder()
                     .serviceProvider(serviceProviderMapper.toPublicServiceProviderDTO(serviceProvider))
                     .rooms(rooms)
-                    .otherServices(otherServices)
+                    .otherHotels(otherHotelsDTO)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Hotel detail loaded successfully", publicHotelDetailDTO);
         } catch (Exception ex){

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.common.LocationShortDTO;
+import com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDayDTO;
@@ -14,6 +15,7 @@ import org.mapstruct.MappingConstants;
 public interface LocationMapper extends EntityMapper<LocationDTO, Location>{
     Location toEntity(LocationRequestDTO requestDTO);
     PublicLocationDTO toPublicLocationDTO(Location location);
+    PublicLocationSimpleDTO toPublicLocationSimpleDTO(Location location);
     Location toEntity(PublicLocationDTO publicLocationDTO);
     Location toEntity(LocationDTO locationDTO);
     LocationDTO toDTO(Location location);

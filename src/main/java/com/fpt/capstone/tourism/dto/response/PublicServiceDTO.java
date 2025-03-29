@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.dto.response;
 
-import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceDetail;
-import com.fpt.capstone.tourism.model.ServiceProvider;
-import com.fpt.capstone.tourism.model.TourDayService;
+import com.fpt.capstone.tourism.model.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,9 +14,12 @@ import java.util.Set;
 @Setter
 @Builder
 public class PublicServiceDTO {
+    private Long serviceId;
     private String name;
     private double sellingPrice;
     private String imageUrl;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private Long roomId;
+    private Integer capacity; // Số khách tối đa trong phòng
+    private Integer availableQuantity; // Số lượng phòng còn lại
+    private String facilities; // Danh sách các dịch vụ trong phòng (bồn tắm, tủ lạnh, wifi)
 }
