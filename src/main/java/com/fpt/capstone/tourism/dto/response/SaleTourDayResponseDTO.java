@@ -1,7 +1,8 @@
 package com.fpt.capstone.tourism.dto.response;
 
-import com.fpt.capstone.tourism.dto.common.TourDayServiceDTO;
-import com.fpt.capstone.tourism.model.TourDayServiceCategory;
+import com.fpt.capstone.tourism.dto.common.LocationDTO;
+import com.fpt.capstone.tourism.dto.common.LocationShortDTO;
+import com.fpt.capstone.tourism.dto.common.TourDayServiceCategoryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,5 +20,6 @@ public class SaleTourDayResponseDTO {
     private Integer dayNumber;
     private String content;
     private String mealPlan;
-    private List<TourDayServiceDTO> tourDayServiceCategories;
+    private List<TourDayServiceCategoryDTO> tourDayServiceCategories;
+    private LocationShortDTO location;
 }

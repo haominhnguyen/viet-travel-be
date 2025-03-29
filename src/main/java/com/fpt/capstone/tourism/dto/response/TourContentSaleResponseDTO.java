@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.dto.response;
 
 import com.fpt.capstone.tourism.dto.common.TagDTO;
+import com.fpt.capstone.tourism.dto.common.TourScheduleShortInfoDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,4 +23,5 @@ public class TourContentSaleResponseDTO {
     private PublicLocationDTO departLocation;
     private List<SaleTourDayResponseDTO> tourDays;
     private LocalDateTime createdAt;
+    private List<TourScheduleShortInfoDTO> tourSchedules;
 }

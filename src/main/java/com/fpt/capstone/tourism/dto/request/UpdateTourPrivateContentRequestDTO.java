@@ -17,6 +17,8 @@ public class UpdateTourPrivateContentRequestDTO {
     @NotNull
     private Long tourId;
 
+    private Long tourScheduleId;
+
     @NotNull(message = "Start date cannot be null")
     private LocalDateTime startDate;
 

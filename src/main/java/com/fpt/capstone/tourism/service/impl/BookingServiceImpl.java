@@ -685,15 +685,23 @@ public class BookingServiceImpl implements BookingService {
 
             Tour savedTour = tourRepository.save(tourEntity);
 
-            TourSchedule tourSchedule = TourSchedule.builder()
-                    .startDate(tour.getStartDate())
-                    .endDate(tour.getEndDate())
-                    .tour(savedTour)
-                    .tourPax(tourPax)
-                    .deleted(false)
-                    .status(TourScheduleStatus.FULLY_BOOKED)
-                    .build();
+            TourSchedule tourSchedule = null;
 
+            if(tour.getTourScheduleId() != null) {
+                tourSchedule= tourScheduleRepository.findById(tour.getTourScheduleId()).orElseThrow();
+                tourSchedule.setStartDate(tour.getStartDate());
+                tourSchedule.setEndDate(tour.getEndDate());
+            }
+            else {
+                tourSchedule = TourSchedule.builder()
+                        .startDate(tour.getStartDate())
+                        .endDate(tour.getEndDate())
+                        .tour(savedTour)
+                        .tourPax(tourPax)
+                        .deleted(false)
+                        .status(TourScheduleStatus.FULLY_BOOKED)
+                        .build();
+            }
             tourScheduleRepository.save(tourSchedule);
 
             List<Long> tourDayIds = tour.getTourDays().stream()
