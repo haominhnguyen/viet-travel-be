@@ -33,5 +33,7 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
 
     @Query(value = "SELECT * FROM tour_pax WHERE tour_id = :tourId LIMIT 1", nativeQuery = true)
     Optional<TourPax> findDefaultByTourId(@Param("tourId") Long tourId);
+    List<TourPax> findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(Long tourId, Long paxId);
+
 
 }

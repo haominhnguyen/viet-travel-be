@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -26,4 +27,6 @@ public class TourPaxFullDTO {
     private Date validTo;
     private boolean isValid;
     private boolean isDeleted;
+    private List<TourDayServicePricingDTO> serviceAssociations;
+    private Integer serviceAssociationCount;
 }

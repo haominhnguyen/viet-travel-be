@@ -19,4 +19,6 @@ public class ServicePaxPricing {
     @ManyToOne
     @JoinColumn(name = "tour_pax_id", nullable = false)
     private TourPax tourPax;
+    @Column(name = "deleted")
+    private Boolean deleted = false;
 }

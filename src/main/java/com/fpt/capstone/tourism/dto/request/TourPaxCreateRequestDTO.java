@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -21,4 +22,5 @@ public class TourPaxCreateRequestDTO {
     private Double sellingPrice;
     private Date validFrom;
     private Date validTo;
+    private List<ServicePricingRequestDTO> servicePricings;
 }

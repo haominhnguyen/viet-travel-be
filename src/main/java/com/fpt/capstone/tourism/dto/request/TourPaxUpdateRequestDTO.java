@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.dto.request;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,4 +18,5 @@ public class TourPaxUpdateRequestDTO {
     private Double sellingPrice;
     private Date validFrom;
     private Date validTo;
+    private List<ServicePricingRequestDTO> servicePricings;
 }
