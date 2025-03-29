@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 
 import java.util.List;
@@ -65,4 +66,7 @@ public interface BookingService {
      GeneralResponse<?> createTourPrivate(CreateTourPrivateRequestDTO tour);
 
      GeneralResponse<?> updateTourPrivate(UpdateTourPrivateContentRequestDTO tour);
+
+
+     GeneralResponse<?> updateTourPrivateStatus(ChangeStatusTourPrivateRequestDTO tour);
 }

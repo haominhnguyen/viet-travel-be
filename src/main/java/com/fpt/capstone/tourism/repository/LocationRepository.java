@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO;
 import com.fpt.capstone.tourism.model.Location;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,5 +24,12 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
     List<Location> findRandomLocation(int numberLocation, Long locationId);
 
     List<Location> findByDeletedFalse();
+
+    @Query("""
+            SELECT new com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO(l.id, l.name)
+                    FROM Location l
+                    WHERE l.deleted = FALSE
+            """)
+    List<PublicLocationSimpleDTO> findLocationSimple();
 
 }
