@@ -1,10 +1,12 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
     List<Transaction> findAllByBookingAndCategoryIn(TourBooking tourBooking, List<TransactionType> transactionType);
 
 

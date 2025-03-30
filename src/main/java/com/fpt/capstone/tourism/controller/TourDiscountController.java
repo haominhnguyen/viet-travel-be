@@ -42,11 +42,12 @@ public class TourDiscountController {
         return ResponseEntity.ok(tourDiscountService.getTourServicesList(tourId, paxCount));
     }
 
-    @GetMapping("/{serviceId}")
-    public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> getServiceDetail(
+    @GetMapping("/day/{dayNumber}/service/{serviceId}")
+    public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> getServiceDetailByDayAndService(
             @PathVariable Long tourId,
+            @PathVariable Integer dayNumber,
             @PathVariable Long serviceId) {
-        return ResponseEntity.ok(tourDiscountService.getServiceDetail(tourId, serviceId));
+        return ResponseEntity.ok(tourDiscountService.getServiceDetailByDayAndService(tourId, dayNumber, serviceId));
     }
 
     @GetMapping("/services/{serviceId}/days")
