@@ -24,4 +24,6 @@ public interface HomepageService {
     GeneralResponse<PublicLocationDetailDTO> viewPublicLocationDetail(Long id);
 
     GeneralResponse<PublicHotelDetailDTO> viewPublicHotelDetail(Long serviceProviderId);
+
+    GeneralResponse<?> search(String keyword);
 }

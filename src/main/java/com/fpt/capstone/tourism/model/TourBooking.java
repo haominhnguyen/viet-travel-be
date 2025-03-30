@@ -31,20 +31,20 @@ public class TourBooking extends BaseEntity {
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id")
     private User sale;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id")
     @ToString.Exclude
     private Tour tour;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
     @ToString.Exclude
     private TourSchedule tourSchedule;

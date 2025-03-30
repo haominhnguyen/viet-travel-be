@@ -13,10 +13,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -199,6 +202,38 @@ public class HomepageServiceImpl implements HomepageService {
         } catch (Exception ex){
             throw BusinessException.of("Hotel detail loaded fail", ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> search(String keyword) {
+        try {
+            String normalizedName = removeAccents(keyword.toLowerCase());
+            List<Tour> tours = tourRepository.findAllPublicTour().stream()
+                    .filter(t -> removeAccents(t.getName().toLowerCase()).contains(normalizedName)).collect(Collectors.toList());
+
+            List<TourSearchDTO> results = tours.stream().map(tour -> {
+                return TourSearchDTO.builder()
+                       .id(tour.getId())
+                       .name(tour.getName())
+                        .tourImages(tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
+                       .build();
+            }).collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Search successfully", results);
+        } catch (Exception ex){
+            throw BusinessException.of("Search fail", ex);
+        }
+    }
+
+    public static String removeAccents(String text) {
+        if (text == null) {
+            return null;
+        }
+        // Chuyển Đ -> D, đ -> d trước khi chuẩn hóa
+        text = text.replace("Đ", "D").replace("đ", "d");
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);//Chuyển chữ có dấu thành ký tự gốc + dấu (ví dụ: Đà → Da + dấu huyền).
+        Pattern pattern = Pattern.compile("\\p{M}"); //  Xóa tất cả các dấu khỏi ký tự.
+        return pattern.matcher(normalized).replaceAll("");
     }
 
 }

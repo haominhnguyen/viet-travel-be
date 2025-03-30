@@ -89,5 +89,8 @@ public class HomepageController {
         return ResponseEntity.ok(homepageService.viewPublicHotelDetail(serviceProviderId));
     }
 
-
+    @GetMapping("/search")
+    public ResponseEntity<GeneralResponse<?>> search(@RequestParam String keyword){
+        return ResponseEntity.ok(homepageService.search(keyword));
+    }
 }
