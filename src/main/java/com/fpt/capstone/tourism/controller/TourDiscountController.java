@@ -34,7 +34,6 @@ public class TourDiscountController {
     private final LocationService locationService;
     private final ActivityCategoryService activityCategoryService;
     private final UserRepository userRepository;
-    //Service
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<TourServiceListDTO>> getTourServicesList(
             @PathVariable Long tourId,
