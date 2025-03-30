@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -56,7 +57,11 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     @Query("""
                 SELECT tp.tour.id, MIN(tp.sellingPrice)
                 FROM TourPax tp
+                JOIN Tour t ON tp.tour.id = t.id
                 WHERE tp.tour.id IN :tourIds
+                AND t.tourStatus = 'OPENED'
+                AND t.tourType = 'SIC'
+                AND t.deleted = FALSE 
                 GROUP BY tp.tour.id
             """)
     List<Object[]> findMinSellingPrices(@Param("tourIds") List<Long> tourIds);
@@ -76,4 +81,12 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     List<Tour> findByNameContaining(String name);
 
     Tour findByName(String name);
+
+    @Query("""
+            SELECT t FROM Tour t
+            WHERE t.tourType = 'SIC'
+            AND t.deleted = FALSE
+            AND t.tourStatus = 'OPENED'
+            """)
+    List<Tour> findAllPublicTour();
 }
