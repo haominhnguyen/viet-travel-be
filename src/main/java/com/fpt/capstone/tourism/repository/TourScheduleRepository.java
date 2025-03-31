@@ -149,6 +149,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
                                                       @Param("startDate") LocalDateTime startDate,
                                                       @Param("endDate") LocalDateTime endDate);
 
+
     @Query("SELECT COUNT(ts) > 0 FROM TourSchedule ts " +
             "WHERE ts.tour.id = :tourId " +
             "AND ts.Operator.id = :operatorId " +

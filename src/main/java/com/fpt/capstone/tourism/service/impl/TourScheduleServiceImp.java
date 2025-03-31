@@ -265,24 +265,27 @@ public class TourScheduleServiceImp implements TourScheduleService {
                 ? requestDTO.getEndDate()
                 : existingSchedule.getEndDate();
 
-        // Check if operator is already assigned to another tour during the requested period (excluding this schedule)
-        boolean isOperatorAlreadyAssigned = tourScheduleRepository.existsByTourIdAndOperatorIdAndDateOverlapExcludingId(
-                tour.getId(), operator.getId(), startDate, endDate, existingSchedule.getId());
+        // Only check operator availability if we're changing the operator or dates
+        if (requestDTO.getOperatorId() != null || requestDTO.getStartDate() != null || requestDTO.getEndDate() != null) {
+            // Check if operator is already assigned to another tour during the requested period (excluding this schedule)
+            boolean isOperatorAlreadyAssigned = tourScheduleRepository.existsByTourIdAndOperatorIdAndDateOverlapExcludingId(
+                    tour.getId(), operator.getId(), startDate, endDate, existingSchedule.getId());
 
-        if (isOperatorAlreadyAssigned) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_NOT_VALID);
-        }
+            if (isOperatorAlreadyAssigned) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Operator is already assigned to this tour during the requested period");
+            }
 
-        // Check operator availability (total active tours, excluding this one)
-        int activeToursCount = tourScheduleRepository.countActiveToursForOperatorExcludingId(
-                operator.getId(), startDate, endDate, existingSchedule.getId());
+            // Check operator availability (total active tours, excluding this one)
+            int activeToursCount = tourScheduleRepository.countActiveToursForOperatorExcludingId(
+                    operator.getId(), startDate, endDate, existingSchedule.getId());
 
-        if (activeToursCount > MAX_OPERATOR_TOURS) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_OVERBOOKED);
+            if (activeToursCount > MAX_OPERATOR_TOURS) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_OVERBOOKED);
+            }
         }
 
         // Process TourPax selection
-        TourPax tourPax = existingSchedule.getTourPax();
+        TourPax tourPax = existingSchedule.getTourPax(); // Default to existing tourPax
 
         if (requestDTO.getTourPaxId() != null) {
             // Find the specified pax configuration
@@ -344,11 +347,18 @@ public class TourScheduleServiceImp implements TourScheduleService {
                     .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_NO_VALID));
         }
 
+        // Get the original operator before update
+        User originalOperator = existingSchedule.getOperator();
+
         // Update existing tour schedule with new values
         existingSchedule.setTour(tour);
         existingSchedule.setStartDate(startDate);
         existingSchedule.setEndDate(endDate);
-        existingSchedule.setOperator(operator);
+
+        // If the requestDTO doesn't specify an operator, keep the original operator
+        // This ensures the operator continues to operate this tour even when dates change
+        existingSchedule.setOperator(requestDTO.getOperatorId() != null ? operator : originalOperator);
+
         existingSchedule.setTourPax(tourPax);
         existingSchedule.setUpdatedAt(LocalDateTime.now());
 
