@@ -13,4 +13,5 @@ public class TourScheduleRequestDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Long operatorId;
+    private Long tourPaxId;
 }

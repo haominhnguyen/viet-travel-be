@@ -21,6 +21,7 @@ public class TourDetailDTO {
     private int numberNight;
     private String note;
     private String privacy;
+    private String tourType;
     private List<PublicLocationDTO> locations;
     private List<TagDTO> tags;
     private PublicLocationDTO departLocation;

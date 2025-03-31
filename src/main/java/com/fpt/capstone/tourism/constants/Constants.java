@@ -323,6 +323,15 @@ public class Constants {
         public static final String CONFIG_UPDATED = "Price configuration updated successfully";
         public static final String CONFIG_DELETED = "Price configuration deleted successfully";
         public static final String CONFIGS_RETRIEVED = "Price configurations retrieved successfully";
+        public static final String TOUR_PAX_NOT_FOUND = "Tour pax configuration not found";
+        public static final String TOUR_PAX_MISMATCH = "Tour pax configuration does not belong to this tour";
+        public static final String TOUR_PAX_DELETED = "Cannot use a deleted tour pax configuration";
+        public static final String TOUR_PAX_INVALID_DATES = "Tour schedule dates are outside the validity period of the selected pax configuration";
+        public static final String TOUR_PAX_NOT_AVAILABLE = "No pax configurations available for this tour. Please create a pax configuration first.";
+        public static final String TOUR_PAX_NO_VALID = "No valid pax configuration found for the specified date range. Please create a valid pax configuration or adjust the schedule dates.";
+        public static final String ROLE_OPERATOR = "OPERATOR";
+        public static final int MAX_OPERATOR_TOURS = 3;
+
     }
 
 
