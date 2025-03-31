@@ -224,7 +224,7 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public GeneralResponse<TourDetailDTO> getTourDetail(Long id) {
-        try{
+        try {
             Tour currentTour = tourRepository.findById(id).orElseThrow();
             List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
@@ -239,7 +239,10 @@ public class TourServiceImpl implements TourService {
                         .build();
             }
 
-            //Mapping to DTO
+            // Get the tour type as a string
+            String tourTypeStr = currentTour.getTourType() != null ? currentTour.getTourType().name() : null;
+
+            // Mapping to DTO
             TourDetailDTO tourBasicDTO = TourDetailDTO.builder()
                     .id(currentTour.getId())
                     .name(currentTour.getName())
@@ -248,6 +251,7 @@ public class TourServiceImpl implements TourService {
                     .numberNight(currentTour.getNumberNights())
                     .note(currentTour.getNote())
                     .privacy(currentTour.getPrivacy())
+                    .tourType(tourTypeStr) // Include the tour type
                     .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
                     .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
                     .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
@@ -259,7 +263,7 @@ public class TourServiceImpl implements TourService {
                     .createdBy(createdByDTO)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DETAIL_LOAD_SUCCESS, tourBasicDTO);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
     }

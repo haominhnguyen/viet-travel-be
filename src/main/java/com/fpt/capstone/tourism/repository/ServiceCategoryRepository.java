@@ -21,4 +21,7 @@ public interface ServiceCategoryRepository extends JpaRepository<ServiceCategory
     List<String> findCategoryNamesByIds(@Param("ids") List<Long> ids);
 
     List<ServiceCategory> findByDeletedFalse();
+
+    @Query("SELECT sc FROM ServiceCategory sc WHERE sc.deleted = false ORDER BY sc.categoryName")
+    List<ServiceCategory> findAllActive();
 }

@@ -119,7 +119,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
             "WHERE ts.Operator.id = :operatorId " +
             "AND ts.deleted = false " +
-            "AND ts.status IN ('ONGOING') " +
+            "AND ts.status IN ('ONGOING','DRAFT','OPEN_FOR_BOOKING','OPEN') " +
             "AND ((ts.startDate BETWEEN :startDate AND :endDate) " +
             "OR (ts.endDate BETWEEN :startDate AND :endDate) " +
             "OR (:startDate BETWEEN ts.startDate AND ts.endDate))")
@@ -137,4 +137,15 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     WHERE tbs.id = :tourBookingServiceId
 """)
     TourSchedule findByTourBookingServiceId(Long tourBookingServiceId);
+
+    @Query("SELECT CASE WHEN COUNT(ts) > 0 THEN true ELSE false END FROM TourSchedule ts " +
+            "WHERE ts.tour.id = :tourId " +
+            "AND ts.Operator.id = :operatorId " +
+            "AND ts.deleted = false " +
+            "AND ts.status <> 'CANCELLED' " +
+            "AND ((ts.startDate <= :endDate AND ts.endDate >= :startDate))")
+    boolean existsByTourIdAndOperatorIdAndDateOverlap(@Param("tourId") Long tourId,
+                                                      @Param("operatorId") Long operatorId,
+                                                      @Param("startDate") LocalDateTime startDate,
+                                                      @Param("endDate") LocalDateTime endDate);
 }

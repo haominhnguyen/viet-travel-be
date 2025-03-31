@@ -223,10 +223,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 categoryDTOs.add(categoryDTO);
             }
 
-            // Build response
+            // Get the tour type as a string
+            String tourTypeStr = tour.getTourType() != null ? tour.getTourType().name() : null;
+
+            // Build response with the tour type included
             TourServiceListDTO response = TourServiceListDTO.builder()
                     .tourId(tourId)
                     .tourName(tour.getName())
+                    .tourType(tourTypeStr) // Include the tour type
                     .serviceCategories(categoryDTOs)
                     .paxOptions(paxOptionDTOs)
                     .build();

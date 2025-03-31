@@ -15,6 +15,7 @@ import java.util.Map;
 public class TourServiceListDTO {
     private Long tourId;
     private String tourName;
+    private String tourType;
     private List<TourServiceCategoryDTO> serviceCategories;
     private List<TourPaxOptionDTO> paxOptions;
 }

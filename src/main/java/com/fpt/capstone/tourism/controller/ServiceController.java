@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.service.ServiceCategoryService;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,12 @@ public class ServiceController {
     private final ServiceService serviceService;
     private final UserRepository userRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private final ServiceCategoryService serviceCategoryService;
+
+    @GetMapping("/list-categories")
+    public ResponseEntity<GeneralResponse<List<ServiceCategoryDTO>>> getAllServiceCategories() {
+        return ResponseEntity.ok(serviceCategoryService.getAllServiceCategories());
+    }
 
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<PagingDTO<List<ServiceBaseDTO>>>> getServices(
@@ -51,6 +58,7 @@ public class ServiceController {
             throw BusinessException.of(SERVICE_NOT_FOUND, e);
         }
     }
+
 
     @GetMapping("/tour-day-services/{serviceId}")
     public ResponseEntity<GeneralResponse<List<TourDayServiceDTO>>> getTourDayServicesByService(
