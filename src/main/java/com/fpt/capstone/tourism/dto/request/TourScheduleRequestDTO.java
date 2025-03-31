@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourScheduleRequestDTO {
+    private Long scheduleId;
     private Long tourId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;

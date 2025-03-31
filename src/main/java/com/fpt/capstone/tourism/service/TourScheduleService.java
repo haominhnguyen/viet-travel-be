@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.OperatorAvailabilityDTO;
 import com.fpt.capstone.tourism.dto.request.TourScheduleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourScheduleBasicResponseDTO;
+import com.fpt.capstone.tourism.dto.response.TourScheduleResponseDTO;
 import com.fpt.capstone.tourism.model.User;
 import jakarta.validation.Valid;
 
@@ -18,4 +19,6 @@ public interface TourScheduleService {
     GeneralResponse<List<OperatorAvailabilityDTO>> findAvailableOperators(Long tourId, LocalDateTime startDate, LocalDateTime endDate);
 
     GeneralResponse<TourScheduleBasicResponseDTO> setTourSchedule(@Valid TourScheduleRequestDTO scheduleRequestDTO, User user);
+
+    GeneralResponse<TourScheduleBasicResponseDTO> updateTourSchedule(@Valid TourScheduleRequestDTO scheduleRequestDTO, User user);
 }
