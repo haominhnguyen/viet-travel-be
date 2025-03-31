@@ -26,8 +26,13 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
     List<Location> findByDeletedFalse();
 
     @Query("""
-            SELECT new com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO(l.id, l.name)
-                    FROM Location l
+            SELECT new com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO(
+            l.id,
+            l.name,
+            gp.id, gp.latitude, gp.longitude
+            )
+                    FROM Location l 
+                    LEFT JOIN GeoPosition gp ON l.geoPosition.id = gp.id
                     WHERE l.deleted = FALSE
             """)
     List<PublicLocationSimpleDTO> findLocationSimple();
