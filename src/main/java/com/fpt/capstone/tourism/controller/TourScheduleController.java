@@ -65,6 +65,15 @@ public class TourScheduleController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
+    @PostMapping("/cancel/{scheduleId}")
+    public ResponseEntity<GeneralResponse<Object>> cancelTourSchedule(
+            @PathVariable Long scheduleId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getLoggedInUser(userDetails);
+        GeneralResponse<Object> response = tourScheduleService.cancelTourSchedule(scheduleId, user);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
 
     private User getLoggedInUser(UserDetails userDetails) {
         if (userDetails == null) {

@@ -184,4 +184,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             @Param("excludeId") Long excludeId);
+
+    @Query("SELECT ts FROM TourSchedule ts WHERE ts.tour.id = :tourId AND ts.deleted = false")
+    List<TourSchedule> findActiveTourSchedulesByTourId(@Param("tourId") Long tourId);
 }

@@ -60,6 +60,11 @@ public class TourManagementController {
         return ResponseEntity.ok(tourService.getTourDetail(id));
     }
 
+    @GetMapping("/detail-schedule/{id}")
+    public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourWithActiveSchedule(@PathVariable Long id) {
+        return ResponseEntity.ok(tourService.getTourWithActiveSchedule(id));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<GeneralResponse<TourResponseDTO>> createTour(
             @Valid @RequestBody TourRequestDTO tourRequestDTO,

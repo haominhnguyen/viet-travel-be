@@ -367,6 +367,31 @@ public class TourScheduleServiceImp implements TourScheduleService {
         return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
     }
 
+    @Override
+    public GeneralResponse<Object> cancelTourSchedule(Long scheduleId, User user) {
+        // Find the existing tour schedule
+        TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
+
+        // Check if the schedule is already cancelled or deleted
+        if (schedule.getStatus() == TourScheduleStatus.CANCELLED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already cancelled");
+        }
+
+        if (Boolean.TRUE.equals(schedule.getDeleted())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already deleted");
+        }
+
+        // Cancel and mark as deleted
+        schedule.setStatus(TourScheduleStatus.CANCELLED);
+        schedule.setDeleted(true);
+        schedule.setUpdatedAt(LocalDateTime.now());
+
+        tourScheduleRepository.save(schedule);
+
+        return GeneralResponse.of(HttpStatus.OK, "Tour schedule cancelled successfully");
+    }
+
     private TourScheduleBasicResponseDTO mapToResponseDTO(TourSchedule tourSchedule) {
         UserBasicDTO operatorDTO = null;
         if (tourSchedule.getOperator() != null) {
@@ -410,7 +435,6 @@ public class TourScheduleServiceImp implements TourScheduleService {
         DayOfWeek day = date.getDayOfWeek();
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
-
     private LocalDateTime getNextWeekday(LocalDateTime date) {
         LocalDateTime result = date;
         while (isWeekend(result)) {
