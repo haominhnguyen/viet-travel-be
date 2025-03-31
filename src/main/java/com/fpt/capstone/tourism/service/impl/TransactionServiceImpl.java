@@ -1,18 +1,24 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.dto.common.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.CostAccountDTO;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TourBookingWithBookedPersonDTO;
+import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
+import com.fpt.capstone.tourism.dto.response.TourBookingAccountantShortResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
 import com.fpt.capstone.tourism.model.CostAccount;
+import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.repository.CostAccountRepository;
+import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import com.fpt.capstone.tourism.repository.TransactionRepository;
 import com.fpt.capstone.tourism.service.TransactionService;
 import jakarta.transaction.Transactional;
@@ -37,6 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final CostAccountRepository costAccountRepository;
+    private final TourBookingRepository tourBookingRepository;
 
     private final TransactionHelper transactionHelper;
     private final TransactionMapper transactionMapper;
@@ -76,6 +83,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional
     public GeneralResponse<?> updateTransaction(UpdateTransactionRequestDTO dto) {
         try {
             Transaction transaction = transactionRepository.findById(dto.getId()).orElseThrow();
@@ -155,6 +163,81 @@ public class TransactionServiceImpl implements TransactionService {
             return GeneralResponse.of(transactionMapper.toTransactionAccountantResponseDTO(savedEntity));
         } catch (Exception ex) {
             throw BusinessException.of("Update Transaction Failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getBookingByBookingCode(String keyword) {
+        try {
+            List<Object[]> results = tourBookingRepository.findByBookingCodeContaining(keyword);
+
+            List<TourBookingWithBookedPersonDTO> dto =  results.stream().map(row -> TourBookingWithBookedPersonDTO.builder()
+                    .id(((Number) row[0]).longValue())  // Convert numeric ID
+                    .bookingCode((String) row[1])
+                    .bookedPerson(BookedPersonDTO.builder()
+                            .fullName((String) row[2])
+                            .phone((String) row[3])
+                            .email((String) row[4])
+                            .address((String) row[5])
+                            .build())
+                    .build()).toList();
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Booking Failed", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<?> createTransaction(CreateTransactionRequestDTO dto) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingCode(dto.getBookingCode());
+
+            boolean allPaid = dto.getCostAccounts().stream()
+                    .allMatch(costAccount -> costAccount.getStatus() == CostAccountStatus.PAID);
+
+            // Create new transaction
+            Transaction transaction = Transaction.builder()
+                   .booking(tourBooking)
+                   .category(dto.getCategory())
+                   .transactionStatus(TransactionStatus.PENDING)
+                   .amount(dto.getTotalAmount())
+                    .paidBy(dto.getPaidBy())
+                    .receivedBy(dto.getReceivedBy())
+                    .notes(dto.getNotes())
+                    .paymentMethod(dto.getPaymentMethod())
+                   .build();
+
+            if (allPaid) {
+                transaction.setTransactionStatus(TransactionStatus.COMPLETED); // Update to desired status
+            } else {
+                transaction.setTransactionStatus(TransactionStatus.PENDING); // Keep as pending if any cost account is not paid
+
+            }
+
+            transaction = transactionRepository.save(transaction);
+
+            List<CostAccount> costAccounts = new ArrayList<>();
+
+            // Create cost accounts
+            for (CostAccountDTO costAccountDTO : dto.getCostAccounts()) {
+                CostAccount costAccount = CostAccount.builder()
+                       .content(costAccountDTO.getContent())
+                       .amount(costAccountDTO.getAmount())
+                       .discount(costAccountDTO.getDiscount())
+                       .quantity(costAccountDTO.getQuantity())
+                       .finalAmount(costAccountDTO.getFinalAmount())
+                       .status(costAccountDTO.getStatus())
+                       .transaction(transaction) // Link to the transaction
+                       .build();
+                costAccounts.add(costAccount);
+            }
+
+            costAccountRepository.saveAll(costAccounts);
+
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Create booking failed", ex);
         }
     }
 

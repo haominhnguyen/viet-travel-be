@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.TransactionType;
@@ -40,6 +41,16 @@ public class AccountantController {
     @PostMapping("/transactions/update")
     public ResponseEntity<?> updateTransaction(@RequestBody UpdateTransactionRequestDTO dto) {
         return ResponseEntity.ok(transactionService.updateTransaction(dto));
+    }
+
+    @GetMapping("/transactions/bookings/list")
+    public ResponseEntity<?> updateTransaction(@RequestParam String keyword) {
+        return ResponseEntity.ok(transactionService.getBookingByBookingCode(keyword));
+    }
+
+    @PostMapping("/transactions/create")
+    public ResponseEntity<?> createTransaction(@RequestBody CreateTransactionRequestDTO dto) {
+        return ResponseEntity.ok(transactionService.createTransaction(dto));
     }
 
 

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.common.TourBookingWithBookedPersonDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourBookingService;
@@ -69,5 +70,16 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
         WHERE tbs.service.id = :serviceId
     """)
     Long findByServiceId(Long serviceId);
+
+
+    @Query("""
+        SELECT tb.id, tb.bookingCode, 
+           tc.fullName, tc.phoneNumber, tc.email, tc.address
+        FROM TourBooking tb 
+        JOIN tb.customers tc 
+        WHERE tb.bookingCode LIKE %:bookingCode% 
+        AND tc.bookedPerson = true
+    """)
+    List<Object[]> findByBookingCodeContaining(@Param("bookingCode") String keyword);
 
 }
