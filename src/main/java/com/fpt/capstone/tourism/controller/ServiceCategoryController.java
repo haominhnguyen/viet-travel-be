@@ -51,5 +51,6 @@ public class ServiceCategoryController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ok(serviceCategoryService.getAllCategories(page, size, keyword, isDeleted, sortField, sortDirection));
     }
+
 }
 

@@ -146,6 +146,28 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryService {
         ServiceCategory savedCategory = serviceCategoryRepository.save(category);
         return GeneralResponse.of(serviceCategoryMapper.toDTO(savedCategory), CATEGORY_UPDATED);
     }
+
+    @Override
+    public GeneralResponse<List<ServiceCategoryDTO>> getAllServiceCategories() {
+        try {
+            List<ServiceCategory> categories = serviceCategoryRepository.findAllActive();
+
+            List<ServiceCategoryDTO> categoryDTOs = categories.stream()
+                    .map(this::mapToDTO)
+                    .collect(Collectors.toList());
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), CATEGORIES_LOAD_SUCCESS, categoryDTOs);
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, CATEGORIES_LOAD_FAIL, ex);
+        }
+    }
+
+    private ServiceCategoryDTO mapToDTO(ServiceCategory category) {
+        return ServiceCategoryDTO.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .build();
+    }
 }
 
 

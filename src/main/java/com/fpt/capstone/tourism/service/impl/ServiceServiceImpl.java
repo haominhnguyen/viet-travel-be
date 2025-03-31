@@ -195,7 +195,11 @@ public class ServiceServiceImpl implements ServiceService {
             // Validate common fields
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
             Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
-            Validator.validateServiceDetails(requestDTO, categoryName);
+
+            // Only validate service details for categories that have detail tables
+            if (!ACTIVITY.equalsIgnoreCase(categoryName)) {
+                Validator.validateServiceDetails(requestDTO, categoryName);
+            }
 
             if (serviceRepository.existsByNameAndServiceProviderId(requestDTO.getName(), providerId)) {
                 throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
@@ -235,6 +239,7 @@ public class ServiceServiceImpl implements ServiceService {
                 transport.setDeleted(false);
                 transport.setCreatedAt(LocalDateTime.now());
                 transportRepository.save(transport);
+            } else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
             } else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
             }
@@ -246,7 +251,6 @@ public class ServiceServiceImpl implements ServiceService {
             throw BusinessException.of(CREATE_SERVICE_FAIL, ex);
         }
     }
-
 
     @Override
     public GeneralResponse<ServiceResponseDTO> updateService(Long serviceId, ServiceRequestDTO requestDTO, Long providerId) {
@@ -266,8 +270,10 @@ public class ServiceServiceImpl implements ServiceService {
             // Validate prices
             Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
 
-            // Validate service type-specific details
-            Validator.validateServiceDetails(requestDTO, categoryName);
+            // Validate service type-specific details only for categories that have detail tables
+            if (!ACTIVITY.equalsIgnoreCase(categoryName)) {
+                Validator.validateServiceDetails(requestDTO, categoryName);
+            }
 
             // Check if service with the same name exists (excluding current service)
             if (serviceRepository.existsByNameAndServiceProviderIdAndIdNot(
@@ -334,10 +340,11 @@ public class ServiceServiceImpl implements ServiceService {
                 transport.setUpdatedAt(LocalDateTime.now());
                 transportRepository.save(transport);
             }
+            else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
+            }
             else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
             }
-
             // Create a response DTO that includes all details
             ServiceResponseDTO responseDTO = createFullResponseDTO(updatedService, categoryName);
 
@@ -371,7 +378,6 @@ public class ServiceServiceImpl implements ServiceService {
                 responseDTO.setTransportDetails(transportMapper.toDTO(transport));
             }
         }
-
         return responseDTO;
     }
 

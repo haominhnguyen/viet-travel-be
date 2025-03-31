@@ -197,6 +197,8 @@ public class Constants {
         public static final String HOTEL = "Hotel";
         public static final String RESTAURANT = "Restaurant";
         public static final String TRANSPORT = "Transport";
+        public static final String ACTIVITY = "Activity";
+
 
         public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
         public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";
@@ -331,6 +333,8 @@ public class Constants {
         public static final String TOUR_PAX_NO_VALID = "No valid pax configuration found for the specified date range. Please create a valid pax configuration or adjust the schedule dates.";
         public static final String ROLE_OPERATOR = "OPERATOR";
         public static final int MAX_OPERATOR_TOURS = 3;
+        public static final String CATEGORIES_LOAD_SUCCESS = "Categories loaded successfully";
+        public static final String CATEGORIES_LOAD_FAIL = "Failed to load categories";
 
     }
 
