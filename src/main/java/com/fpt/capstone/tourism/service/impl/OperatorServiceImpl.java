@@ -77,8 +77,6 @@ public class OperatorServiceImpl implements OperatorService {
             + "Số lượng: {2}\n"
             + "Ngày yêu cầu: {3}.\n\n"
             + "Tổng số tiền: {4,number,#,###.##} (đ)\n\n"
-            + "**Vui lòng xác nhận yêu cầu tại đường link sau:**\n"
-            + "{5}\n\n"
             + "Kính mong quý đối tác cho chúng tôi biết phản hồi trong thời gian sớm nhất.\n\n"
             + "Best Regards,\n"
             + "Viet Travel";
@@ -103,8 +101,6 @@ public class OperatorServiceImpl implements OperatorService {
             + "**Ngày yêu cầu:** {4}.\n\n"
             + "**Lưu ý:** Dịch vụ với số lượng **{2}** đã được xác nhận trước đó. Chúng tôi cần xác nhận từ quý đối tác về việc có thể đáp ứng dịch vụ thay đổi hay không.\n\n"
             + "Tổng số tiền điều chỉnh (dự kiến): {5,number,#,###.##} (đ)\n\n"
-            + "**Vui lòng xác nhận yêu cầu tại đường link sau:**\n"
-            + "{6}\n\n"
             + "Kính mong quý đối tác phản hồi lại trong thời gian sớm nhất để chúng tôi có thể cập nhật thông tin đặt hàng.\n\n"
             + "Trân trọng,\n"
             + "**Viet Travel**";
@@ -121,6 +117,20 @@ public class OperatorServiceImpl implements OperatorService {
             + "Trân trọng,\n"
             + "Viet Travel";
 
+    final String emailRejectServiceUpdateSubject = "[Viet Travel - Yêu cầu thay đổi số lượng dịch vụ bị từ chối";
+
+    final String emailRejectServiceUpdateContent = "Kính gửi: {0},\n\n"
+            + "Chúng tôi xin thông báo rằng yêu cầu thay đổi số lượng dịch vụ của bạn đã bị nhà điều hành từ chối. " +
+            "Dưới đây là thông tin chi tiết về yêu cầu::\n\n"
+            + "Dịch vụ: {1}\n"
+            + "Số lượng yêu cầu thay đổi: {2} → {3}\n"
+            + "Ngày yêu cầu: {4}\n\n"
+            + "Lý do từ chối: {5}\n"
+            + "Vui lòng kiểm tra lại yêu cầu và điều chỉnh phù hợp." +
+            " Nếu có bất kỳ thắc mắc nào, bạn có thể liên hệ với bộ phận điều hành để được hỗ trợ thêm.\n\n"
+            + "Trân trọng,\n"
+            + "Viet Travel";
+
     final String emailCancelServiceSubject = "[Viet Travel - {0}] - Thông báo hủy dịch vụ.";
 
 
@@ -132,9 +142,9 @@ public class OperatorServiceImpl implements OperatorService {
             Pageable pageable = PageRequest.of(page, size, sort);
             Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
                     .and((root, query, criteriaBuilder) -> {
-                Join<TourSchedule, User> userJoin = root.join("Operator");
-                return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
-            });
+                        Join<TourSchedule, User> userJoin = root.join("Operator");
+                        return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
+                    });
 
             Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
 
@@ -505,15 +515,17 @@ public class OperatorServiceImpl implements OperatorService {
                 }
 
                 // Thêm vào danh sách DTO
+                Service service = bookingService.getService();
                 serviceDTOList.add(OperatorServiceDTO.builder()
                         .bookingServiceId(bookingService.getId())
                         .bookingId(bookingService.getBooking().getId())
-                        .serviceId(bookingService.getService().getId())
-                        .providerName(bookingService.getService().getServiceProvider().getName())
-                        .providerEmail(bookingService.getService().getServiceProvider().getEmail())
+                        .serviceId(service.getId())
+                        .providerName(service.getServiceProvider().getName())
+                        .providerEmail(service.getServiceProvider().getEmail())
+                        .location(service.getServiceProvider().getLocation().getName())
                         .bookingCode(bookingService.getBooking().getBookingCode())
-                        .serviceName(bookingService.getService().getName())
-                        .serviceCategory(bookingService.getService().getServiceCategory().getCategoryName())
+                        .serviceName(service.getName())
+                        .serviceCategory(service.getServiceCategory().getCategoryName())
                         .usingDate(bookingService.getRequestDate())
                         .requestQuantity(bookingService.getRequestedQuantity())
                         .currentQuantity(bookingService.getCurrentQuantity())
@@ -726,6 +738,13 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO) {
         try {
+            TourBookingService bookingService = bookingServiceRepository.findById(previewMailDTO.getBookingServiceId()).orElseThrow(
+                    () -> BusinessException.of("Booking Service not found")
+            );
+            //Kiểm tra trạng thái của service booking
+            if(!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)){
+                throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
+            }
             Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
                     () -> BusinessException.of("Service not found")
             );
@@ -740,8 +759,7 @@ public class OperatorServiceImpl implements OperatorService {
                     service.getName(),
                     previewMailDTO.getOrderQuantity(),
                     previewMailDTO.getRequestDate(),
-                    previewMailDTO.getOrderQuantity() * service.getNettPrice(),
-                    "http://localhost:8080/"
+                    previewMailDTO.getOrderQuantity() * service.getNettPrice()
             );
             String emailSubject = MessageFormat.format(
                     emailOrderServiceSubject,
@@ -900,8 +918,7 @@ public class OperatorServiceImpl implements OperatorService {
                         bookingService.getCurrentQuantity(),
                         requestDTO.getNewQuantity(),
                         bookingService.getRequestDate(),
-                        requestDTO.getNewQuantity() * service.getNettPrice(),
-                        "http://localhost:8080/");
+                        requestDTO.getNewQuantity() * service.getNettPrice());
 
                 String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
 
@@ -959,6 +976,12 @@ public class OperatorServiceImpl implements OperatorService {
             TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
                     () -> BusinessException.of("Booking service not found")
             );
+
+            //Kiểm tra trạng thái của service booking
+            if(!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)){
+                throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
+            }
+
             emailService.sendMailServiceProvider(mailServiceDTO);
             bookingService.setStatus(TourBookingServiceStatus.PENDING);
             bookingServiceRepository.save(bookingService);
@@ -1145,8 +1168,7 @@ public class OperatorServiceImpl implements OperatorService {
                         bookingService.getCurrentQuantity(),
                         bookingService.getRequestedQuantity(),
                         bookingService.getRequestDate(),
-                        bookingService.getRequestedQuantity() * service.getNettPrice(),
-                        "http://localhost:8080/");
+                        bookingService.getRequestedQuantity() * service.getNettPrice());
 
                 String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
 
@@ -1332,13 +1354,13 @@ public class OperatorServiceImpl implements OperatorService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() ->  BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of("User not found"));
             return user.getId();
         }
         throw BusinessException.of("Không tìm thấy thông tin người dùng");
     }
 
-    private boolean checkAuthor(Long scheduleId){
+    private boolean checkAuthor(Long scheduleId) {
         //Kiểm tra đơn tour có phải của nhà điều hành không
         Long currentOperatorId = getCurrentUserOperatorId();
         TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
@@ -1350,7 +1372,7 @@ public class OperatorServiceImpl implements OperatorService {
         return true;
     }
 
-    private boolean checkAuthorByTourBookingService(Long tourBookingServiceId){
+    private boolean checkAuthorByTourBookingService(Long tourBookingServiceId) {
         //Kiểm tra đơn tour có phải của nhà điều hành không
         Long currentOperatorId = getCurrentUserOperatorId();
         TourSchedule tourSchedule = tourScheduleRepository.findByTourBookingServiceId(tourBookingServiceId);
