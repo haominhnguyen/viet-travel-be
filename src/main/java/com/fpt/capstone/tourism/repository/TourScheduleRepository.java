@@ -119,7 +119,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
             "WHERE ts.Operator.id = :operatorId " +
             "AND ts.deleted = false " +
-            "AND ts.status IN ('ONGOING') " +
+            "AND ts.status IN ('ONGOING','DRAFT','OPEN_FOR_BOOKING','OPEN') " +
             "AND ((ts.startDate BETWEEN :startDate AND :endDate) " +
             "OR (ts.endDate BETWEEN :startDate AND :endDate) " +
             "OR (:startDate BETWEEN ts.startDate AND ts.endDate))")
@@ -137,4 +137,54 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     WHERE tbs.id = :tourBookingServiceId
 """)
     TourSchedule findByTourBookingServiceId(Long tourBookingServiceId);
+
+    @Query("SELECT CASE WHEN COUNT(ts) > 0 THEN true ELSE false END FROM TourSchedule ts " +
+            "WHERE ts.tour.id = :tourId " +
+            "AND ts.Operator.id = :operatorId " +
+            "AND ts.deleted = false " +
+            "AND ts.status <> 'CANCELLED' " +
+            "AND ((ts.startDate <= :endDate AND ts.endDate >= :startDate))")
+    boolean existsByTourIdAndOperatorIdAndDateOverlap(@Param("tourId") Long tourId,
+                                                      @Param("operatorId") Long operatorId,
+                                                      @Param("startDate") LocalDateTime startDate,
+                                                      @Param("endDate") LocalDateTime endDate);
+
+
+    @Query("SELECT COUNT(ts) > 0 FROM TourSchedule ts " +
+            "WHERE ts.tour.id = :tourId " +
+            "AND ts.Operator.id = :operatorId " +
+            "AND ts.id != :excludeId " +
+            "AND ts.deleted = false " +
+            "AND (" +
+            "    (:startDate BETWEEN ts.startDate AND ts.endDate) OR " +
+            "    (:endDate BETWEEN ts.startDate AND ts.endDate) OR " +
+            "    (ts.startDate BETWEEN :startDate AND :endDate) OR " +
+            "    (ts.endDate BETWEEN :startDate AND :endDate)" +
+            ")")
+    boolean existsByTourIdAndOperatorIdAndDateOverlapExcludingId(
+            @Param("tourId") Long tourId,
+            @Param("operatorId") Long operatorId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("excludeId") Long excludeId);
+
+    @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
+            "WHERE ts.Operator.id = :operatorId " +
+            "AND ts.id != :excludeId " +
+            "AND ts.deleted = false " +
+            "AND ts.status IN ('CONFIRMED', 'IN_PROGRESS') " +
+            "AND (" +
+            "    (:startDate BETWEEN ts.startDate AND ts.endDate) OR " +
+            "    (:endDate BETWEEN ts.startDate AND ts.endDate) OR " +
+            "    (ts.startDate BETWEEN :startDate AND :endDate) OR " +
+            "    (ts.endDate BETWEEN :startDate AND :endDate)" +
+            ")")
+    int countActiveToursForOperatorExcludingId(
+            @Param("operatorId") Long operatorId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("excludeId") Long excludeId);
+
+    @Query("SELECT ts FROM TourSchedule ts WHERE ts.tour.id = :tourId AND ts.deleted = false")
+    List<TourSchedule> findActiveTourSchedulesByTourId(@Param("tourId") Long tourId);
 }

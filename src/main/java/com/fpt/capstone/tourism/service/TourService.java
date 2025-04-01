@@ -37,4 +37,6 @@ public interface TourService {
 
     GeneralResponse<TourMarkupResponseDTO> getTourMarkupPercentage(Long tourId);
     GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent);
+
+    GeneralResponse<TourDetailDTO> getTourWithActiveSchedule(Long id);
 }

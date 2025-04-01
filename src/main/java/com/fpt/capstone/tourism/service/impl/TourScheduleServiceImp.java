@@ -3,8 +3,11 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.EndDateOption;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.OperatorAvailabilityDTO;
+import com.fpt.capstone.tourism.dto.common.TourPaxDTO;
 import com.fpt.capstone.tourism.dto.request.TourScheduleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourScheduleBasicResponseDTO;
+import com.fpt.capstone.tourism.dto.response.TourScheduleResponseDTO;
+import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
@@ -14,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -115,26 +120,89 @@ public class TourScheduleServiceImp implements TourScheduleService {
         // Validate that the user is an operator
         boolean isOperator = operator.getUserRoles().stream()
                 .anyMatch(userRole -> !userRole.getDeleted() &&
-                        userRole.getRole().getRoleName().equals("OPERATOR"));
+                        userRole.getRole().getRoleName().equals(ROLE_OPERATOR));
 
         if (!isOperator) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, USER_NOT_OPERATOR);
         }
 
-        // Check operator availability
+        // Check if operator is already assigned to this specific tour during the requested period
+        boolean isOperatorAlreadyAssigned = tourScheduleRepository.existsByTourIdAndOperatorIdAndDateOverlap(
+                tour.getId(), operator.getId(), requestDTO.getStartDate(), requestDTO.getEndDate());
+
+        if (isOperatorAlreadyAssigned) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Operator is already assigned to this tour during the requested period");
+        }
+
+        // Check operator availability (total active tours)
         int activeToursCount = tourScheduleRepository.countActiveToursForOperator(
                 operator.getId(), requestDTO.getStartDate(), requestDTO.getEndDate());
 
-        if (activeToursCount > 3) {
-            throw BusinessException.of(
-                    HttpStatus.BAD_REQUEST,
-                    OPERATOR_OVERBOOKED
-            );
+        if (activeToursCount > MAX_OPERATOR_TOURS) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_OVERBOOKED);
         }
 
-        // Get default TourPax (or create if not exists)
-        TourPax defaultPax = tourPaxRepository.findByTourAndIsDefault(tour)
-                .orElseGet(() -> createDefaultTourPax(tour));
+        // Get specified TourPax or find an available one if not provided
+        TourPax tourPax;
+        if (requestDTO.getTourPaxId() != null) {
+            // Find the specified pax configuration
+            tourPax = tourPaxRepository.findById(requestDTO.getTourPaxId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_PAX_NOT_FOUND));
+
+            // Verify that the pax belongs to this tour
+            if (!tourPax.getTour().getId().equals(requestDTO.getTourId())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_MISMATCH);
+            }
+
+            // Verify that the pax is not deleted
+            if (Boolean.TRUE.equals(tourPax.getDeleted())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_DELETED);
+            }
+
+            // Verify that the pax configuration is valid for the specified date range
+            if (tourPax.getValidFrom() != null && tourPax.getValidTo() != null) {
+                LocalDate scheduleStartDate = requestDTO.getStartDate().toLocalDate();
+                LocalDate scheduleEndDate = requestDTO.getEndDate().toLocalDate();
+
+                // Safe conversion of Date to LocalDate
+                LocalDate paxValidFrom = new java.sql.Date(tourPax.getValidFrom().getTime()).toLocalDate();
+                LocalDate paxValidTo = new java.sql.Date(tourPax.getValidTo().getTime()).toLocalDate();
+
+                // Check if schedule dates fall within pax validity period
+                if (scheduleStartDate.isBefore(paxValidFrom) || scheduleEndDate.isAfter(paxValidTo)) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_INVALID_DATES);
+                }
+            }
+        } else {
+            // Find a valid pax configuration for the specified dates
+            LocalDate scheduleStartDate = requestDTO.getStartDate().toLocalDate();
+            LocalDate scheduleEndDate = requestDTO.getEndDate().toLocalDate();
+
+            // Get all non-deleted pax configurations for this tour
+            List<TourPax> availablePaxConfigurations = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tour.getId());
+
+            if (availablePaxConfigurations.isEmpty()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_NOT_AVAILABLE);
+            }
+
+            // Find a valid pax configuration for the date range
+            tourPax = availablePaxConfigurations.stream()
+                    .filter(pax -> {
+                        // If no validity dates are set, consider it always valid
+                        if (pax.getValidFrom() == null || pax.getValidTo() == null) {
+                            return true;
+                        }
+
+                        // Safe conversion of Date to LocalDate
+                        LocalDate paxValidFrom = new java.sql.Date(pax.getValidFrom().getTime()).toLocalDate();
+                        LocalDate paxValidTo = new java.sql.Date(pax.getValidTo().getTime()).toLocalDate();
+
+                        // Check if schedule dates fall within pax validity period
+                        return !scheduleStartDate.isBefore(paxValidFrom) && !scheduleEndDate.isAfter(paxValidTo);
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_NO_VALID));
+        }
 
         // Create new tour schedule
         TourSchedule tourSchedule = new TourSchedule();
@@ -142,7 +210,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
         tourSchedule.setStartDate(requestDTO.getStartDate());
         tourSchedule.setEndDate(requestDTO.getEndDate());
         tourSchedule.setOperator(operator);
-        tourSchedule.setTourPax(defaultPax);
+        tourSchedule.setTourPax(tourPax);
         tourSchedule.setStatus(TourScheduleStatus.DRAFT);
         tourSchedule.setDeleted(false);
 
@@ -151,32 +219,222 @@ public class TourScheduleServiceImp implements TourScheduleService {
         return GeneralResponse.of(mapToResponseDTO(tourSchedule), SCHEDULE_CREATED_SUCCESS);
     }
 
-    private TourPax createDefaultTourPax(Tour tour) {
-        TourPax defaultPax = new TourPax();
-        defaultPax.setTour(tour);
-        defaultPax.setMinPax(1);
-        defaultPax.setMaxPax(10);
-        return tourPaxRepository.save(defaultPax);
+    @Override
+    public GeneralResponse<TourScheduleBasicResponseDTO> updateTourSchedule(TourScheduleRequestDTO requestDTO, User user) {
+        // Validate that scheduleId is provided
+        if (requestDTO.getScheduleId() == null) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedule ID is required for updates");
+        }
+
+        // Find the existing tour schedule
+        TourSchedule existingSchedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
+
+        // Check if the schedule is in an updatable state
+        if (existingSchedule.getStatus() != TourScheduleStatus.DRAFT) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only schedules in DRAFT status can be updated");
+        }
+
+        // Find the tour (using existing tour if tourId is not provided)
+        Tour tour = (requestDTO.getTourId() != null)
+                ? tourRepository.findById(requestDTO.getTourId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND))
+                : existingSchedule.getTour();
+
+        // Get the selected operator (using existing operator if operatorId is not provided)
+        User operator = (requestDTO.getOperatorId() != null)
+                ? userRepository.findById(requestDTO.getOperatorId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, OPERATOR_NOT_FOUND))
+                : existingSchedule.getOperator();
+
+        // Validate that the user is an operator
+        boolean isOperator = operator.getUserRoles().stream()
+                .anyMatch(userRole -> !userRole.getDeleted() &&
+                        userRole.getRole().getRoleName().equals(ROLE_OPERATOR));
+
+        if (!isOperator) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, USER_NOT_OPERATOR);
+        }
+
+        // Set start and end dates (using existing dates if not provided)
+        LocalDateTime startDate = (requestDTO.getStartDate() != null)
+                ? requestDTO.getStartDate()
+                : existingSchedule.getStartDate();
+
+        LocalDateTime endDate = (requestDTO.getEndDate() != null)
+                ? requestDTO.getEndDate()
+                : existingSchedule.getEndDate();
+
+        // Only check operator availability if we're changing the operator or dates
+        if (requestDTO.getOperatorId() != null || requestDTO.getStartDate() != null || requestDTO.getEndDate() != null) {
+            // Check if operator is already assigned to another tour during the requested period (excluding this schedule)
+            boolean isOperatorAlreadyAssigned = tourScheduleRepository.existsByTourIdAndOperatorIdAndDateOverlapExcludingId(
+                    tour.getId(), operator.getId(), startDate, endDate, existingSchedule.getId());
+
+            if (isOperatorAlreadyAssigned) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Operator is already assigned to this tour during the requested period");
+            }
+
+            // Check operator availability (total active tours, excluding this one)
+            int activeToursCount = tourScheduleRepository.countActiveToursForOperatorExcludingId(
+                    operator.getId(), startDate, endDate, existingSchedule.getId());
+
+            if (activeToursCount > MAX_OPERATOR_TOURS) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_OVERBOOKED);
+            }
+        }
+
+        // Process TourPax selection
+        TourPax tourPax = existingSchedule.getTourPax(); // Default to existing tourPax
+
+        if (requestDTO.getTourPaxId() != null) {
+            // Find the specified pax configuration
+            tourPax = tourPaxRepository.findById(requestDTO.getTourPaxId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_PAX_NOT_FOUND));
+
+            // Verify that the pax belongs to this tour
+            if (!tourPax.getTour().getId().equals(tour.getId())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_MISMATCH);
+            }
+
+            // Verify that the pax is not deleted
+            if (Boolean.TRUE.equals(tourPax.getDeleted())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_DELETED);
+            }
+
+            // Verify that the pax configuration is valid for the specified date range
+            if (tourPax.getValidFrom() != null && tourPax.getValidTo() != null) {
+                LocalDate scheduleStartDate = startDate.toLocalDate();
+                LocalDate scheduleEndDate = endDate.toLocalDate();
+
+                // Safe conversion of Date to LocalDate
+                LocalDate paxValidFrom = new java.sql.Date(tourPax.getValidFrom().getTime()).toLocalDate();
+                LocalDate paxValidTo = new java.sql.Date(tourPax.getValidTo().getTime()).toLocalDate();
+
+                // Check if schedule dates fall within pax validity period
+                if (scheduleStartDate.isBefore(paxValidFrom) || scheduleEndDate.isAfter(paxValidTo)) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_INVALID_DATES);
+                }
+            }
+        } else if (!existingSchedule.getTour().getId().equals(tour.getId())) {
+            // If tour has changed and no specific tourPax provided, find a valid one
+            LocalDate scheduleStartDate = startDate.toLocalDate();
+            LocalDate scheduleEndDate = endDate.toLocalDate();
+
+            // Get all non-deleted pax configurations for this tour
+            List<TourPax> availablePaxConfigurations = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tour.getId());
+
+            if (availablePaxConfigurations.isEmpty()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_NOT_AVAILABLE);
+            }
+
+            // Find a valid pax configuration for the date range
+            tourPax = availablePaxConfigurations.stream()
+                    .filter(pax -> {
+                        // If no validity dates are set, consider it always valid
+                        if (pax.getValidFrom() == null || pax.getValidTo() == null) {
+                            return true;
+                        }
+
+                        // Safe conversion of Date to LocalDate
+                        LocalDate paxValidFrom = new java.sql.Date(pax.getValidFrom().getTime()).toLocalDate();
+                        LocalDate paxValidTo = new java.sql.Date(pax.getValidTo().getTime()).toLocalDate();
+
+                        // Check if schedule dates fall within pax validity period
+                        return !scheduleStartDate.isBefore(paxValidFrom) && !scheduleEndDate.isAfter(paxValidTo);
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_PAX_NO_VALID));
+        }
+
+        // Get the original operator before update
+        User originalOperator = existingSchedule.getOperator();
+
+        // Update existing tour schedule with new values
+        existingSchedule.setTour(tour);
+        existingSchedule.setStartDate(startDate);
+        existingSchedule.setEndDate(endDate);
+
+        // If the requestDTO doesn't specify an operator, keep the original operator
+        // This ensures the operator continues to operate this tour even when dates change
+        existingSchedule.setOperator(requestDTO.getOperatorId() != null ? operator : originalOperator);
+
+        existingSchedule.setTourPax(tourPax);
+        existingSchedule.setUpdatedAt(LocalDateTime.now());
+
+        TourSchedule updatedSchedule = tourScheduleRepository.save(existingSchedule);
+
+        return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
+    }
+
+    @Override
+    public GeneralResponse<Object> cancelTourSchedule(Long scheduleId, User user) {
+        // Find the existing tour schedule
+        TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
+
+        // Check if the schedule is already cancelled or deleted
+        if (schedule.getStatus() == TourScheduleStatus.CANCELLED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already cancelled");
+        }
+
+        if (Boolean.TRUE.equals(schedule.getDeleted())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already deleted");
+        }
+
+        // Cancel and mark as deleted
+        schedule.setStatus(TourScheduleStatus.CANCELLED);
+        schedule.setDeleted(true);
+        schedule.setUpdatedAt(LocalDateTime.now());
+
+        tourScheduleRepository.save(schedule);
+
+        return GeneralResponse.of(HttpStatus.OK, "Tour schedule cancelled successfully");
     }
 
     private TourScheduleBasicResponseDTO mapToResponseDTO(TourSchedule tourSchedule) {
+        UserBasicDTO operatorDTO = null;
+        if (tourSchedule.getOperator() != null) {
+            operatorDTO = UserBasicDTO.builder()
+                    .id(tourSchedule.getOperator().getId())
+                    .username(tourSchedule.getOperator().getUsername())
+                    .fullName(tourSchedule.getOperator().getFullName())
+                    .email(tourSchedule.getOperator().getEmail())
+                    .build();
+        }
+        // Map pax information
+        TourPaxDTO paxInfoDTO = null;
+        if (tourSchedule.getTourPax() != null) {
+            TourPax pax = tourSchedule.getTourPax();
+            paxInfoDTO = TourPaxDTO.builder()
+                    .id(pax.getId())
+                    .minPax(pax.getMinPax())
+                    .maxPax(pax.getMaxPax())
+                    .nettPricePerPax(pax.getNettPricePerPax())
+                    .sellingPrice(pax.getSellingPrice())
+                    .fixedCost(pax.getFixedCost())
+                    .extraHotelCost(pax.getExtraHotelCost())
+                    .validFrom(pax.getValidFrom())
+                    .validTo(pax.getValidTo())
+                    .build();
+        }
+
         return TourScheduleBasicResponseDTO.builder()
                 .id(tourSchedule.getId())
                 .tourId(tourSchedule.getTour().getId())
                 .tourName(tourSchedule.getTour().getName())
                 .startDate(tourSchedule.getStartDate())
                 .endDate(tourSchedule.getEndDate())
-                .operatorId(tourSchedule.getOperator().getId())
-                .operatorName(tourSchedule.getOperator().getFullName())
                 .status(tourSchedule.getStatus().name())
+                .operatorId(operatorDTO.getId())
+                .operatorName(operatorDTO.getFullName())
+                .paxInfo(paxInfoDTO)
                 .build();
     }
-
     private boolean isWeekend(LocalDateTime date) {
         DayOfWeek day = date.getDayOfWeek();
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
-
     private LocalDateTime getNextWeekday(LocalDateTime date) {
         LocalDateTime result = date;
         while (isWeekend(result)) {
@@ -184,5 +442,4 @@ public class TourScheduleServiceImp implements TourScheduleService {
         }
         return result;
     }
-
 }
