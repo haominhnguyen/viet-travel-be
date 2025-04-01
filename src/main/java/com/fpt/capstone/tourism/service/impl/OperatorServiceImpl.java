@@ -1001,7 +1001,8 @@ public class OperatorServiceImpl implements OperatorService {
                     )
                     .collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return buildPagedResponseServiceRequest(bookingServicePage, resultDTO);
+//            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
             throw BusinessException.of("Fail", ex);
         }
@@ -1340,6 +1341,16 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponse(Page<TourSchedule> tourPage, List<T> tours) {
+        PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
+                .page(tourPage.getNumber())
+                .size(tourPage.getSize())
+                .total(tourPage.getTotalElements())
+                .items(tours)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+    }
+    private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponseServiceRequest(Page<TourBookingService> tourPage, List<T> tours) {
         PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(tourPage.getNumber())
                 .size(tourPage.getSize())
