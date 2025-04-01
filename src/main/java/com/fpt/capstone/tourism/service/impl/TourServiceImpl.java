@@ -43,6 +43,7 @@ public class TourServiceImpl implements TourService {
     private final TagMapper tagMapper;
     private final TourDayMapper tourDayMapper;
     private final LocationRepository locationRepository;
+    private final TourBookingRepository tourBookingRepository;
     private final TourDayAllMapper tourDayAllMapper;
     private final TourDayRepository tourDayRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
@@ -557,6 +558,95 @@ public class TourServiceImpl implements TourService {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, MARKUP_UPDATE_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourDetailDTO> getTourWithActiveSchedule(Long id) {
+        try {
+            // Find the tour
+            Tour currentTour = tourRepository.findById(id)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
+            // Get only active tour schedules
+            List<TourSchedule> activeSchedules = tourScheduleRepository.findActiveTourSchedulesByTourId(id);
+
+            // Map entities to DTOs
+            List<PublicTourScheduleDTO> schedulesDTOs = activeSchedules.stream()
+                    .map(schedule -> {
+                        TourPax pax = schedule.getTourPax();
+                        // Get booked seats count
+                        Integer bookedSeats = tourBookingRepository.countByTourScheduleIdAndStatusNot(schedule.getId());
+                        if (bookedSeats == null) {
+                            bookedSeats = 0;
+                        }
+                        // Calculate available seats
+                        Integer availableSeats = pax.getMaxPax() - bookedSeats;
+
+                        // Create and return the DTO
+                        return PublicTourScheduleDTO.builder()
+                                .scheduleId(schedule.getId())
+                                .startDate(schedule.getStartDate())
+                                .endDate(schedule.getEndDate())
+                                .sellingPrice(pax.getSellingPrice())
+                                .minPax(pax.getMinPax())
+                                .maxPax(pax.getMaxPax())
+                                .availableSeats(availableSeats)
+                                .meetingLocation(schedule.getMeetingLocation())
+                                .departureTime(schedule.getDepartureTime())
+                                .extraHotelCost(pax.getExtraHotelCost())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            // Build created by DTO
+            UserBasicDTO createdByDTO = null;
+            if (currentTour.getCreatedBy() != null) {
+                createdByDTO = UserBasicDTO.builder()
+                        .id(currentTour.getCreatedBy().getId())
+                        .username(currentTour.getCreatedBy().getUsername())
+                        .fullName(currentTour.getCreatedBy().getFullName())
+                        .email(currentTour.getCreatedBy().getEmail())
+                        .build();
+            }
+
+            // Get the tour type as a string
+            String tourTypeStr = currentTour.getTourType() != null ? currentTour.getTourType().name() : null;
+
+            // Build the complete DTO
+            TourDetailDTO tourBasicDTO = TourDetailDTO.builder()
+                    .id(currentTour.getId())
+                    .name(currentTour.getName())
+                    .highlights(currentTour.getHighlights())
+                    .numberDays(currentTour.getNumberDays())
+                    .numberNight(currentTour.getNumberNights())
+                    .note(currentTour.getNote())
+                    .privacy(currentTour.getPrivacy())
+                    .tourType(tourTypeStr)
+                    .locations(currentTour.getLocations().stream()
+                            .map(locationMapper::toPublicLocationDTO)
+                            .collect(Collectors.toList()))
+                    .tags(currentTour.getTags().stream()
+                            .map(tagMapper::toDTO)
+                            .collect(Collectors.toList()))
+                    .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
+                    .tourSchedules(schedulesDTOs) // Use our filtered and mapped schedules
+                    .tourImages(currentTour.getTourImages().stream()
+                            .map(tourImageMapper::toPublicTourImageDTO)
+                            .collect(Collectors.toList()))
+                    .tourDays(currentTour.getTourDays().stream()
+                            .map(tourDayMapper::toPublicTourDayDTO)
+                            .collect(Collectors.toList()))
+                    .createdAt(currentTour.getCreatedAt())
+                    .updatedAt(currentTour.getUpdatedAt())
+                    .createdBy(createdByDTO)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DETAIL_LOAD_SUCCESS, tourBasicDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
     }
 

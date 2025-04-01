@@ -335,7 +335,7 @@ public class Constants {
         public static final int MAX_OPERATOR_TOURS = 3;
         public static final String CATEGORIES_LOAD_SUCCESS = "Categories loaded successfully";
         public static final String CATEGORIES_LOAD_FAIL = "Failed to load categories";
-
+        public static final String OPERATOR_NOT_VALID = "Operator is already assigned to this tour during the requested period";
     }
 
 

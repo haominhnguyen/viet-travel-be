@@ -17,6 +17,7 @@ public class OperatorServiceDTO {
     private Long serviceId;
     private String providerName;
     private String providerEmail;
+    private String location;
     private String bookingCode;
     private String serviceName;
     private String serviceCategory;
