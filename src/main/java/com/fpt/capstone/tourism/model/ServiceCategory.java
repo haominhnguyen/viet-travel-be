@@ -26,4 +26,9 @@ public class ServiceCategory extends BaseEntity{
     @ManyToMany(mappedBy = "serviceCategories")
     @ToString.Exclude
     private List<ServiceProvider> serviceProviders;
+
+
+    @OneToMany(mappedBy = "serviceCategory")
+    @ToString.Exclude
+    private List<TourDayServiceCategory> tourDayServiceCategories;
 }

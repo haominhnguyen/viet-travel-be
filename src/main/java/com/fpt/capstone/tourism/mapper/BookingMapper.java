@@ -86,4 +86,12 @@ public interface BookingMapper {
     SaleTourDayResponseDTO toSaleTourDayResponseDTO(TourDay tourDay);
 
 
+    TourDayServiceCategorySaleResponseDTO toTourDayServiceCategorySaleResponseDTO(TourDayServiceCategory tourDayServiceCategory);
+
+    ServiceCategoryWithTourDayResponseDTO toServiceCategoryWithTourDayResponseDTO(ServiceCategory serviceCategory);
+
+    TourDayShortInfoDTO toTourDayShortInfoDTO(TourDay tourDay);
+
+    ServiceProviderSimpleDTO toServiceProviderSimpleDTO(ServiceProvider serviceProvider);
+
 }

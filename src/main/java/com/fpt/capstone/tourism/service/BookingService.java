@@ -69,4 +69,12 @@ public interface BookingService {
 
 
      GeneralResponse<?> updateTourPrivateStatus(ChangeStatusTourPrivateRequestDTO tour);
+
+     GeneralResponse<?> getServiceCategoryWithTourDays(Long tourId);
+
+     GeneralResponse<?> getTourLocations(Long tourId);
+
+     GeneralResponse<?> getServiceProviders(Long locationId, String categoryName);
+
+     GeneralResponse<?>  getServiceProviderServices(Long providerId, String categoryName);
 }

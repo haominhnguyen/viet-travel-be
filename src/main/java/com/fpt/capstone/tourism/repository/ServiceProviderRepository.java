@@ -39,6 +39,17 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
 
 
     @Query("""
+            SELECT sv FROM ServiceProvider sv
+            JOIN sv.location l
+            JOIN sv.serviceCategories sc
+            WHERE l.id = :locationId
+            AND sc.categoryName = :categoryName
+            AND sv.deleted = FALSE 
+            ORDER BY RANDOM() LIMIT 6
+                        """)
+    List<ServiceProvider> getHotelByLocationIdAndServiceCategory(@Param("locationId") Long id, @Param("locationId") String categoryName);
+
+    @Query("""
             SELECT s.serviceProvider.id, MIN(s.sellingPrice)
                 FROM Service s
                 WHERE s.serviceProvider.id IN :hotelIds
@@ -94,5 +105,13 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             ORDER BY RANDOM() LIMIT 6
 """)
     List<ServiceProvider> findOtherHotelsInSameLocationByProviderId(Long serviceProviderId, Long locationId);
+
+
+
+    @Query("SELECT DISTINCT s.serviceProvider FROM TourBookingService tbs " +
+            "JOIN tbs.service s " +
+            "WHERE tbs.booking.id = :bookingId AND tbs.deleted = false")
+    List<ServiceProvider> findDistinctServiceProvidersByBookingId(@Param("bookingId") Long bookingId);
+
 }
 

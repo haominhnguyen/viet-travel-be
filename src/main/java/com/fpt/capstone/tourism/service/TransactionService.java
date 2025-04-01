@@ -25,4 +25,6 @@ public interface TransactionService {
 
 
     GeneralResponse<?> createTransaction(CreateTransactionRequestDTO dto);
+
+    GeneralResponse<?> getBookingProvider(Long bookingId);
 }
