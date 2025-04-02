@@ -11,6 +11,7 @@ import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -216,6 +217,10 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         tourSchedule = tourScheduleRepository.save(tourSchedule);
 
+        // Update tour status to PENDING after setting the schedule
+        tour.setTourStatus(TourStatus.PENDING);
+        tourRepository.save(tour);
+
         return GeneralResponse.of(mapToResponseDTO(tourSchedule), SCHEDULE_CREATED_SUCCESS);
     }
 
@@ -363,6 +368,10 @@ public class TourScheduleServiceImp implements TourScheduleService {
         existingSchedule.setUpdatedAt(LocalDateTime.now());
 
         TourSchedule updatedSchedule = tourScheduleRepository.save(existingSchedule);
+
+        // Update tour status to PENDING after updating the schedule
+        tour.setTourStatus(TourStatus.PENDING);
+        tourRepository.save(tour);
 
         return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
     }

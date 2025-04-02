@@ -394,9 +394,11 @@ public class TourServiceImpl implements TourService {
                 tour.setTags(new ArrayList<>());
             }
 
-            // Set tour type and status
+            // Set tour type
             tour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
-            tour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
+
+            // Always set tour status to DRAFT when creating a new tour
+            tour.setTourStatus(TourStatus.DRAFT);
 
             // Set departure location
             Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
@@ -442,17 +444,22 @@ public class TourServiceImpl implements TourService {
 
     @Override
     @Transactional
-    public GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO,User currentUser) {
+    public GeneralResponse<TourResponseDTO> updateTour(Long id, TourRequestDTO tourRequestDTO, User currentUser) {
         try {
             // Validate input
             Validator.validateTourRequest(tourRequestDTO);
 
             // Get existing tour
             Tour existingTour = tourRepository.findById(id)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,TOUR_NOT_FOUND));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
             if (Boolean.TRUE.equals(existingTour.getDeleted())) {
-                throw BusinessException.of(HttpStatus.NOT_FOUND,TOUR_NOT_FOUND);
+                throw BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND);
+            }
+
+            // Check if tour status is DRAFT or REJECTED, otherwise do not allow update
+            if (existingTour.getTourStatus() != TourStatus.DRAFT && existingTour.getTourStatus() != TourStatus.REJECTED) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only tours in DRAFT or REJECTED status can be updated");
             }
 
             // Update tour entity
@@ -474,13 +481,16 @@ public class TourServiceImpl implements TourService {
                 existingTour.setTags(new ArrayList<>());
             }
 
-            // Update tour type and status
+            // Update tour type
             existingTour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
-            existingTour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
+
+            // Update tour status if provided (but still ensure it's a valid status transition)
+            TourStatus requestedStatus = TourStatus.valueOf(tourRequestDTO.getTourStatus());
+            existingTour.setTourStatus(requestedStatus);
 
             // Update departure location
             Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,DEPART_LOCATION_NOT_FOUND));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, DEPART_LOCATION_NOT_FOUND));
             existingTour.setDepartLocation(departLocation);
 
             // Update markup percent and privacy
@@ -518,7 +528,6 @@ public class TourServiceImpl implements TourService {
             throw BusinessException.of(TOUR_UPDATE_FAIL, ex);
         }
     }
-
     @Override
     @Transactional
     public GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent) {
