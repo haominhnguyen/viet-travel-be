@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO;
+import com.fpt.capstone.tourism.dto.common.PublicLocationSimpleProviderDTO;
 import com.fpt.capstone.tourism.dto.request.GeoPositionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
@@ -231,7 +232,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public GeneralResponse<?> getListLocation() {
         try{
-            List<PublicLocationSimpleDTO> locationSimpleDTOS = locationRepository.findLocationSimple();
+            List<PublicLocationSimpleProviderDTO> locationSimpleDTOS = locationRepository.findLocationSimple();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", locationSimpleDTOS);
         }catch (Exception ex){
             throw BusinessException.of("Error retrieving list location", ex);

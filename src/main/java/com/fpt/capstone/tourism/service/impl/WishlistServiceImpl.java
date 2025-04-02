@@ -55,7 +55,7 @@ public class WishlistServiceImpl implements WishlistService {
     public GeneralResponse<?> addWishlist(Long itemId) {
         try {
             User user = getCurrentUser();
-            Wishlist dbWishlist = wishlistRepository.findByItemId(itemId);
+            Wishlist dbWishlist = wishlistRepository.findByItemIdAndUserId(user.getId(), itemId);
             if(dbWishlist != null){
                 throw BusinessException.of("Tour đã có trong danh sách yêu thích");
             }
