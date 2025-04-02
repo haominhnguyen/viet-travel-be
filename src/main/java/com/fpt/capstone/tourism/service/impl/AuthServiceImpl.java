@@ -57,7 +57,6 @@ public class AuthServiceImpl implements AuthService {
             User user = userService.findUserByUsername(userDTO.getUsername());
 
             if (Boolean.TRUE.equals(user.getDeleted())) {
-
                 throw BusinessException.of(HttpStatus.FORBIDDEN.toString());
             }
 
@@ -68,6 +67,7 @@ public class AuthServiceImpl implements AuthService {
             String token = jwtHelper.generateToken(user);
             TokenDTO tokenDTO = TokenDTO.builder()
                     .username(user.getUsername())
+                    .fullName(user.getFullName())
                     .token(token)
                     .expirationTime("24h")
                     .build();
