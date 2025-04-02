@@ -8,4 +8,5 @@ public enum TourStatus {
     APPROVED, //CEO chấp nhận
     REJECTED, //CEO từ chối
 
+    PENDING,
 }
