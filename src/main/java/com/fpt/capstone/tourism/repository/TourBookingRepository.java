@@ -4,6 +4,10 @@ import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -82,4 +86,5 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
 
     @Query("SELECT COUNT(b) FROM TourBooking b WHERE b.tourSchedule.id = :scheduleId AND b.status <> 'CANCELLED'")
     Integer countByTourScheduleIdAndStatusNot(Long scheduleId);
+
 }

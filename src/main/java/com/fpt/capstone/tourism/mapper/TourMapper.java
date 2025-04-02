@@ -1,6 +1,8 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.TourDTO;
+import com.fpt.capstone.tourism.dto.common.TourProcessDTO;
+import com.fpt.capstone.tourism.dto.common.TourProcessDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import org.mapstruct.Mapper;
@@ -31,4 +33,9 @@ public interface TourMapper extends EntityMapper<TourDTO, Tour>  {
                 ? tags.stream().map(com.fpt.capstone.tourism.model.Tag::getId).collect(Collectors.toList())
                 : null;
     }
+
+    TourProcessDTO toTourProcessDTO(Tour tour);
+
+    @Mapping(target = "createdBy", source = "createdBy.fullName")
+    TourProcessDetailDTO toTourProcessDetailDTO(Tour tour);
 }

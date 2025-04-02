@@ -4,5 +4,8 @@ public enum TourStatus {
     OPENED,
     CLOSED,
     DRAFT,
-    PENDING_PRICING // chưa chiết tính giá
+    PENDING_PRICING, // chưa chiết tính giá
+    APPROVED, //CEO chấp nhận
+    REJECTED, //CEO từ chối
+
 }

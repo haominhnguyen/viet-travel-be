@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.TourDayAllRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
@@ -38,6 +39,7 @@ public class TourServiceImpl implements TourService {
     private final TourScheduleRepository tourScheduleRepository;
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
+    private final TourMapper tourMapper;
     private final TourImageRepository tourImageRepository;
     private final TagRepository tagRepository;
     private final TagMapper tagMapper;
@@ -648,6 +650,147 @@ public class TourServiceImpl implements TourService {
         } catch (Exception ex) {
             throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<TourProcessDTO>>> getAllTourNeedToProcess(int page, int size, String keyword, TourStatus tourStatus, String orderDate) {
+        try {
+            Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Specification<Tour> spec = buildSearchSpecificationAdmin(keyword, tourStatus);
+
+
+
+            Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
+
+            // Map to DTO
+            List<TourProcessDTO> resultDTO = tourPage.getContent().stream()
+                    .map(tourMapper::toTourProcessDTO)
+                    .collect(Collectors.toList());
+
+            return buildPagedResponse(tourPage, resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getDetailTourNeedToProcess(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow(
+                    () -> BusinessException.of("Tour not found")
+            );
+            TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get detail tour need to process success", resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getDetailTourDay(Long tourId, Long tourDayId) {
+        try {
+            TourDay tourDay = tourDayRepository.findById(tourDayId).orElseThrow(
+                    () -> BusinessException.of("Tour day not found")
+            );
+
+            //Check tourDay belong to tour or not
+            if(!tourDay.getTour().getId().equals(tourId)){
+                throw BusinessException.of("Tour day does not belong to this tour");
+            }
+            TourDayProcessDetailDTO resultDTO = tourDayMapper.toTourDayProcessDetailDTO(tourDay);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Get detail tour day success", resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> approveTourProcess(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow(
+                    () -> BusinessException.of("Tour not found")
+            );
+
+            //TODO: check status of tour before approval
+
+            tour.setTourStatus(TourStatus.APPROVED);
+            tourRepository.save(tour);
+            TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Approve success", resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> rejectTourProcess(Long tourId) {
+        try {
+            Tour tour = tourRepository.findById(tourId).orElseThrow(
+                    () -> BusinessException.of("Tour not found")
+            );
+
+            //TODO: check status of tour before reject
+
+            tour.setTourStatus(TourStatus.REJECTED);
+            tourRepository.save(tour);
+            TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Approve success", resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
+    private Specification<Tour> buildSearchSpecificationAdmin(String keyword, TourStatus tourStatus) {
+        return (root, query, cb) -> {
+            query.distinct(true);
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("deleted"), false));
+
+            // Search by tour name
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                // Ensure PostgreSQL has UNACCENT enabled
+                Expression<String> normalizedTourName = cb.function("unaccent", String.class, cb.lower(root.get("name")));
+
+                // Remove accents from the input keyword
+                Expression<String> normalizedKeyword = cb.function("unaccent", String.class, cb.literal(keyword.toLowerCase()));
+
+                Predicate tourNamePredicate = cb.like(normalizedTourName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+
+                // Combine both conditions
+                predicates.add(tourNamePredicate);
+            }
+
+            List<TourStatus> statuses = new ArrayList<>();
+            statuses.add(TourStatus.DRAFT);
+            statuses.add(TourStatus.APPROVED);
+            statuses.add(TourStatus.REJECTED);
+            if (tourStatus == null) {
+                predicates.add(root.get("tourStatus").in(statuses));
+            }
+            // Filter by status
+            if (tourStatus != null) {
+                predicates.add(cb.equal(root.get("tourStatus"), tourStatus));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     @Override
