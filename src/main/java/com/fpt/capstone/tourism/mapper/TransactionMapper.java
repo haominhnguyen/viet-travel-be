@@ -2,13 +2,11 @@ package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.CostAccountDTO;
 import com.fpt.capstone.tourism.dto.common.OperatorTransactionDTO;
+import com.fpt.capstone.tourism.dto.common.ServiceProviderSimpleDTO;
 import com.fpt.capstone.tourism.dto.common.TourOperationLogDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingAccountantShortResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
-import com.fpt.capstone.tourism.model.CostAccount;
-import com.fpt.capstone.tourism.model.TourBooking;
-import com.fpt.capstone.tourism.model.TourOperationLog;
-import com.fpt.capstone.tourism.model.Transaction;
+import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -44,6 +42,8 @@ public interface TransactionMapper extends EntityMapper<OperatorTransactionDTO, 
             return "UNPAID";
         }
     }
+
+    ServiceProviderSimpleDTO toServiceProviderSimpleDTO(ServiceProvider serviceProvider);
 
     @Mapping(source = "createdAt", target = "createdAt")
     TransactionAccountantResponseDTO toTransactionAccountantResponseDTO(Transaction transaction);

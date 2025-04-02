@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -50,6 +52,7 @@ public class BookingServiceImpl implements BookingService {
     private final ServiceRepository serviceRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
 
 
     private final LocationMapper locationMapper;
@@ -772,6 +775,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+
     public GeneralResponse<PagingDTO<List<TourBookingHistoryDTO>>> viewListBookingHistory(int page, int size, String keyword, String paymentStatus, String orderDate) {
         try {
             Long currentId = getCurrentUserId();
@@ -851,6 +855,145 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+    }
+    public GeneralResponse<?> getServiceCategoryWithTourDays(Long tourId) {
+        try {
+            List<Object[]> results = tourDayServiceCategoryRepository.findServiceCategoriesWithTourDaysByTourId(tourId);
+
+            // Map ServiceCategory to its corresponding TourDays
+            Map<Long, ServiceCategoryWithTourDayResponseDTO> categoryMap = new HashMap<>();
+
+            for (Object[] row : results) {
+                ServiceCategory serviceCategory = (ServiceCategory) row[0];
+                TourDay tourDay = (TourDay) row[1];
+
+                categoryMap.computeIfAbsent(serviceCategory.getId(), id ->
+                        ServiceCategoryWithTourDayResponseDTO.builder()
+                                .id(serviceCategory.getId())
+                                .categoryName(serviceCategory.getCategoryName())
+                                .tourDays(new ArrayList<>())
+                                .build());
+
+                categoryMap.get(serviceCategory.getId()).getTourDays()
+                        .add(bookingMapper.toTourDayDto(tourDay));
+            }
+
+            for (ServiceCategoryWithTourDayResponseDTO dto : categoryMap.values()) {
+                dto.setTourDays(dto.getTourDays().stream()
+                        .distinct()
+                        .collect(Collectors.toList()));
+            }
+            return GeneralResponse.of(new ArrayList<>(categoryMap.values()));
+        } catch (Exception ex) {
+            throw BusinessException.of("getServiceCategoryWithTourDays", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourLocations(Long tourId) {
+        try {
+            Tour tourEntity = tourRepository.findById(tourId).orElseThrow();
+            List<Location> locations = tourEntity.getLocations();
+            List<LocationShortDTO> dto = locations.stream().map(locationMapper::toLocationShortDTO).toList();
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot tour locations", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getServiceProviders(Long locationId, String categoryName) {
+        try {
+            List<ServiceProvider> providers = serviceProviderRepository.getHotelByLocationIdAndServiceCategory(locationId, categoryName);
+            List<ServiceProviderSimpleDTO> dto = providers.stream().map(bookingMapper::toServiceProviderSimpleDTO).toList();
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot provider by location", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getServiceProviderServices(Long providerId, String categoryName) {
+        try {
+            List<com.fpt.capstone.tourism.model.Service> services = serviceRepository.findByServiceCategoryNameAndProviderId(categoryName, providerId);
+            List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
+            return GeneralResponse.of(availableServices);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot provider services", ex);
+        }
+    }
+
+    private final RoomRepository roomRepository;
+    private final MealRepository mealRepository;
+
+    private List<AvailableServiceDTO> buildAvailableServicesDTO(List<com.fpt.capstone.tourism.model.Service> services) {
+        List<AvailableServiceDTO> availableServices = new ArrayList<>();
+
+        for (com.fpt.capstone.tourism.model.Service service : services) {
+            String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
+            String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
+
+            // Get type-specific details based on service category
+            RoomDetailDTO roomDetail = null;
+            MealDetailDTO mealDetail = null;
+            TransportDetailDTO transportDetail = null;
+
+            if (HOTEL.equalsIgnoreCase(categoryName)) {
+                Optional<Room> roomOpt = roomRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (roomOpt.isPresent()) {
+                    Room room = roomOpt.get();
+                    roomDetail = RoomDetailDTO.builder()
+                            .id(room.getId())
+                            .capacity(room.getCapacity())
+                            .availableQuantity(room.getAvailableQuantity())
+                            .facilities(room.getFacilities())
+                            .build();
+                }
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+                Optional<Meal> mealOpt = mealRepository.findByServiceIdAndDeletedFalse(service.getId());
+                if (mealOpt.isPresent()) {
+                    Meal meal = mealOpt.get();
+                    mealDetail = MealDetailDTO.builder()
+                            .id(meal.getId())
+                            .type(meal.getType().name())
+                            .mealDetail(meal.getMealDetail())
+                            .build();
+                }
+            }
+
+            AvailableServiceDTO serviceDTO = AvailableServiceDTO.builder()
+                    .id(service.getId())
+                    .name(service.getName())
+                    .categoryName(categoryName)
+                    .nettPrice(service.getNettPrice())
+                    .sellingPrice(service.getSellingPrice())
+                    .status(status)
+                    .startDate(service.getStartDate())
+                    .endDate(service.getEndDate())
+                    .providerId(service.getServiceProvider() != null ? service.getServiceProvider().getId() : null)
+                    .providerName(service.getServiceProvider() != null ? service.getServiceProvider().getName() : null)
+                    .roomDetail(roomDetail)
+                    .mealDetail(mealDetail)
+                    .build();
+
+            availableServices.add(serviceDTO);
+        }
+
+        return availableServices;
+    }
+
+    private String determineServiceStatus(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        LocalDateTime now = LocalDateTime.now();
+        if (startDateTime == null || endDateTime == null) {
+            return "UNKNOWN";
+        }
+        if (now.isBefore(startDateTime)) {
+            return "UPCOMING";
+        } else if (now.isAfter(endDateTime)) {
+            return "EXPIRED";
+        } else {
+            return "ACTIVE";
+        }
     }
 
     public static String removeAccents(String text) {
