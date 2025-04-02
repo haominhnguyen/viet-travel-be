@@ -36,7 +36,7 @@ public class ServiceProviderDTO {
 
     private boolean deleted;
 
-    private String locationName;
+    private Long locationId;
 
     private GeoPositionDTO geoPosition;
 
