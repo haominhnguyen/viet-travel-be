@@ -12,6 +12,10 @@ import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,13 +24,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -64,7 +68,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
-        try{
+        try {
             Tour currentTour = tourRepository.findById(tourId).orElseThrow();
             PublicTourScheduleDTO tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
 
@@ -80,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
                     .tourImage(tourImageMapper.toPublicTourImageDTO(currentTour.getTourImages().get(0)))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Customer Tour Booking detail loaded successfully", tourBasicDTO);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Customer Tour Booking detail loaded fail", ex);
         }
 
@@ -98,7 +102,7 @@ public class BookingServiceImpl implements BookingService {
             List<TourBookingCustomer> allCustomers = new ArrayList<>();
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
-            
+
             TourBooking tourBooking = TourBooking.builder()
                     .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
@@ -115,9 +119,7 @@ public class BookingServiceImpl implements BookingService {
                     .build();
 
 
-
             TourBooking result = tourBookingRepository.save(tourBooking);
-
 
 
             TourBooking temp = TourBooking.builder().id(result.getId()).build();
@@ -147,7 +149,7 @@ public class BookingServiceImpl implements BookingService {
             createReceiptBookingTransaction(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
 
 
-        return GeneralResponse.of(result.getBookingCode());
+            return GeneralResponse.of(result.getBookingCode());
 
         } catch (Exception ex) {
             throw BusinessException.of(ex.getMessage(), ex);
@@ -195,7 +197,6 @@ public class BookingServiceImpl implements BookingService {
             throw BusinessException.of(ex.getMessage(), ex);
         }
     }
-
 
 
     @Override
@@ -259,9 +260,7 @@ public class BookingServiceImpl implements BookingService {
                     .build();
 
 
-
             TourBooking result = tourBookingRepository.save(tourBooking);
-
 
 
             TourBookingCustomer bookedPerson = TourBookingCustomer.builder()
@@ -303,7 +302,7 @@ public class BookingServiceImpl implements BookingService {
 
             Tour tour = tourRepository.findById(tourId).orElseThrow();
             TourSchedule tourSchedule;
-            if(scheduleId != null) {
+            if (scheduleId != null) {
                 tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
             } else {
                 tourSchedule = tour.getTourSchedules().get(0);
@@ -326,7 +325,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(tourListBookingDTO);
 
-        }  catch (Exception ex) {
+        } catch (Exception ex) {
             throw BusinessException.of("Get Data failed", ex);
         }
 
@@ -384,7 +383,7 @@ public class BookingServiceImpl implements BookingService {
 
             for (TourBookingCustomer customer : tourBookingCustomers) {
                 customer.setTourBooking(tourBooking);
-                if(!customer.getDeleted()) {
+                if (!customer.getDeleted()) {
                     totalCustomer++;
                 }
             }
@@ -483,9 +482,9 @@ public class BookingServiceImpl implements BookingService {
 
         int totalRooms = calculateTotalRooms(customers);
 
-        for(TourDay tourDay : tourDays) {
+        for (TourDay tourDay : tourDays) {
             List<TourDayService> dayServices = tourDay.getTourDayServices();
-            for(TourDayService dayService : dayServices) {
+            for (TourDayService dayService : dayServices) {
                 TourBookingService tourBookingService = TourBookingService.builder()
                         .booking(tourBooking)
                         .tourDay(tourDay)
@@ -496,9 +495,9 @@ public class BookingServiceImpl implements BookingService {
 
                 com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(dayService.getService().getId()).orElseThrow();
 
-                if(service.getServiceCategory().getCategoryName().equals("Hotel")) {
+                if (service.getServiceCategory().getCategoryName().equals("Hotel")) {
                     tourBookingService.setCurrentQuantity(totalRooms);
-                } else if(service.getServiceCategory().getCategoryName().equals("Restaurant")) {
+                } else if (service.getServiceCategory().getCategoryName().equals("Restaurant")) {
                     tourBookingService.setCurrentQuantity(customers.size());
                 }
                 tourBookingServiceRepository.save(tourBookingService);
@@ -617,7 +616,7 @@ public class BookingServiceImpl implements BookingService {
 
         try {
             Tour temp = tourRepository.findByName(tour.getName());
-            if(temp != null) {
+            if (temp != null) {
                 throw BusinessException.of("Tên tour đã tồn tại");
             } else {
 
@@ -650,7 +649,7 @@ public class BookingServiceImpl implements BookingService {
                         .minPax(tour.getPax())
                         .build();
 
-                List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(),savedTour);
+                List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(), savedTour);
 
                 tourDayRepository.saveAll(tourDays);
 
@@ -687,12 +686,11 @@ public class BookingServiceImpl implements BookingService {
 
             TourSchedule tourSchedule = null;
 
-            if(tour.getTourScheduleId() != null) {
-                tourSchedule= tourScheduleRepository.findById(tour.getTourScheduleId()).orElseThrow();
+            if (tour.getTourScheduleId() != null) {
+                tourSchedule = tourScheduleRepository.findById(tour.getTourScheduleId()).orElseThrow();
                 tourSchedule.setStartDate(tour.getStartDate());
                 tourSchedule.setEndDate(tour.getEndDate());
-            }
-            else {
+            } else {
                 tourSchedule = TourSchedule.builder()
                         .startDate(tour.getStartDate())
                         .endDate(tour.getEndDate())
@@ -773,6 +771,88 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Override
+    public GeneralResponse<PagingDTO<List<TourBookingHistoryDTO>>> viewListBookingHistory(int page, int size, String keyword, String paymentStatus, String orderDate) {
+        try {
+            Long currentId = getCurrentUserId();
+            Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Specification<TourBooking> spec = buildSearchSpecification(keyword, paymentStatus)
+                    .and((root, query, criteriaBuilder) -> {
+                        Join<TourBooking, User> userJoin = root.join("user");
+                        return criteriaBuilder.equal(userJoin.get("id"), currentId);
+                    });
+
+            Page<TourBooking> tourPage = tourBookingRepository.findAll(spec, pageable);
+
+            // Map to DTO
+            List<TourBookingHistoryDTO> resultDTO = tourPage.getContent().stream()
+                    .map(booking -> {
+                                return TourBookingHistoryDTO.builder()
+                                        .bookingId(booking.getId())
+                                        .bookingDate(booking.getCreatedAt())
+                                        .bookingCode(booking.getBookingCode())
+                                        .tourId(booking.getTour().getId())
+                                        .tourName(booking.getTour().getName())
+                                        .tourImage(booking.getTour().getTourImages().get(0).getImageUrl())
+                                        .bookingStatus(booking.getStatus())
+                                        .bookingTotalAmount(booking.getTotalAmount())
+                                        .bookingExpiredAt(booking.getExpiredAt())
+                                        .build();
+                            }
+
+                    )
+                    .collect(Collectors.toList());
+
+            return buildPagedResponse(tourPage, resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get list history booking fail", ex);
+        }
+    }
+
+    private Specification<TourBooking> buildSearchSpecification(String keyword, String paymentStatus) {
+        return (root, query, cb) -> {
+            query.distinct(true);
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("deleted"), false));
+
+            // Search by tour name
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                // Ensure PostgreSQL has UNACCENT enabled
+                Expression<String> normalizedTourName = cb.function("unaccent", String.class, cb.lower(root.join("tour", JoinType.LEFT).get("name")));
+
+                // Remove accents from the input keyword
+                Expression<String> normalizedKeyword = cb.function("unaccent", String.class, cb.literal(keyword.toLowerCase()));
+
+                Predicate tourNamePredicate = cb.like(normalizedTourName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+
+                // Combine both conditions
+                predicates.add(tourNamePredicate);
+            }
+
+
+            // Filter by status
+            if (paymentStatus != null) {
+                predicates.add(cb.equal(root.get("status"), paymentStatus));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponse(Page<TourBooking> tourPage, List<T> tours) {
+        PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
+                .page(tourPage.getNumber())
+                .size(tourPage.getSize())
+                .total(tourPage.getTotalElements())
+                .items(tours)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+    }
+
     public static String removeAccents(String text) {
         if (text == null) {
             return null;
@@ -780,5 +860,15 @@ public class BookingServiceImpl implements BookingService {
         String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);//Chuyển chữ có dấu thành ký tự gốc + dấu (ví dụ: Đà → Da + dấu huyền).
         Pattern pattern = Pattern.compile("\\p{M}"); //  Xóa tất cả các dấu khỏi ký tự.
         return pattern.matcher(normalized).replaceAll("");
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getName() != null) {
+            User user = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> BusinessException.of("User not found"));
+            return user.getId();
+        }
+        throw BusinessException.of("Không tìm thấy thông tin người dùng");
     }
 }

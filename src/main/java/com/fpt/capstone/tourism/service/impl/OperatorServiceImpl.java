@@ -121,11 +121,10 @@ public class OperatorServiceImpl implements OperatorService {
 
     final String emailRejectServiceUpdateContent = "Kính gửi: {0},\n\n"
             + "Chúng tôi xin thông báo rằng yêu cầu thay đổi số lượng dịch vụ của bạn đã bị nhà điều hành từ chối. " +
-            "Dưới đây là thông tin chi tiết về yêu cầu::\n\n"
+            "Dưới đây là thông tin chi tiết về yêu cầu:\n\n"
             + "Dịch vụ: {1}\n"
             + "Số lượng yêu cầu thay đổi: {2} → {3}\n"
             + "Ngày yêu cầu: {4}\n\n"
-            + "Lý do từ chối: {5}\n"
             + "Vui lòng kiểm tra lại yêu cầu và điều chỉnh phù hợp." +
             " Nếu có bất kỳ thắc mắc nào, bạn có thể liên hệ với bộ phận điều hành để được hỗ trợ thêm.\n\n"
             + "Trân trọng,\n"
@@ -742,7 +741,7 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("Booking Service not found")
             );
             //Kiểm tra trạng thái của service booking
-            if(!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)){
+            if (!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
                 throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
             }
             Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
@@ -856,9 +855,15 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO) {
         try {
             checkAuthorByTourBookingService(requestDTO.getTourBookingServiceId());
+
             TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
                     () -> BusinessException.of("No booking service found")
             );
+
+            if (requestDTO.getNewQuantity() <= 0 ||
+                    requestDTO.getNewQuantity() == bookingService.getCurrentQuantity()) {
+                throw BusinessException.of("Số lượng dịch vụ không hợp lệ");
+            }
 
             //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
             if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
@@ -978,7 +983,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Kiểm tra trạng thái của service booking
-            if(!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)){
+            if (!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
                 throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
             }
 
@@ -1062,6 +1067,28 @@ public class OperatorServiceImpl implements OperatorService {
             //Trường hợp thay đổi số lượng
             if (bookingService.getRequestedQuantity() > 0) {
                 bookingService.setRequestedQuantity(0);
+
+                //Send email to sale
+                User sale = bookingService.getBooking().getSale();
+                Service service = bookingService.getService();
+
+                String content = MessageFormat.format(emailRejectServiceUpdateContent,
+                        sale.getFullName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestedQuantity(),
+                        bookingService.getRequestDate());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(tourBookingServiceId)
+                        .providerId(sale.getId())
+                        .providerName(sale.getFullName())
+                        .providerEmail(sale.getEmail())
+                        .emailSubject(emailRejectServiceUpdateSubject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
+
             }
 
             bookingServiceRepository.save(bookingService);
@@ -1350,6 +1377,7 @@ public class OperatorServiceImpl implements OperatorService {
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
+
     private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponseServiceRequest(Page<TourBookingService> tourPage, List<T> tours) {
         PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(tourPage.getNumber())
