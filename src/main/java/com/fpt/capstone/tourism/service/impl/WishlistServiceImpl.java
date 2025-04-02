@@ -42,6 +42,7 @@ public class WishlistServiceImpl implements WishlistService {
                                 .itemId(wishlist.getItemId())
                                 .itemType(wishlist.getItemType())
                                 .tourName(Optional.ofNullable(tour.getName()).orElseThrow(null))
+                                .tourImageUrl(Optional.ofNullable(tour.getTourImages().get(0).getImageUrl()).orElseThrow(null))
                                 .build();
                         return wishlistDTO;
                     }).collect(Collectors.toList());
@@ -72,6 +73,7 @@ public class WishlistServiceImpl implements WishlistService {
                     .itemId(wishlist.getItemId())
                     .itemType(wishlist.getItemType())
                     .tourName(Optional.ofNullable(tour.getName()).orElseThrow(null))
+                    .tourImageUrl(Optional.ofNullable(tour.getTourImages().get(0).getImageUrl()).orElseThrow(null))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", wishlistDTO);
         } catch (Exception ex) {
@@ -98,6 +100,7 @@ public class WishlistServiceImpl implements WishlistService {
                     .itemId(wishlist.getItemId())
                     .itemType(wishlist.getItemType())
                     .tourName(Optional.ofNullable(tour.getName()).orElseThrow(null))
+                    .tourImageUrl(Optional.ofNullable(tour.getTourImages().get(0).getImageUrl()).orElseThrow(null))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", wishlistDTO);
         } catch (Exception ex) {
