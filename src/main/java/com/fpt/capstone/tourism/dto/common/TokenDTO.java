@@ -8,7 +8,6 @@ import lombok.*;
 @Builder
 public class TokenDTO {
     private String username;
-    private String fullName;
     private String token;
     private String expirationTime;
 }

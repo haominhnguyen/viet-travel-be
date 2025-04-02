@@ -67,7 +67,6 @@ public class AuthServiceImpl implements AuthService {
             String token = jwtHelper.generateToken(user);
             TokenDTO tokenDTO = TokenDTO.builder()
                     .username(user.getUsername())
-                    .fullName(user.getFullName())
                     .token(token)
                     .expirationTime("24h")
                     .build();
