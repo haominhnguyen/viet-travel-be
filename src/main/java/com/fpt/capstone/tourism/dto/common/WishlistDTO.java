@@ -14,4 +14,5 @@ public class WishlistDTO {
     private Long itemId;
     private String itemType;
     private String tourName;
+    private String tourImageUrl;
 }

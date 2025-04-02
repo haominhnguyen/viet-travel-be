@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.BookedPersonDTO;
-import com.fpt.capstone.tourism.dto.common.CostAccountDTO;
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourBookingWithBookedPersonDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingAccountantShortResponseDTO;
@@ -11,13 +8,11 @@ import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
-import com.fpt.capstone.tourism.model.CostAccount;
-import com.fpt.capstone.tourism.model.TourBooking;
-import com.fpt.capstone.tourism.model.Transaction;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.repository.CostAccountRepository;
+import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import com.fpt.capstone.tourism.repository.TransactionRepository;
 import com.fpt.capstone.tourism.service.TransactionService;
@@ -44,6 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final CostAccountRepository costAccountRepository;
     private final TourBookingRepository tourBookingRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
 
     private final TransactionHelper transactionHelper;
     private final TransactionMapper transactionMapper;
@@ -238,6 +234,17 @@ public class TransactionServiceImpl implements TransactionService {
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
             throw BusinessException.of("Create booking failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getBookingProvider(Long bookingId) {
+        try {
+            List<ServiceProvider> providers = serviceProviderRepository.findDistinctServiceProvidersByBookingId(bookingId);
+            List<ServiceProviderSimpleDTO> dto = providers.stream().map(transactionMapper::toServiceProviderSimpleDTO).toList();
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Transaction Details for accountant failed", ex);
         }
     }
 

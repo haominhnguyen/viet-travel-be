@@ -157,4 +157,26 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.updateTourPrivateStatus(tour));
     }
 
+
+    @GetMapping("/tour-days/service-categories/list/{tourId}")
+    public ResponseEntity<?> getServiceCategoryWithTourDays(@PathVariable Long tourId) {
+        return ResponseEntity.ok(bookingService.getServiceCategoryWithTourDays(tourId));
+    }
+
+    @GetMapping("/tours/locations/{tourId}")
+    public ResponseEntity<?> getTourPrivateDetails(@PathVariable Long tourId) {
+        return ResponseEntity.ok(bookingService.getTourLocations(tourId));
+    }
+
+
+    @GetMapping("/service-providers/list")
+    public ResponseEntity<?> getServiceProviders(@RequestParam Long locationId, @RequestParam String categoryName) {
+        return ResponseEntity.ok(bookingService.getServiceProviders(locationId, categoryName));
+    }
+
+    @GetMapping("/service-providers/service/list")
+    public ResponseEntity<?> getServiceProviderServices(@RequestParam Long providerId, @RequestParam String categoryName) {
+        return ResponseEntity.ok(bookingService.getServiceProviderServices(providerId, categoryName));
+    }
+
 }

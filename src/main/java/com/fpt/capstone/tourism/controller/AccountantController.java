@@ -53,5 +53,8 @@ public class AccountantController {
         return ResponseEntity.ok(transactionService.createTransaction(dto));
     }
 
-
+    @GetMapping("/transactions/providers")
+    public ResponseEntity<?> getBookingProvider(@RequestParam Long bookingId) {
+        return ResponseEntity.ok(transactionService.getBookingProvider(bookingId));
+    }
 }

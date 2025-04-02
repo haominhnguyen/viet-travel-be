@@ -93,4 +93,9 @@ public class HomepageController {
     public ResponseEntity<GeneralResponse<?>> search(@RequestParam String keyword){
         return ResponseEntity.ok(homepageService.search(keyword));
     }
+
+    @GetMapping("/list-location")
+    public ResponseEntity<GeneralResponse<?>> getListLocation() {
+        return ResponseEntity.ok(homepageService.getListLocation());
+    }
 }
