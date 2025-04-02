@@ -272,7 +272,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
     }
 
     private void validateServiceCategories(List<String> serviceCategories) {
-        List<String> validCategories = Arrays.asList("Hotel", "Restaurant", "Transport");
+        List<String> validCategories = Arrays.asList("Hotel", "Restaurant", "Transport", "Activity", "Flight Ticket");
 
         if (serviceCategories == null || serviceCategories.isEmpty()) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, "At least one service category is required");
