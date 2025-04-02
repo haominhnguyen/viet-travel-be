@@ -19,15 +19,21 @@ import java.util.Optional;
 public interface ServiceProviderMapper extends EntityMapper<ServiceProviderDTO, ServiceProvider> {
     PublicServiceProviderDTO toPublicServiceProviderDTO(ServiceProvider serviceProvider);
 
-    @Mapping(target = "locationName", expression = "java(getLocationName(serviceProvider))")
-    ServiceProviderDTO toDTO(ServiceProvider serviceProvider);
+//    @Mapping(target = "locationId", expression = "java(getLocationId(serviceProvider))")
+//    ServiceProviderDTO toDTO(ServiceProvider serviceProvider);
 
-    default String getLocationName(ServiceProvider serviceProvider) {
+//    @Override
+//    @Mapping(target = "location", source = "locationId")
+//    ServiceProvider toEntity(ServiceProviderDTO dto);
+
+    default Long getLocationId(ServiceProvider serviceProvider) {
         return Optional.ofNullable(serviceProvider)
                 .map(ServiceProvider::getLocation)
-                .map(Location::getName)
+                .map(Location::getId)
                 .orElse(null);
     }
+
+
 }
 
 
