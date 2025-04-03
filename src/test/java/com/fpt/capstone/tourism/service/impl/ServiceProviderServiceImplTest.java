@@ -112,7 +112,7 @@ class ServiceProviderServiceImplTest {
         locationDTO.setImage("test.jpg");
         locationDTO.setDeleted(false);
         locationDTO.setGeoPosition(geoPositionDTO);
-        mockServiceProviderDTO.setLocation(locationDTO);
+        mockServiceProviderDTO.setLocationId(locationDTO.getId());
 
         // Setting up Service Categories
         ServiceCategoryDTO serviceCategoryDTO = new ServiceCategoryDTO();
@@ -201,7 +201,7 @@ class ServiceProviderServiceImplTest {
         locationDTO.setImage("test.jpg");
         locationDTO.setDeleted(false);
         locationDTO.setGeoPosition(geoPositionDTO);
-        mockServiceProviderDTO.setLocation(locationDTO);
+        mockServiceProviderDTO.setLocationId(locationDTO.getId());
 
         Location location = new Location();
         location.setId(1L);

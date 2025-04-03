@@ -98,4 +98,6 @@ public interface BookingMapper {
 
     TourDayServiceWithServiceOnlyDTO toTourDayServiceWithServiceOnlyDTO(TourDay tourDay);
 
+
+
 }

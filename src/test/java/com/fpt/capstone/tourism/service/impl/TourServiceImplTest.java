@@ -62,7 +62,7 @@ class TourServiceImplTest {
         mockTour.setId(1L);
         mockTour.setName("Amazing Vietnam");
         mockTour.setNumberDays(5);
-        mockTour.setNumberNight(4);
+        mockTour.setNumberNights(4);
 
         // Create tags with full information
         Tag tag1 = new Tag();
@@ -94,7 +94,7 @@ class TourServiceImplTest {
                 .numberDays(5)
                 .numberNight(4)
                 .tags(tagDTOs)
-                .depart_location(null)
+                .departLocation(null)
                 .tourImages(Collections.emptyList())
                 .priceFrom(100.0)
                 .build();
@@ -164,7 +164,7 @@ class TourServiceImplTest {
         List<Object[]> priceData = new ArrayList<>();
         priceData.add(new Object[]{1L, 100.0});
         when(tourRepository.findMinSellingPrices(anyList())).thenReturn(priceData);
-        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "", null, null, null, null);
+        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "", null, null, null, null, null, null);
         assertNotNull(response);
         assertEquals(200, response.getCode());
         assertNotNull(response.getData());

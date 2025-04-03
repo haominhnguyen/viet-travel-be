@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.mapper.TourImageMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import com.fpt.capstone.tourism.repository.TourRepository;
 import com.fpt.capstone.tourism.repository.TourScheduleRepository;
@@ -63,9 +64,9 @@ class BookingServiceImplTest {
                 .id(1L)
                 .name("Amazing Vietnam")
                 .numberDays(5)
-                .numberNight(4)
+                .numberNights(4)
                 .privacy(String.valueOf(false))
-                .depart_location(Location.builder().id(1L).build())
+                .departLocation(Location.builder().id(1L).build())
                 .tourImages(List.of(TourImage.builder().id(10L).build()))
                 .locations(List.of(Location.builder().id(100L).build()))
                 .build();

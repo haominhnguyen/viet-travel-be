@@ -49,7 +49,7 @@ public class TourBooking extends BaseEntity {
     @ToString.Exclude
     private TourSchedule tourSchedule;
 
-    @OneToMany(mappedBy = "tourBooking")
+    @OneToMany(mappedBy = "tourBooking", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<TourBookingCustomer> customers;
 

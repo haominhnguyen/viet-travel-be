@@ -198,4 +198,25 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.cancelTour(dto));
     }
 
+
+    @PostMapping("/tours/send-pricing")
+    public ResponseEntity<?> sendPricing(@RequestBody Long tourId) {
+        return ResponseEntity.ok(bookingService.sendPricing(tourId));
+    }
+
+    @PostMapping("/bookings/update-status")
+    public ResponseEntity<?> updateBookingStatus(@RequestBody BookingStatusUpdateDTO dto) {
+        return ResponseEntity.ok(bookingService.updateBookingStatus(dto));
+    }
+
+    @PostMapping("/tours/send-operator")
+    public ResponseEntity<?> sendOperator(@RequestBody SendOperatorDTO dto) {
+        return ResponseEntity.ok(bookingService.sendOperator(dto));
+    }
+
+
+    @PostMapping("/bookings/take-booking")
+    public ResponseEntity<?> takeBooking(@RequestBody TakeBookingRequestDTO dto) {
+        return ResponseEntity.ok(bookingService.takeBooking(dto));
+    }
 }

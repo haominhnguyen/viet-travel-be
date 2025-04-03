@@ -33,14 +33,14 @@ public class Tour extends BaseEntity{
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinTable(name = "tour_location",
             joinColumns = @JoinColumn(name = "tour_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id"))
     private List<Location> locations;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinTable(
             name = "tour_tag",
@@ -61,7 +61,7 @@ public class Tour extends BaseEntity{
     @ToString.Exclude
     private Set<TourPax> tourPax;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinColumn(name = "depart_location_id")
     private Location departLocation;
@@ -72,7 +72,7 @@ public class Tour extends BaseEntity{
     @Column(columnDefinition = "text")
     private String privacy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
@@ -85,6 +85,6 @@ public class Tour extends BaseEntity{
     private List<TourImage> tourImages;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "tour")
+    @OneToMany(mappedBy = "tour", fetch = FetchType.LAZY)
     private List<TourDay> tourDays;
 }

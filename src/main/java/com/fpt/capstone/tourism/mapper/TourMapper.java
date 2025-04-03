@@ -4,7 +4,9 @@ import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.common.TourProcessDTO;
 import com.fpt.capstone.tourism.dto.common.TourProcessDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.TourBookingShortSaleResponseDTO;
 import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.TourBooking;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -38,4 +40,7 @@ public interface TourMapper extends EntityMapper<TourDTO, Tour>  {
 
     @Mapping(target = "createdBy", source = "createdBy.fullName")
     TourProcessDetailDTO toTourProcessDetailDTO(Tour tour);
+
+
+    TourBookingShortSaleResponseDTO toTourBookingShortSaleResponseDTO(TourBooking tourBooking);
 }
