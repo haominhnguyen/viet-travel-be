@@ -9,8 +9,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
-import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourService;
 import jakarta.persistence.criteria.Expression;
@@ -46,6 +45,8 @@ public class TourServiceImpl implements TourService {
     private final TourDayMapper tourDayMapper;
     private final LocationRepository locationRepository;
     private final TourBookingRepository tourBookingRepository;
+    private final CostAccountRepository costAccountRepository;
+    private final UserRepository userRepository;
     private final TourDayAllMapper tourDayAllMapper;
     private final TourDayRepository tourDayRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
@@ -55,7 +56,7 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public PublicTourDTO findTopTourOfYear() {
-        try{
+        try {
             List<Long> topTourIds = tourRepository.findTopTourIdsOfCurrentYear();
 
             if (topTourIds.isEmpty()) {
@@ -86,7 +87,7 @@ public class TourServiceImpl implements TourService {
                     .tourImages(topTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .priceFrom(tourRepository.findMinSellingPriceForTours(topTour.getId()))
                     .build();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Error retrieving top tour of year", ex);
         }
 
@@ -94,7 +95,7 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public List<PublicTourDTO> findTrendingTours(int numberTour) {
-        try{
+        try {
             Pageable pageable = PageRequest.of(0, numberTour);
             List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
 
@@ -124,7 +125,7 @@ public class TourServiceImpl implements TourService {
                             priceMap.getOrDefault(tour.getId(), 0.0) // Giá thấp nhất
                     ))
                     .collect(Collectors.toList());
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Error retrieving trending tours", ex);
         }
 
@@ -145,7 +146,8 @@ public class TourServiceImpl implements TourService {
                     .collect(Collectors.toMap(
                             row -> (Long) row[0],  // tourId
                             row -> (Double) row[1] // priceFrom
-                    ));;
+                    ));
+            ;
 
             List<PublicTourDTO> publicTourDTOS = tourPage.getContent().stream()
                     .map(tour -> new PublicTourDTO(
@@ -180,20 +182,22 @@ public class TourServiceImpl implements TourService {
             List<PublicTourDTO> publicTourDTOS = new ArrayList<>();
             //Get list id of list same location tour
             List<Long> tourIds = tourRepository.findSameLocationTourIds(locationIds);
-            for(Long tourId : tourIds) {
+            for (Long tourId : tourIds) {
                 //Get tour information
                 Tour tour = tourRepository.findById(tourId).orElseThrow();
 
                 //Get list tag for each tour
                 List<TagDTO> tags = tagRepository.findTagsByTourId(tourId)
-                        .stream().map(tagMapper::toDTO).toList();;
+                        .stream().map(tagMapper::toDTO).toList();
+                ;
 
                 //Get min price for each tour
                 Double minPrice = tourRepository.findMinSellingPriceForTours(tourId);
 
                 // Get list image for each tour
                 List<PublicTourImageDTO> images = tourImageRepository.findTourImagesByTourId(tourId)
-                        .stream().map(tourImageMapper::toPublicTourImageDTO).toList();;
+                        .stream().map(tourImageMapper::toPublicTourImageDTO).toList();
+                ;
 
 
                 PublicTourDTO publicTourDTO = PublicTourDTO.builder()
@@ -210,13 +214,13 @@ public class TourServiceImpl implements TourService {
                 publicTourDTOS.add(publicTourDTO);
             }
             return publicTourDTOS;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw BusinessException.of("Error retrieving same location public tours", ex);
         }
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened,Pageable pageable) {
+    public GeneralResponse<PagingDTO<List<TourBasicDTO>>> getAllTours(String keyword, Boolean isDeleted, Boolean isOpened, Pageable pageable) {
         Specification<Tour> spec = buildSimpleSearchSpecification(keyword, isDeleted, isOpened);
         Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
         List<TourBasicDTO> tourDTOs = tourPage.getContent().stream()
@@ -530,6 +534,7 @@ public class TourServiceImpl implements TourService {
             throw BusinessException.of(TOUR_UPDATE_FAIL, ex);
         }
     }
+
     @Override
     @Transactional
     public GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent) {
@@ -669,7 +674,6 @@ public class TourServiceImpl implements TourService {
             Specification<Tour> spec = buildSearchSpecificationAdmin(keyword, tourStatus);
 
 
-
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
 
             // Map to DTO
@@ -697,7 +701,7 @@ public class TourServiceImpl implements TourService {
             statuses.add(TourStatus.PENDING);
             statuses.add(TourStatus.APPROVED);
             statuses.add(TourStatus.REJECTED);
-            if(!statuses.contains(status)){
+            if (!statuses.contains(status)) {
                 throw BusinessException.of("Tour status is not pending, approved or rejected");
             }
             TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
@@ -718,7 +722,7 @@ public class TourServiceImpl implements TourService {
             );
 
             //Check tourDay belong to tour or not
-            if(!tourDay.getTour().getId().equals(tourId)){
+            if (!tourDay.getTour().getId().equals(tourId)) {
                 throw BusinessException.of("Tour day does not belong to this tour");
             }
             TourDayProcessDetailDTO resultDTO = tourDayMapper.toTourDayProcessDetailDTO(tourDay);
@@ -739,7 +743,7 @@ public class TourServiceImpl implements TourService {
             );
 
             //check status of tour before approval
-            if(!tour.getTourStatus().equals(TourStatus.PENDING)){
+            if (!tour.getTourStatus().equals(TourStatus.PENDING)) {
                 throw BusinessException.of("Tour status is not pending");
             }
 
@@ -763,7 +767,7 @@ public class TourServiceImpl implements TourService {
             );
 
             //check status of tour before reject
-            if(!tour.getTourStatus().equals(TourStatus.PENDING)){
+            if (!tour.getTourStatus().equals(TourStatus.PENDING)) {
                 throw BusinessException.of("Tour status is not pending");
             }
 
@@ -780,8 +784,92 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<?> viewDashboard(LocalDate fromDate, LocalDate toDate) {
-        return null;
+    public GeneralResponse<?> viewDashboard(LocalDate toDate) {
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate startDate = now.minusMonths(11).withDayOfMonth(1); // Lấy ngày đầu tiên của tháng 12 tháng trước
+            LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth()); // Ngày cuối cùng của tháng hiện tại
+
+            if (toDate != null && toDate.isBefore(now)) {
+                startDate = toDate.minusMonths(11).withDayOfMonth(1);
+                endDate = toDate.withDayOfMonth(toDate.lengthOfMonth());
+            }
+
+            //Tính doanh thu từng tháng (12 tháng gần nhất)
+            List<TransactionType> transactionTypes = new ArrayList<>();
+            transactionTypes.add(TransactionType.RECEIPT);
+            transactionTypes.add(TransactionType.COLLECTION);
+            List<RevenueChartDTO> monthlyRevenue = costAccountRepository.getRevenueByMonth(
+                    startDate,
+                    endDate,
+                    transactionTypes,
+                    CostAccountStatus.PAID);
+
+            //Tính số lượng tài khoản mới từng tháng (12 tháng gần nhất)
+            List<NewUsersChartDTO> monthlyNewUsers = userRepository.getNewUserByMonth(startDate, endDate);
+
+            //Tính tỉ lệ tour SIC với Private từng tháng (12 tháng gần nhất)
+            List<TourTypeRatioDTO> tourTypeRatios = tourBookingRepository.getTourTypeRatioByMonth(
+                    startDate,
+                    endDate,
+                    TourBookingStatus.SUCCESS);
+
+            //Tìm danh sách booking gần đây
+            Pageable pageable = PageRequest.of(0, 10);
+            List<RecentBookingDTO> recentBookings = tourBookingRepository.getRecentBooking(startDate, endDate, pageable);
+
+            //Tìm top tour có doanh thu cao nhất (12 tháng gần nhất)
+            pageable = PageRequest.of(0, 20);
+            List<TopRevenueTourDTO> topRevenueTours = tourRepository.getTopRevenueTourByMonth(
+                    startDate,
+                    endDate,
+                    transactionTypes,
+                    CostAccountStatus.PAID,
+                    pageable);
+
+            //Tìm số lượng booking bị hủy (12 tháng gần nhất)
+            List<TourBookingStatus> bookingStatuses = new ArrayList<>();
+            bookingStatuses.add(TourBookingStatus.CANCELLED_WITH_REFUND);
+            bookingStatuses.add(TourBookingStatus.CANCELLED_WITHOUT_REFUND);
+            Integer cancelBookingNumber = tourBookingRepository.getBookingNumberByStatus(
+                    startDate,
+                    endDate,
+                    bookingStatuses);
+
+            //Tính số lượng booking qua kênh online (12 tháng gần nhất)
+            Integer onlineBookingNumber = tourBookingRepository.getBookingNumberByType(
+                    startDate,
+                    endDate,
+                    TourBookingCategory.ONLINE);
+
+            //Tính số lượng booking qua kênh offline (12 tháng gần nhất)
+            Integer offlineBookingNumber = tourBookingRepository.getBookingNumberByType(
+                    startDate,
+                    endDate,
+                    TourBookingCategory.SALE);
+
+            //Tính số lượng khách hàng quay lại (12 tháng gần nhất)
+            Integer returnCustomerNumber = tourBookingRepository.getReturnCustomerNumber(startDate, endDate);
+
+            //Map to DTO
+            DashboardDTO resultDTO = DashboardDTO.builder()
+                    .monthlyRevenue(monthlyRevenue)
+                    .monthlyNewUsers(monthlyNewUsers)
+                    .tourTypeRatios(tourTypeRatios)
+                    .recentBookings(recentBookings)
+                    .topRevenueTours(topRevenueTours)
+                    .cancelBookingNumber(cancelBookingNumber)
+                    .onlineBookingNumber(onlineBookingNumber)
+                    .offlineBookingNumber(offlineBookingNumber)
+                    .returnCustomerNumber(returnCustomerNumber)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "View dashboard success", resultDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
     }
 
     private Specification<Tour> buildSearchSpecificationAdmin(String keyword, TourStatus tourStatus) {
@@ -963,15 +1051,15 @@ public class TourServiceImpl implements TourService {
             Predicate validToPredicate = cb.greaterThan(paxJoin.get("validTo"), currentDate);
             predicates.add(validToPredicate);
 
-            if(budgetFrom != null) {
+            if (budgetFrom != null) {
                 predicates.add(cb.greaterThanOrEqualTo(paxJoin.get("sellingPrice"), budgetFrom));
             }
 
-            if(budgetTo!= null) {
+            if (budgetTo != null) {
                 predicates.add(cb.lessThanOrEqualTo(paxJoin.get("sellingPrice"), budgetTo));
             }
 
-            if(departLocationId!= null) {
+            if (departLocationId != null) {
                 predicates.add(cb.equal(root.get("departLocation").get("id"), departLocationId));
             }
 

@@ -54,10 +54,8 @@ public class CeoController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<GeneralResponse<?>> viewDashboard(@RequestParam(value = "fromDate", required = false)
-                                                            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-                                                            @RequestParam(value = "toDate", required = false)
+    public ResponseEntity<GeneralResponse<?>> viewDashboard(@RequestParam(value = "toDate", required = false)
                                                             @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate) {
-        return ResponseEntity.ok(tourService.viewDashboard(fromDate, toDate));
+        return ResponseEntity.ok(tourService.viewDashboard(toDate));
     }
 }

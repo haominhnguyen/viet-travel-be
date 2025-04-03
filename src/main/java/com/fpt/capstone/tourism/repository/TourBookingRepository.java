@@ -1,19 +1,20 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.common.RecentBookingDTO;
+import com.fpt.capstone.tourism.dto.common.TourTypeRatioDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourSchedule;
+import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -95,4 +96,62 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
     @Query("SELECT COUNT(b) FROM TourBooking b WHERE b.tourSchedule.id = :scheduleId AND b.status <> 'CANCELLED'")
     Integer countByTourScheduleIdAndStatusNot(Long scheduleId);
 
+    @Query("""
+                SELECT new com.fpt.capstone.tourism.dto.common.TourTypeRatioDTO(
+                EXTRACT(MONTH FROM tb.createdAt),
+                EXTRACT(YEAR FROM tb.createdAt),
+                COALESCE(SUM(CASE WHEN t.tourType = 'SIC' THEN 1 ELSE 0 END) * 100.0 / COUNT(tb.id), 0),
+                COALESCE(SUM(CASE WHEN t.tourType = 'PRIVATE' THEN 1 ELSE 0 END) * 100.0 / COUNT(tb.id), 0)
+            )
+            FROM TourBooking tb
+            JOIN tb.tour t
+            WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
+            AND tb.status = :success
+            GROUP BY EXTRACT(YEAR FROM tb.createdAt), EXTRACT(MONTH FROM tb.createdAt) 
+            ORDER BY EXTRACT(YEAR FROM tb.createdAt) DESC, EXTRACT(MONTH FROM tb.createdAt) DESC 
+            """)
+    List<TourTypeRatioDTO> getTourTypeRatioByMonth(LocalDate startDate, LocalDate endDate, TourBookingStatus success);
+
+    @Query("""
+                SELECT new com.fpt.capstone.tourism.dto.common.RecentBookingDTO(
+                tb.id, 
+                u.fullName,
+                t.name,
+                CAST( tb.totalAmount AS BIGDECIMAL),
+                tb.createdAt
+            )
+            FROM TourBooking tb
+            JOIN tb.user u
+            JOIN tb.tour t
+            WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
+            ORDER BY tb.createdAt DESC 
+            """)
+    List<RecentBookingDTO> getRecentBooking(LocalDate startDate, LocalDate endDate, Pageable i);
+
+    @Query("""
+            SELECT COUNT (*)
+            FROM TourBooking tb
+            WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
+            AND tb.status IN :tourBookingStatus
+            """)
+    Integer getBookingNumberByStatus(LocalDate startDate, LocalDate endDate, List<TourBookingStatus> tourBookingStatus);
+
+    @Query("""
+            SELECT COUNT (*)
+            FROM TourBooking tb
+            WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
+            AND tb.tourBookingCategory = :tourBookingCategory
+            """)
+    Integer getBookingNumberByType(LocalDate startDate, LocalDate endDate, TourBookingCategory tourBookingCategory);
+
+    @Query("""
+    SELECT COUNT (*) FROM (
+    SELECT tb.user.id AS user_id
+    FROM TourBooking tb 
+    WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
+    GROUP BY tb.user.id 
+    HAVING COUNT(tb.id) >= 2
+    ) AS subquery
+""")
+    Integer getReturnCustomerNumber(LocalDate startDate, LocalDate endDate);
 }

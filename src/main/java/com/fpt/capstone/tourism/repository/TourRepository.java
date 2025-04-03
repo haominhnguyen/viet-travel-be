@@ -1,6 +1,9 @@
 package com.fpt.capstone.tourism.repository;
 
+import com.fpt.capstone.tourism.dto.common.TopRevenueTourDTO;
 import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Arrays;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -89,4 +92,23 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             AND t.tourStatus = 'OPENED'
             """)
     List<Tour> findAllPublicTour();
+
+    @Query("""
+                SELECT new com.fpt.capstone.tourism.dto.common.TopRevenueTourDTO(
+                t.id, 
+                t.name,
+                t.tourType,
+                CAST( SUM (ca.finalAmount) AS BIGDECIMAL ) 
+            )
+            FROM TourBooking tb
+            JOIN tb.tour t
+            JOIN Transaction tr ON tb.id = tr.booking.id
+            JOIN CostAccount ca ON tr.id = ca.transaction.id
+            WHERE DATE(ca.createdAt) BETWEEN :startDate AND :endDate 
+            AND tr.category IN :transactionTypes
+            AND ca.status = :paid
+            GROUP BY t.id, t.name, t.tourType
+            ORDER BY CAST( SUM (ca.finalAmount) AS BIGDECIMAL )  DESC 
+            """)
+    List<TopRevenueTourDTO> getTopRevenueTourByMonth(LocalDate startDate, LocalDate endDate, List<TransactionType> transactionTypes, CostAccountStatus paid, Pageable pageable);
 }
