@@ -21,6 +21,14 @@ import java.util.List;
 public interface TourBookingRepository extends JpaRepository<TourBooking, Long>, JpaSpecificationExecutor<TourBooking> {
     TourBooking findByBookingCode(String bookingCode);
 
+    /**
+     * Find tour by booking id
+     * @param bookingId bookId
+     * @return tour booking data
+     */
+    @Query(value = "select * from tour_booking where id = ?1", nativeQuery = true)
+    TourBooking findByBookingId(Long bookingId);
+
     List<TourBooking> findByTourSchedule_Id(Long scheduleId);
 
     @Query("""

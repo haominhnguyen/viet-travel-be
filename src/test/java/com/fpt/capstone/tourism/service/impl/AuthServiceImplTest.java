@@ -76,13 +76,13 @@ public class AuthServiceImplTest {
     @Order(1)
     void testLogin_Success() {
         // Arrange
-        UserDTO userDTO = new UserDTO("LanAnh99", "password123");
+        UserDTO userDTO = new UserDTO("LanAnh99", "Password123@");
         User user = User.builder()
                 .fullName("Lan Than")
                 .username("LanAnh99")
                 .email("lananh99@gmail.com")
                 .gender(Gender.FEMALE)
-                .password("password123")
+                .password("Password123@")
                 .phone("0987654321")
                 .address("BG")
                 .avatarImage(null)
@@ -115,14 +115,14 @@ public class AuthServiceImplTest {
 
         // Act & Assert
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
-        assertEquals(Constants.UserExceptionInformation.USER_INFORMATION_NULL_OR_EMPTY, exception.getMessage());
+        assertEquals("User name cannot be empty", exception.getMessage());
     }
 
     @Test
     @Order(3)
     void testLogin_UserNotFound() {
         // Arrange
-        UserDTO userDTO = new UserDTO("nonExistentUser", "password123");
+        UserDTO userDTO = new UserDTO("nonExistentUser", "Password123@");
 
         when(userService.findUserByUsername(userDTO.getUsername()))
                 .thenThrow(new NoSuchElementException()); // User not found
@@ -135,13 +135,13 @@ public class AuthServiceImplTest {
     @Order(4)
     void testLogin_UserIsDeleted() {
         // Arrange
-        UserDTO userDTO = new UserDTO("isDeletedUser123", "password123");
+        UserDTO userDTO = new UserDTO("isDeletedUser123", "Password123@");
         User user = User.builder()
                 .fullName("Lan Than")
                 .username("isDeletedUser123")
                 .email("lananh99@gmail.com")
                 .gender(Gender.FEMALE)
-                .password("password123")
+                .password("Password123@")
                 .phone("0987654321")
                 .address("BG")
                 .avatarImage(null)
@@ -160,13 +160,13 @@ public class AuthServiceImplTest {
     @Order(5)
     void testLogin_EmailNotConfirmed() {
         // Arrange
-        UserDTO userDTO = new UserDTO("testUser123", "password123");
+        UserDTO userDTO = new UserDTO("testUser123", "Password123@");
         User user = User.builder()
                 .fullName("Lan Than")
                 .username("testUser123")
                 .email("testUser123@gmail.com") //Email is not confirmed
                 .gender(Gender.FEMALE)
-                .password("password123")
+                .password("Password123@")
                 .phone("0987654321")
                 .address("BG")
                 .avatarImage(null)
@@ -184,7 +184,7 @@ public class AuthServiceImplTest {
     @Order(6)
     void testLogin_InvalidCredentials() {
         // Arrange
-        UserDTO userDTO = new UserDTO("testUser123", "wrongPassword");
+        UserDTO userDTO = new UserDTO("testUser123", "wrongPassword123@");
 
         // Mocking authentication failure
         doThrow(new BadCredentialsException("Invalid credentials")).when(authenticationManager)
@@ -203,8 +203,8 @@ public class AuthServiceImplTest {
                 .username("testUser123")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("password")
+                .password("Password123@")
+                .rePassword("Password123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")
@@ -249,8 +249,8 @@ public class AuthServiceImplTest {
                 .username("")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("password")
+                .password("Password123@")
+                .rePassword("Password123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")
@@ -258,7 +258,7 @@ public class AuthServiceImplTest {
 
         // Act & Assert
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(registerRequestDTO));
-        assertEquals(Constants.UserExceptionInformation.USER_INFORMATION_NULL_OR_EMPTY, exception.getMessage());
+        assertEquals("User name cannot be empty", exception.getMessage());
     }
 
     @Test
@@ -269,8 +269,8 @@ public class AuthServiceImplTest {
                 .username("testUser123")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("password")
+                .password("Password123@")
+                .rePassword("Password123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")
@@ -291,8 +291,8 @@ public class AuthServiceImplTest {
                 .username("testUser123")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("password")
+                .password("Password123@")
+                .rePassword("Password123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")
@@ -313,8 +313,8 @@ public class AuthServiceImplTest {
                 .username("testUser123")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("password")
+                .password("Password123@")
+                .rePassword("Password123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")
@@ -337,8 +337,8 @@ public class AuthServiceImplTest {
                 .username("testUser123")
                 .fullName("Test User")
                 .gender(Gender.FEMALE)
-                .password("password")
-                .rePassword("rePassword")
+                .password("Password123@")
+                .rePassword("rePassword123@")
                 .address("address")
                 .phone("0987654321")
                 .email("testuser123@gmail.com")

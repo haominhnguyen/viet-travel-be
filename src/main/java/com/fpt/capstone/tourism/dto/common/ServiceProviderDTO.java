@@ -34,7 +34,7 @@ public class ServiceProviderDTO {
 
     private String address;
 
-    private boolean deleted;
+    private Boolean deleted;
 
     private Long locationId;
 

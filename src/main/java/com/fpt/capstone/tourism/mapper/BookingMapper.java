@@ -94,4 +94,8 @@ public interface BookingMapper {
 
     ServiceProviderSimpleDTO toServiceProviderSimpleDTO(ServiceProvider serviceProvider);
 
+    ServiceForTourPrivateDTO toServiceForTourPrivateDTO(Service service);
+
+    TourDayServiceWithServiceOnlyDTO toTourDayServiceWithServiceOnlyDTO(TourDay tourDay);
+
 }
