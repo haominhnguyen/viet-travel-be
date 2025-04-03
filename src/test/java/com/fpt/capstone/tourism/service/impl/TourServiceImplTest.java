@@ -1,253 +1,192 @@
-//package com.fpt.capstone.tourism.service.impl;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-//import com.fpt.capstone.tourism.dto.response.PagingDTO;
-//import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-//import com.fpt.capstone.tourism.mapper.LocationMapper;
-//import com.fpt.capstone.tourism.mapper.TagMapper;
-//import com.fpt.capstone.tourism.mapper.TourImageMapper;
-//import com.fpt.capstone.tourism.model.Location;
-//import com.fpt.capstone.tourism.model.Tour;
-//import com.fpt.capstone.tourism.repository.TourRepository;
-//import com.fpt.capstone.tourism.repository.TourScheduleRepository;
-//import com.fpt.capstone.tourism.service.TourService;
-//import jakarta.persistence.criteria.CriteriaBuilder;
-//import jakarta.persistence.criteria.CriteriaQuery;
-//import jakarta.persistence.criteria.Predicate;
-//import jakarta.persistence.criteria.Root;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.data.domain.*;
-//import org.springframework.data.jpa.domain.Specification;
-//import com.fpt.capstone.tourism.exception.common.BusinessException;
-//
-//import java.time.LocalDate;
-//import java.util.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//public class TourServiceImplTest {
-//
-//
-//    @Mock
-//    private TourRepository tourRepository;
-//
-//    @Mock
-//    private TourScheduleRepository tourScheduleRepository;
-//
-//    @Mock
-//    private LocationMapper locationMapper;
-//
-//    @Mock
-//    private TagMapper tagMapper;
-//
-//    @Mock
-//    private TourImageMapper tourImageMapper;
-//
-//    @InjectMocks
-//    private TourServiceImpl tourService;
-//
-//    private Page<Tour> tourPage;
-//    private List<Tour> tourList;
-//
-//
-//
-//
-//    @BeforeEach
-//    void setUp() {
-//        Tour tour1 = Tour.builder()
-//                .id(1L)
-//                .name("Hà Giang Tổ Quốc Adventure")
-//                .departLocation( new Location())
-//                .tags(new ArrayList<>())
-//                .tourImages(new ArrayList<>())
-//                .locations(new ArrayList<>())
-//                .tourSchedules(new ArrayList<>())
-//                .deleted(false)
-//                .build();
-//        Tour tour2 = Tour.builder()
-//                .id(2L)
-//                .name("Sa Pa Trekking")
-//                .numberDays(4)
-//                .numberNights(3)
-//                .departLocation( new Location())
-//                .tags(new ArrayList<>())
-//                .tourImages(new ArrayList<>())
-//                .locations(new ArrayList<>())
-//                .tourSchedules(new ArrayList<>())
-//                .deleted(false)
-//                .build();
-//
-//        Tour tour3 = Tour.builder()
-//                .id(3L)
-//                .name("Nha Trang Trekking")
-//                .numberDays(4)
-//                .numberNights(3)
-//                .departLocation( new Location())
-//                .tags(new ArrayList<>())
-//                .tourImages(new ArrayList<>())
-//                .locations(new ArrayList<>())
-//                .tourSchedules(new ArrayList<>())
-//                .deleted(true)
-//                .build();
-//
-//        tourList = List.of(tour1, tour2, tour3);
-//        tourPage = new PageImpl<>(tourList, PageRequest.of(0, 10, Sort.by("id").descending()), tourList.size());
-//
-//
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_Success() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 2000000.0}, new Object[]{2L, 3000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "Hà Giang", 2000000.0, 5000000.0, 3, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertEquals("Hà Giang Tổ Quốc Adventure", response.getData().getItems().get(0).getName());
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_EmptyResult() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Page.empty());
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "lan anh", 2000000.0, 5000000.0, 3, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertTrue(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_ExceptionThrown() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenThrow(new RuntimeException("Database error"));
-//
-//        BusinessException thrown = assertThrows(BusinessException.class,
-//                () -> tourService.getAllPublicTour(0, 10, null, 0.0, 10000000.0, null, null, null));
-//
-//        assertEquals("Get all public tour fail", thrown.getMessage());
-//    }
-//    @Test
-//    void testGetAllPublicTour_BudgetFromZero() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "Hà Giang", 0.0, 5000000.0, 3, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_BudgetToMaxValue() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 500000.0}, new Object[]{2L, 1000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "Sa Pa", 1000000.0, Double.MAX_VALUE, 3, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_DurationZero() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Page.empty());
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "Hà Giang", 1000000.0, 5000000.0, 0, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertTrue(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testGetAllPublicTour_PaginationSorting() {
-//        PageRequest pageRequest = PageRequest.of(0, 2, Sort.by("id").descending());
-//        Page<Tour> sortedPage = new PageImpl<>(tourList, pageRequest, tourList.size());
-//
-//        when(tourRepository.findAll(any(Specification.class), eq(pageRequest))).thenReturn(sortedPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1500000.0}, new Object[]{2L, 2500000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 2, "Hà Giang", 1000000.0, 5000000.0, 3, LocalDate.now(), 1L);
-//
-//        assertNotNull(response);
-//        assertEquals("Hà Giang Tổ Quốc Adventure", response.getData().getItems().get(0).getName());  // ID 2 trước ID 1
-//    }
-//
-//
-//    @Test
-//    void testFindToursWithSpecification() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, null, null, null, null, null, null);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testKeywordSearch() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "Hà Giang", null, null, null, null, null);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testFilterByDuration() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, null, null, null, 3, null, null);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testFilterByPriceRange() {
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, null, 100.0, 200.0, null, null, null);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testFilterByFromDate() {
-//        LocalDate date = LocalDate.of(2025, 1, 1);
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, null, null, null, null, date, null);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//    @Test
-//    void testFilterByDepartLocation() {
-//        LocalDate date = LocalDate.of(2025, 1, 1);
-//        when(tourRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(tourPage);
-//        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(List.of(new Object[]{1L, 1000000.0}, new Object[]{2L, 2000000.0}));
-//
-//        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, null, null, null, null, null, 1L);
-//
-//        assertNotNull(response);
-//        assertFalse(response.getData().getItems().isEmpty());
-//    }
-//
-//
-//
-//}
+package com.fpt.capstone.tourism.service.impl;
+
+import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.TagDTO;
+import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
+import com.fpt.capstone.tourism.dto.response.PublicTourImageDTO;
+import com.fpt.capstone.tourism.mapper.*;
+import com.fpt.capstone.tourism.model.Tag;
+import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.repository.TagRepository;
+import com.fpt.capstone.tourism.repository.TourImageRepository;
+import com.fpt.capstone.tourism.repository.TourRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class TourServiceImplTest {
+
+    @Mock
+    private TourRepository tourRepository;
+
+    @Mock
+    private TourMapper tourMapper;
+
+    @Mock
+    private LocationMapper locationMapper;
+
+    @Mock
+    private TourImageMapper tourImageMapper;
+
+    @Mock
+    private TourImageRepository tourImageRepository;
+
+    @Mock
+    private TagRepository tagRepository;
+
+    @Mock
+    private TagMapper tagMapper;
+
+    @InjectMocks
+    private TourServiceImpl tourService;
+
+    private Tour mockTour;
+    private PublicTourDTO mockTourDTO;
+
+    @BeforeEach
+    void setUp() {
+        mockTour = new Tour();
+        mockTour.setId(1L);
+        mockTour.setName("Amazing Vietnam");
+        mockTour.setNumberDays(5);
+        mockTour.setNumberNight(4);
+
+        // Create tags with full information
+        Tag tag1 = new Tag();
+        tag1.setId(1L);
+        tag1.setName("Beach");
+        tag1.setDescription("Beautiful beach destinations with white sand and blue sea.");
+        tag1.setDeleted(false);
+        tag1.setTours(new ArrayList<>());
+        tag1.setBlogs(new ArrayList<>());
+
+        Tag tag2 = new Tag();
+        tag2.setId(2L);
+        tag2.setName("Adventure");
+        tag2.setDescription("Exciting adventure experiences for thrill seekers.");
+        tag2.setDeleted(false);
+        tag2.setTours(new ArrayList<>());
+        tag2.setBlogs(new ArrayList<>());
+
+        mockTour.setTags(new ArrayList<>(Arrays.asList(tag1, tag2)));
+        mockTour.setTourImages(new ArrayList<>());
+
+        List<TagDTO> tagDTOs = mockTour.getTags().stream()
+                .map(tag -> new TagDTO(tag.getId(), tag.getName()))
+                .collect(Collectors.toList());
+
+        mockTourDTO = PublicTourDTO.builder()
+                .id(1L)
+                .name("Amazing Vietnam")
+                .numberDays(5)
+                .numberNight(4)
+                .tags(tagDTOs)
+                .depart_location(null)
+                .tourImages(Collections.emptyList())
+                .priceFrom(100.0)
+                .build();
+    }
+
+
+
+    @Test
+    void testFindTopTourOfYear_ReturnsNewestTourWhenNoTopTourFound() {
+        when(tourRepository.findTopTourIdsOfCurrentYear()).thenReturn(Collections.emptyList());
+        when(tourRepository.findNewestTour()).thenReturn(mockTour);
+        when(tourRepository.findMinSellingPriceForTours(1L)).thenReturn(100.0);
+
+        PublicTourDTO result = tourService.findTopTourOfYear();
+
+        assertNotNull(result);
+        assertEquals(mockTour.getId(), result.getId());
+        assertEquals("Amazing Vietnam", result.getName());
+        verify(tourRepository).findNewestTour();
+    }
+
+    @Test
+    void testFindTopTourOfYear_ReturnsTopTour() {
+        List<Long> topTourIds = List.of(1L);
+        when(tourRepository.findTopTourIdsOfCurrentYear()).thenReturn(topTourIds);
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(mockTour));
+        when(tourRepository.findMinSellingPriceForTours(1L)).thenReturn(100.0);
+
+        PublicTourDTO result = tourService.findTopTourOfYear();
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Amazing Vietnam", result.getName());
+        verify(tourRepository).findById(1L);
+    }
+
+    @Test
+    void testFindTrendingTours_ReturnsTours() {
+        List<Long> trendingTourIds = List.of(1L);
+        List<Tour> trendingTours = List.of(mockTour);
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(tourRepository.findTrendingTourIds(pageable)).thenReturn(trendingTourIds);
+        when(tourRepository.findAllById(trendingTourIds)).thenReturn(trendingTours);
+
+        // Create a properly typed List of Object arrays
+        List<Object[]> priceData = new ArrayList<>();
+        priceData.add(new Object[]{1L, 100.0});
+
+        when(tourRepository.findMinSellingPrices(trendingTourIds)).thenReturn(priceData);
+
+        List<PublicTourDTO> result = tourService.findTrendingTours(5);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getId());
+    }
+
+
+
+    @Test
+    void testGetAllPublicTour_ReturnsPagedTours() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Tour> tourPage = new PageImpl<>(List.of(mockTour), pageable, 1);
+        lenient().when(tourRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(tourPage);
+        List<Object[]> priceData = new ArrayList<>();
+        priceData.add(new Object[]{1L, 100.0});
+        when(tourRepository.findMinSellingPrices(anyList())).thenReturn(priceData);
+        GeneralResponse<PagingDTO<List<PublicTourDTO>>> response = tourService.getAllPublicTour(0, 10, "", null, null, null, null);
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertNotNull(response.getData());
+        assertEquals(1, response.getData().getTotal());
+    }
+
+    @Test
+    void testFindSameLocationPublicTour_ReturnsTours() {
+        List<Long> tourIds = List.of(1L);
+        List<TagDTO> mockTags = Collections.emptyList();
+        List<PublicTourImageDTO> mockImages = Collections.emptyList();
+
+        when(tourRepository.findSameLocationTourIds(any())).thenReturn(tourIds);
+        when(tourRepository.findById(1L)).thenReturn(Optional.of(mockTour));
+        when(tagRepository.findTagsByTourId(1L)).thenReturn(Collections.emptyList());
+        when(tourRepository.findMinSellingPriceForTours(1L)).thenReturn(100.0);
+        when(tourImageRepository.findTourImagesByTourId(1L)).thenReturn(Collections.emptyList());
+
+        List<PublicTourDTO> result = tourService.findSameLocationPublicTour(List.of(1L));
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getId());
+    }
+}

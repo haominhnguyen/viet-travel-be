@@ -18,6 +18,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -36,6 +41,7 @@ import java.util.stream.Collectors;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -338,7 +344,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<?> saleViewBookingDetails(Long bookingId) {
         try {
-            TourBooking tourBooking = tourBookingRepository.findById(bookingId).orElseThrow();
+            log.info("Start find tour booking detail with ID: {}", bookingId);
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(bookingId);
+            log.info("End find tour booking detail with ID: {}", bookingId);
+
             return GeneralResponse.of(bookingHelper.setPaymentStatisticForBookingDetail(tourBooking));
 
         } catch (Exception ex) {
@@ -532,10 +541,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<?> getTourBookingServices(Long tourBookingID) {
         try {
-            TourBooking tourBooking = tourBookingRepository.findById(tourBookingID).orElseThrow();
-            Tour tour = tourBooking.getTour();
-            List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
-            return GeneralResponse.of(bookingHelper.getTourBookingListService(tourDays, tourBooking));
+            log.info("Start get tour booking service by booking ID: {}", tourBookingID);
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(tourBookingID);
+            if (Objects.nonNull(tourBooking)) {
+                Tour tour = tourBooking.getTour();
+                List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
+                List<TourBookingServiceSaleResponseDTO> responseLst = bookingHelper.getTourBookingListService(tourDays, tourBooking);
+                log.info("End get tour booking service by booking ID: {}", tourBookingID);
+                return GeneralResponse.of(responseLst);
+            }
+            log.info("Not exist tour booking service with tour booking ID: {}", tourBookingID);
+            return GeneralResponse.of(Collections.emptyList());
+
         } catch (Exception ex) {
             throw BusinessException.of("Get tour booking services for sale failed", ex);
         }

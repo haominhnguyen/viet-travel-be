@@ -64,5 +64,7 @@ public class GeneralResponse<T> {
                 .build();
     }
 
-
+    public int getStatus() {
+        return code;
+    }
 }

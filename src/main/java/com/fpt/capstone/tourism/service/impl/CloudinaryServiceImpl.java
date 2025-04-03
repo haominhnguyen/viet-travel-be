@@ -79,5 +79,4 @@ public class CloudinaryServiceImpl implements CloudinaryService {
             throw new RuntimeException("Failed to upload files", e);
         }
     }
-
 }
