@@ -828,10 +828,13 @@ public class TourServiceImpl implements TourService {
                     pageable);
 
             //Tìm số lượng booking bị hủy (12 tháng gần nhất)
+            List<TourBookingStatus> bookingStatuses = new ArrayList<>();
+            bookingStatuses.add(TourBookingStatus.CANCELLED_WITH_REFUND);
+            bookingStatuses.add(TourBookingStatus.CANCELLED_WITHOUT_REFUND);
             Integer cancelBookingNumber = tourBookingRepository.getBookingNumberByStatus(
                     startDate,
                     endDate,
-                    TourBookingStatus.CANCELLED);
+                    bookingStatuses);
 
             //Tính số lượng booking qua kênh online (12 tháng gần nhất)
             Integer onlineBookingNumber = tourBookingRepository.getBookingNumberByType(

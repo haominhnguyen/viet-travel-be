@@ -132,9 +132,9 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
             SELECT COUNT (*)
             FROM TourBooking tb
             WHERE DATE(tb.createdAt) BETWEEN :startDate AND :endDate 
-            AND tb.status = :tourBookingStatus
+            AND tb.status IN :tourBookingStatus
             """)
-    Integer getBookingNumberByStatus(LocalDate startDate, LocalDate endDate, TourBookingStatus tourBookingStatus);
+    Integer getBookingNumberByStatus(LocalDate startDate, LocalDate endDate, List<TourBookingStatus> tourBookingStatus);
 
     @Query("""
             SELECT COUNT (*)
