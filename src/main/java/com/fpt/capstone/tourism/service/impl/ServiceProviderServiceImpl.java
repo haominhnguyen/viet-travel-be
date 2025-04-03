@@ -14,11 +14,13 @@ import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fpt.capstone.tourism.service.UserService;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.hibernate.grammars.hql.HqlParser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -81,10 +83,41 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(serviceProviderRepository.findByPhone(serviceProviderDTO.getPhone()) != null){
                 throw BusinessException.of(PHONE_ALREADY_EXISTS_MESSAGE);
             }
+
+            Location location = locationRepository.findById(serviceProviderDTO.getLocationId()).orElseThrow(null);
+            GeoPosition geoPosition = GeoPosition.builder()
+                    .longitude(serviceProviderDTO.getGeoPosition().getLongitude())
+                    .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
+                    .deleted(false)
+                    .build();
+            geoPosition = geoPositionRepository.save(geoPosition);
+
             //Store data into database
-            ServiceProvider serviceProvider = serviceProviderMapper.toEntity(serviceProviderDTO);
-            serviceProvider.setId(null);
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setImageUrl( serviceProviderDTO.getImageUrl() );
+            serviceProvider.setName( serviceProviderDTO.getName() );
+            serviceProvider.setAbbreviation( serviceProviderDTO.getAbbreviation() );
+            serviceProvider.setWebsite( serviceProviderDTO.getWebsite() );
+            serviceProvider.setEmail( serviceProviderDTO.getEmail() );
+            serviceProvider.setStar( serviceProviderDTO.getStar() );
+            serviceProvider.setPhone( serviceProviderDTO.getPhone() );
+            serviceProvider.setAddress( serviceProviderDTO.getAddress() );
             serviceProvider.setDeleted(false);
+            serviceProvider.setLocation(location);
+            serviceProvider.setGeoPosition( geoPosition);
+            if (serviceProvider.getServiceCategories() != null) {
+                List<ServiceCategoryDTO> serviceCategoryDTOList = serviceProvider.getServiceCategories().stream()
+                        .map(category -> {
+                            ServiceCategoryDTO dto = new ServiceCategoryDTO();
+                            dto.setId(category.getId());
+                            dto.setCategoryName(category.getCategoryName());
+                            dto.setDeleted(category.getDeleted());
+                            return dto;
+                        })
+                        .collect(Collectors.toList());
+                serviceProviderDTO.setServiceCategories(serviceCategoryDTOList);
+            }
+            serviceProvider.setId(null);
             serviceProvider.setCreatedAt(LocalDateTime.now());
 
 
@@ -185,6 +218,10 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(!serviceProviderDTO.getAddress().equals(serviceProvider.getAddress())){
                 serviceProvider.setAddress(serviceProviderDTO.getAddress());
             }
+            if(!serviceProviderDTO.getLocationId().equals(serviceProvider.getLocation().getId())){
+                Location location = locationRepository.findById(serviceProviderDTO.getLocationId()).orElseThrow();
+                serviceProvider.setLocation(location);
+            }
 
 //            if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
 //                GeoPosition geoPosition = GeoPosition.builder()
@@ -201,11 +238,11 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
                         !newLongitude.equals(serviceProvider.getGeoPosition().getLongitude())) {
 
                     // Kiểm tra xem GeoPosition đã tồn tại trong DB chưa
-                    Optional<GeoPosition> existingGeo = geoPositionRepository.findByLatitudeAndLongitude(newLatitude, newLongitude);
+                    List<GeoPosition> existingGeo = geoPositionRepository.findByLatitudeAndLongitude(newLatitude, newLongitude);
 
                     GeoPosition geoPosition;
-                    if (existingGeo.isPresent()) {
-                        geoPosition = existingGeo.get(); // Nếu đã có, lấy ra dùng
+                    if (existingGeo.get(0) != null) {
+                        geoPosition = existingGeo.get(0); // Nếu đã có, lấy ra dùng
                     } else {
                         geoPosition = GeoPosition.builder()
                                 .latitude(newLatitude)
@@ -218,13 +255,14 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
                 }
             }
 
-            String normalizedName = removeAccents(serviceProviderDTO.getLocationName().toLowerCase());
-            List<Location> location = locationRepository.findAll().stream()
-                    .filter(loc -> removeAccents(loc.getName().toLowerCase()).contains(normalizedName)).collect(Collectors.toList());
 
-            if(location.get(0) != null && (!location.get(0).getName().equals(serviceProvider.getLocation().getName()))) {
-                serviceProvider.setLocation(location.get(0));
-            }
+//            String normalizedName = removeAccents(serviceProviderDTO.getLocationName().toLowerCase());
+//            List<Location> location = locationRepository.findAll().stream()
+//                    .filter(loc -> removeAccents(loc.getName().toLowerCase()).contains(normalizedName)).collect(Collectors.toList());
+
+//            if(location.get(0) != null && (!location.get(0).getName().equals(serviceProvider.getLocation().getName()))) {
+//                serviceProvider.setLocation(location.get(0));
+//            }
             serviceProvider.setServiceCategories(serviceProviderDTO.getServiceCategories()
                     .stream().map(serviceCategoryMapper::toEntity).collect(Collectors.toList()));
 

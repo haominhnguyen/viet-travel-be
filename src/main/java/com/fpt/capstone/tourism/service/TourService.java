@@ -1,15 +1,13 @@
 package com.fpt.capstone.tourism.service;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourBasicDTO;
-import com.fpt.capstone.tourism.dto.common.TourDTO;
-import com.fpt.capstone.tourism.dto.common.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.TourRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.TourMarkupResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,4 +37,16 @@ public interface TourService {
     GeneralResponse<TourResponseDTO> updateTourMarkupPercentage(Long tourId, Double markUpPercent);
 
     GeneralResponse<TourDetailDTO> getTourWithActiveSchedule(Long id);
+
+    GeneralResponse<PagingDTO<List<TourProcessDTO>>> getAllTourNeedToProcess(int page, int size, String keyword, TourStatus tourStatus, String orderDate);
+
+    GeneralResponse<?> getDetailTourNeedToProcess(Long tourId);
+
+    GeneralResponse<?> getDetailTourDay(Long tourId, Long tourDayId);
+
+    GeneralResponse<?> approveTourProcess(Long tourId);
+
+    GeneralResponse<?> rejectTourProcess(Long tourId);
+
+    GeneralResponse<?> viewDashboard(LocalDate fromDate, LocalDate toDate);
 }

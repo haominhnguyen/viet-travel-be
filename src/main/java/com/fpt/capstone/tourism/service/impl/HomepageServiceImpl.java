@@ -11,6 +11,7 @@ import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
@@ -222,6 +223,19 @@ public class HomepageServiceImpl implements HomepageService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Search successfully", results);
         } catch (Exception ex){
             throw BusinessException.of("Search fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getListLocation() {
+        try{
+            List<Location> locations = locationRepository.findByDeletedFalse();
+            List<PublicLocationSimpleDTO> publicLocations =
+                    locations.stream().map(locationMapper::toPublicLocationSimpleDTO
+                    ).collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", publicLocations);
+        }catch (Exception ex){
+            throw BusinessException.of("Fail", ex);
         }
     }
 
