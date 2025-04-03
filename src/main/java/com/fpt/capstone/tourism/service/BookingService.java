@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.TourBooking;
+import com.fpt.capstone.tourism.model.TourDay;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -77,4 +78,10 @@ public interface BookingService {
      GeneralResponse<?> getServiceProviders(Long locationId, String categoryName);
 
      GeneralResponse<?>  getServiceProviderServices(Long providerId, String categoryName);
+
+     GeneralResponse<?> updateTourServices(List<TourPrivateServiceRequestDTO> dto);
+
+     void updateTourDayServices(TourDay tourDay, List<Long> serviceIds);
+
+     GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto);
 }

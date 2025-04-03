@@ -179,4 +179,14 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.getServiceProviderServices(providerId, categoryName));
     }
 
+    @PostMapping("/tours/services")
+    public ResponseEntity<?> updateTourServices(@RequestBody List<TourPrivateServiceRequestDTO> dto) {
+        return ResponseEntity.ok(bookingService.updateTourServices(dto));
+    }
+
+    @PostMapping("/bookings/cancel")
+    public ResponseEntity<?> updateTourServices(@RequestBody CancelTourBookingRequestDTO dto) {
+        return ResponseEntity.ok(bookingService.cancelTour(dto));
+    }
+
 }

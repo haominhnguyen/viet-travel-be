@@ -62,6 +62,7 @@ public class BookingServiceImpl implements BookingService {
     private final CostAccountRepository costAccountRepository;
     private final LocationRepository locationRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -682,7 +683,6 @@ public class BookingServiceImpl implements BookingService {
             tourEntity.setHighlights(tour.getHighlights());
             tourEntity.setNote(tour.getNotes());
             tourEntity.setPrivacy(tour.getPrivacy());
-            tourEntity.setTourStatus(TourStatus.PENDING_PRICING);
 
             Tour savedTour = tourRepository.save(tourEntity);
 
@@ -794,7 +794,7 @@ public class BookingServiceImpl implements BookingService {
                                 .build());
 
                 categoryMap.get(serviceCategory.getId()).getTourDays()
-                        .add(bookingMapper.toTourDayDto(tourDay));
+                        .add(bookingMapper.toTourDayShortInfoDTO(tourDay));
             }
 
             for (ServiceCategoryWithTourDayResponseDTO dto : categoryMap.values()) {
@@ -823,7 +823,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<?> getServiceProviders(Long locationId, String categoryName) {
         try {
-            List<ServiceProvider> providers = serviceProviderRepository.getHotelByLocationIdAndServiceCategory(locationId, categoryName);
+            List<ServiceProvider> providers = serviceProviderRepository.getServiceByLocationIdAndServiceCategory(locationId, categoryName);
             List<ServiceProviderSimpleDTO> dto = providers.stream().map(bookingMapper::toServiceProviderSimpleDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
@@ -839,6 +839,83 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(availableServices);
         } catch (Exception ex) {
             throw BusinessException.of("Cannot provider services", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> updateTourServices(List<TourPrivateServiceRequestDTO> dto) {
+        try {
+            List<Long> tourDayIds = dto.stream()
+                    .map(TourPrivateServiceRequestDTO::getId)
+                    .toList();
+            // Fetch existing TourDays in one query
+            List<TourDay> tourDays = tourDayRepository.findAllById(tourDayIds);
+
+            // Convert list to Map for fast lookup
+            Map<Long, TourDay> tourDayMap = tourDays.stream()
+                    .collect(Collectors.toMap(TourDay::getId, td -> td));
+
+            // Process updates
+            for (TourPrivateServiceRequestDTO dtoObject : dto) {
+                TourDay tourDay = tourDayMap.get(dtoObject.getId());
+                if (tourDay != null) {
+                    updateTourDayServices(tourDay, dtoObject.getServices());
+                }
+            }
+
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot update services", ex);
+        }
+    }
+
+    @Override
+    public void updateTourDayServices(TourDay tourDay, List<Long> serviceIds) {
+        Set<Long> existingServiceIds = tourDay.getTourDayServices().stream()
+                .map(tds -> tds.getService().getId())
+                .collect(Collectors.toSet());
+
+        // Prepare new services to be added
+        List<TourDayService> newServices = new ArrayList<>();
+        for (Long serviceId : serviceIds) {
+            if (!existingServiceIds.contains(serviceId)) {
+                com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(serviceId)
+                        .orElseThrow(() -> BusinessException.of("Could not find service"));
+
+                TourDayService newTourDayService = new TourDayService();
+                newTourDayService.setTourDay(tourDay);
+                newTourDayService.setService(service);
+                newServices.add(newTourDayService);
+            }
+        }
+
+        // Identify services that need to be removed
+        List<TourDayService> servicesToRemove = tourDay.getTourDayServices().stream()
+                .filter(tds -> !serviceIds.contains(tds.getService().getId()))
+                .toList();
+
+        // Remove from database explicitly
+        if (!servicesToRemove.isEmpty()) {
+            tourDayServiceRepository.deleteAll(servicesToRemove);
+        }
+
+        // Add new services
+        if (!newServices.isEmpty()) {
+            tourDayServiceRepository.saveAll(newServices);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto) {
+        try {
+            TourBooking tourBookingEntity = tourBookingRepository.findById(dto.getTourId()).orElseThrow();
+            tourBookingEntity.setStatus(dto.getTourBookingStatus());
+            tourBookingEntity.setReason(dto.getReason());
+            tourBookingRepository.save(tourBookingEntity);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cannot tour locations", ex);
         }
     }
 

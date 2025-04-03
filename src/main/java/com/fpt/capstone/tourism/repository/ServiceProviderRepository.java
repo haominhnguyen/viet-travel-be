@@ -1,16 +1,12 @@
 package com.fpt.capstone.tourism.repository;
 
-import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.model.ServiceProvider;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,10 +40,8 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             JOIN sv.serviceCategories sc
             WHERE l.id = :locationId
             AND sc.categoryName = :categoryName
-            AND sv.deleted = FALSE 
-            ORDER BY RANDOM() LIMIT 6
-                        """)
-    List<ServiceProvider> getHotelByLocationIdAndServiceCategory(@Param("locationId") Long id, @Param("locationId") String categoryName);
+            AND sv.deleted = FALSE""")
+    List<ServiceProvider> getServiceByLocationIdAndServiceCategory(@Param("locationId") Long id, @Param("categoryName") String categoryName);
 
     @Query("""
             SELECT s.serviceProvider.id, MIN(s.sellingPrice)
