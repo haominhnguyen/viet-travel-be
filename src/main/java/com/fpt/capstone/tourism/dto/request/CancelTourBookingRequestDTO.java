@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class CancelTourBookingRequestDTO {
-    private Long tourId;
+    private Long tourBookingId;
     private TourBookingStatus tourBookingStatus;
     private String reason;
 }

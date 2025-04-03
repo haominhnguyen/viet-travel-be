@@ -1007,7 +1007,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto) {
         try {
-            TourBooking tourBookingEntity = tourBookingRepository.findById(dto.getTourId()).orElseThrow();
+            TourBooking tourBookingEntity = tourBookingRepository.findByBookingId(dto.getTourBookingId());
             tourBookingEntity.setStatus(dto.getTourBookingStatus());
             tourBookingEntity.setReason(dto.getReason());
             tourBookingRepository.save(tourBookingEntity);
