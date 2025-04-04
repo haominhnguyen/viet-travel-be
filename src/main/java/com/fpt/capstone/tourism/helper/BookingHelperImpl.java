@@ -5,9 +5,11 @@ import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
+import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import jakarta.persistence.criteria.Expression;
@@ -39,6 +41,8 @@ public class BookingHelperImpl implements BookingHelper {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourBookingServiceRepository tourBookingServiceRepository;
 
+    private final TourMapper tourMapper;
+
 
     private final List<TransactionType> transactionTypes = List.of(TransactionType.RECEIPT, TransactionType.COLLECTION);
     private final TourDayRepository tourDayRepository;
@@ -65,28 +69,12 @@ public class BookingHelperImpl implements BookingHelper {
 
         //Loop used to iterate through tour booking list
         for (TourBooking tourBooking : tourBookingPage.getContent()) {
-            TourBookingDTO tourBookingDTO = bookingMapper.toDto(tourBooking);
-            List<Transaction> tourBookingReceipts = transactionRepository.findAllByBookingAndCategoryIn(tourBooking, transactionTypes);
-
-            //Total = sum of transaction amount
-            double totalCost = getTotal(tourBookingReceipts);
-
-
-            double paid = getPaidAmount(tourBookingReceipts);
-
-
-            User operator = tourBooking.getTourSchedule().getOperator();
+            TourBookingShortSaleResponseDTO tourBookingDTO = tourMapper.toTourBookingShortSaleResponseDTO(tourBooking);
 
             TourBookingCustomer customer = tourBookingCustomerRepository.findByTourBookingAndBookedPerson(tourBooking, true);
 
-
-
             TourBookingWithDetailDTO tourBookingWithDetailDTO = TourBookingWithDetailDTO.builder()
                     .tourBooking(tourBookingDTO)
-                    .total(totalCost)
-                    .remaining(totalCost - paid)
-                    .paid(paid)
-                    .operator(bookingMapper.toStaffDto(operator))
                     .bookedCustomer(tourBookingCustomerMapper.toBookedPersonDTO(customer))
                     .build();
 
@@ -122,13 +110,16 @@ public class BookingHelperImpl implements BookingHelper {
                 Expression<String> normalizedTourName = cb.function("unaccent", String.class, cb.lower(tourJoin.get("name")));
                 Predicate tourNamePredicate = cb.like(normalizedTourName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
 
-                // Search in user full name
-                Join<TourBooking, User> userJoin = root.join("user", JoinType.LEFT);
-                Expression<String> normalizedUserFullName = cb.function("unaccent", String.class, cb.lower(userJoin.get("fullName")));
-                Predicate userFullNamePredicate = cb.like(normalizedUserFullName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
 
-                predicates.add(cb.or(bookingCodePredicate, tourNamePredicate, userFullNamePredicate));
+
+                predicates.add(cb.or(bookingCodePredicate, tourNamePredicate));
             }
+
+            //TourBookingStatus
+            predicates.add(cb.equal(root.get("status"), TourBookingStatus.PENDING));
+
+            //Sale is null
+            predicates.add(cb.isNull(root.get("sale")));
 
             // Filter by status
             if (keyword != null) {

@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.BookingMapper;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import jakarta.persistence.criteria.Expression;
@@ -53,6 +54,12 @@ public class TourHelperImpl implements TourHelper {
 
             predicates.add(cb.equal(root.get("tourType"), tourType));
 
+            if (tourType.toString().equalsIgnoreCase(TourType.SIC.name())) {
+                predicates.add(cb.or(
+                        cb.equal(root.get("tourStatus"), TourStatus.OPENED),
+                        cb.equal(root.get("tourStatus"), TourStatus.CLOSED)
+                ));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

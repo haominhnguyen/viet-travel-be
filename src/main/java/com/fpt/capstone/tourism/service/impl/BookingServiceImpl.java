@@ -1007,13 +1007,80 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto) {
         try {
-            TourBooking tourBookingEntity = tourBookingRepository.findByBookingId(dto.getTourBookingId());
-            tourBookingEntity.setStatus(dto.getTourBookingStatus());
+            TourBooking tourBookingEntity = tourBookingRepository.findByBookingId(dto.getBookingId());
+            tourBookingEntity.setStatus(dto.getStatus());
             tourBookingEntity.setReason(dto.getReason());
             tourBookingRepository.save(tourBookingEntity);
+
+
+            //Hủy khách hàng trong đoàn
+            List<TourBookingCustomer> customers = tourBookingEntity.getCustomers();
+            for (TourBookingCustomer customer : customers) {
+                customer.setDeleted(true);
+            }
+
+            tourBookingCustomerRepository.saveAll(customers);
+
+
+            //Hủy hóa đơn
+            List<Transaction> transactions = transactionRepository.findAllByBookingAndCategoryIn(tourBookingEntity, List.of(TransactionType.RECEIPT));
+            for (Transaction transaction : transactions) {
+                transaction.setTransactionStatus(TransactionStatus.CANCELLED);
+            }
+
+            transactionRepository.saveAll(transactions);
+
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
             throw BusinessException.of("Cannot tour locations", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendPricing(Long tourId) {
+        try {
+            Tour tourEntity = tourRepository.findById(tourId).orElseThrow();
+            tourEntity.setTourStatus(TourStatus.PENDING_PRICING);
+            tourRepository.save(tourEntity);
+            return GeneralResponse.of(tourId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail to Send Pricing", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> updateBookingStatus(BookingStatusUpdateDTO dto) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(dto.getId());
+            tourBooking.setStatus(dto.getBookingStatus());
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("update Booking Status Failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendOperator(SendOperatorDTO dto) {
+        try {
+            TourSchedule tourSchedule = tourScheduleRepository.findById(dto.getTourScheduleId()).orElseThrow();
+            tourSchedule.setStatus(TourScheduleStatus.ONGOING);
+            tourScheduleRepository.save(tourSchedule);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Send Operator Failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> takeBooking(TakeBookingRequestDTO dto) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(dto.getBookingId());
+            tourBooking.setSale(User.builder().id(dto.getSaleId()).build());
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Take booking failed", ex);
         }
     }
 
