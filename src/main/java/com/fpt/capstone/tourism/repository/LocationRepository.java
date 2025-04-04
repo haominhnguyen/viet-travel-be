@@ -38,4 +38,12 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
             """)
     List<PublicLocationSimpleProviderDTO> findLocationSimple();
 
+    @Query("""
+            SELECT l
+            FROM Location l
+            JOIN l.tours t
+            JOIN TourSchedule ts ON t.id = ts.tour.id
+            WHERE l.deleted = FALSE AND ts.id = :tourScheduleId
+            """)
+    List<Location> findLocationOfTourByScheduleId(Long tourScheduleId);
 }

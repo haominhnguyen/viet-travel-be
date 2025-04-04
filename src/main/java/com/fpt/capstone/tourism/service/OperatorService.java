@@ -36,7 +36,7 @@ public interface OperatorService {
 
     GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO);
 
-    GeneralResponse<?> getListLocationAndServiceCategory();
+    GeneralResponse<?> getListLocationAndServiceCategory(Long tourScheduleId);
 
     GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId);
 

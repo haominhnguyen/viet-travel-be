@@ -99,9 +99,9 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.payService(requestDTO));
     }
 
-    @GetMapping("/tour-service/list-location-and-service-category")
-    public ResponseEntity<GeneralResponse<?>> getListLocationAndServiceCategory() {
-        return ResponseEntity.ok(operatorService.getListLocationAndServiceCategory());
+    @GetMapping("/tour-service/list-location-and-service-category/{tourScheduleId}")
+    public ResponseEntity<GeneralResponse<?>> getListLocationAndServiceCategory(@PathVariable Long tourScheduleId) {
+        return ResponseEntity.ok(operatorService.getListLocationAndServiceCategory(tourScheduleId));
     }
 
     @GetMapping("/tour-service/{scheduleId}/list-booking")
