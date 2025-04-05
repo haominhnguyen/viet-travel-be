@@ -3,9 +3,11 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
+import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.service.TourScheduleService;
 import com.fpt.capstone.tourism.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AccountantController {
 
     private final TransactionService transactionService;
+    private final TourScheduleService tourScheduleService;
 
 
     @GetMapping("/transactions/list")
@@ -57,4 +60,17 @@ public class AccountantController {
     public ResponseEntity<?> getBookingProvider(@RequestParam Long bookingId) {
         return ResponseEntity.ok(transactionService.getBookingProvider(bookingId));
     }
+
+
+    @GetMapping("/tour-schedules/list-settlements")
+    public ResponseEntity<?> getTourScheduleSettlement(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        return ResponseEntity.ok(tourScheduleService.getTourScheduleSettlement(page, size, keyword, sortField, sortDirection));
+    }
+
 }
