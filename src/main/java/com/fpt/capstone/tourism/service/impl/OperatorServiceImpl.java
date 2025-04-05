@@ -534,6 +534,10 @@ public class OperatorServiceImpl implements OperatorService {
                         .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }
+            serviceDTOList.sort(Comparator.comparing(
+                    OperatorServiceDTO::getUsingDate,
+                    Comparator.nullsLast(Comparator.naturalOrder()))
+            );
 
             // Tạo DTO tổng hợp kết quả
             OperatorServiceListDTO resultDTO = OperatorServiceListDTO.builder()
@@ -614,12 +618,12 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<?> getListLocationAndServiceCategory() {
+    public GeneralResponse<?> getListLocationAndServiceCategory(Long tourScheduleId) {
         try {
             Map<String, Map<Long, String>> resultDTO = new HashMap<>();
 
             //Get list location
-            List<Location> locations = locationRepository.findByDeletedFalse();
+            List<Location> locations = locationRepository.findLocationOfTourByScheduleId(tourScheduleId);
             Map<Long, String> mapLocation = locations.stream()
                     .collect(Collectors.toMap(Location::getId, Location::getName));
 

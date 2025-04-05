@@ -784,15 +784,25 @@ public class TourServiceImpl implements TourService {
     }
 
     @Override
-    public GeneralResponse<?> viewDashboard(LocalDate toDate) {
+    public GeneralResponse<?> viewDashboard(LocalDate fromDate, LocalDate toDate) {
         try {
             LocalDate now = LocalDate.now();
+            //Phần này dùng chung cho các tiêu chí
             LocalDate startDate = now.minusMonths(11).withDayOfMonth(1); // Lấy ngày đầu tiên của tháng 12 tháng trước
             LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth()); // Ngày cuối cùng của tháng hiện tại
 
-            if (toDate != null && toDate.isBefore(now)) {
-                startDate = toDate.minusMonths(11).withDayOfMonth(1);
-                endDate = toDate.withDayOfMonth(toDate.lengthOfMonth());
+            //Phần riêng cho tính doanh thu
+            LocalDate revenueStartDate;
+            LocalDate revenueEndDate;
+            if (fromDate == null && toDate == null){
+                revenueStartDate = startDate;
+                revenueEndDate = endDate;
+            }
+            else{
+                revenueStartDate = (fromDate != null)? fromDate
+                        : toDate.minusMonths(11).withDayOfMonth(1);
+
+                revenueEndDate = (toDate != null)? toDate :endDate;
             }
 
             //Tính doanh thu từng tháng (12 tháng gần nhất)
@@ -800,8 +810,8 @@ public class TourServiceImpl implements TourService {
             transactionTypes.add(TransactionType.RECEIPT);
             transactionTypes.add(TransactionType.COLLECTION);
             List<RevenueChartDTO> monthlyRevenue = costAccountRepository.getRevenueByMonth(
-                    startDate,
-                    endDate,
+                    revenueStartDate,
+                    revenueEndDate,
                     transactionTypes,
                     CostAccountStatus.PAID);
 

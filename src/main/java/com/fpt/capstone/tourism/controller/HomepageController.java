@@ -35,7 +35,7 @@ public class HomepageController {
     }
 
     @GetMapping("/list-tour")
-    public ResponseEntity<GeneralResponse<Map<String, Object>>> viewAllTour(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<?> viewAllTour(@RequestParam(defaultValue = "0") int page,
                                                                             @RequestParam(defaultValue = "10") int size,
                                                                             @RequestParam(required = false) String keyword,
                                                                             @RequestParam(value = "budgetTo", required = false) Double budgetTo,
@@ -47,31 +47,31 @@ public class HomepageController {
                                                                             @RequestParam(value = "sortByPrice", required = false) String sortByPrice) {
 
         GeneralResponse<PagingDTO<List<PublicTourDTO>>> tourResponse = homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId, sortByPrice);
-        Map<String, Object> responseData = new HashMap<>();
-        responseData.put("tours", tourResponse.getData());
-        List<PublicLocationDTO> locations = locationRepository.findAll().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList());
-        responseData.put("locations", locations);
-        return ResponseEntity.ok(new GeneralResponse<>(HttpStatus.OK.value(), "Success", responseData));
+//        Map<String, Object> responseData = new HashMap<>();
+//        responseData.put("tours", tourResponse.getData());
+//        List<PublicLocationDTO> locations = locationRepository.findAll().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList());
+//        responseData.put("locations", locations);
+        return ResponseEntity.ok(tourResponse);
     }
 
     @GetMapping("/list-hotel")
-    public ResponseEntity<GeneralResponse<?>> viewAllHotel(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<?> viewAllHotel(@RequestParam(defaultValue = "0") int page,
                                                                                                    @RequestParam(defaultValue = "10") int size,
                                                                                                    @RequestParam(required = false) String keyword,
                                                                                                    @RequestParam(value = "star", required = false) Integer star,
                                                                                                    @RequestParam(value = "budgetTo", required = false) Double budgetTo,
                                                                                                    @RequestParam(value = "budgetFrom", required = false) Double budgetFrom
     ) {
-        List<Location> locations = locationRepository.findByDeletedFalse();
-        List<PublicLocationSimpleDTO> publicLocations =
-                locations.stream().map(locationMapper::toPublicLocationSimpleDTO).collect(Collectors.toList());
+//        List<Location> locations = locationRepository.findByDeletedFalse();
+//        List<PublicLocationSimpleDTO> publicLocations =
+//                locations.stream().map(locationMapper::toPublicLocationSimpleDTO).collect(Collectors.toList());
         GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> hotel=
         homepageService.viewAllHotel(page, size, keyword, star);
-        ListPublicServiceProviderDTO responseData = ListPublicServiceProviderDTO.builder()
-                .locationDTOS(publicLocations)
-                .publicServiceProviderDTOS(hotel)
-                .build();
-        return ResponseEntity.ok(new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", responseData));
+//        ListPublicServiceProviderDTO responseData = ListPublicServiceProviderDTO.builder()
+//                .locationDTOS(publicLocations)
+//                .publicServiceProviderDTOS(hotel)
+//                .build();
+        return ResponseEntity.ok(hotel);
     }
 
     @GetMapping("/tour-detail/{id}")
