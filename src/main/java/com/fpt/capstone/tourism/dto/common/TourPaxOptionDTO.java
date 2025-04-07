@@ -15,4 +15,5 @@ public class TourPaxOptionDTO {
         private Double sellingPrice;
         private Double fixedCost;
         private Double extraHotelCost;
+        private Double nettPricePerPax;
 }

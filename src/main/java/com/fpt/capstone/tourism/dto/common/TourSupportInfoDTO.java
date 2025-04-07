@@ -19,4 +19,5 @@ public class TourSupportInfoDTO {
     private int numberNights;
     private TourType tourType;
     private TourStatus tourStatus;
+    private double markUpPercent;
 }

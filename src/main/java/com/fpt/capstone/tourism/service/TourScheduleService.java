@@ -26,4 +26,8 @@ public interface TourScheduleService {
 
 
     GeneralResponse<?> getTourScheduleSettlement(int page, int size, String keyword, String sortField, String sortDirection);
+
+    GeneralResponse<?> getSettlementDetails(Long tourScheduleId);
+
+    GeneralResponse<?> finishSettlement(Long tourScheduleId);
 }

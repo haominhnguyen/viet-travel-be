@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long>, JpaSpecificationExecutor<TourSchedule> {
@@ -191,4 +192,15 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 
     @Query("SELECT ts FROM TourSchedule ts WHERE ts.status = :status AND ts.deleted = false")
     List<TourSchedule> findSettlementTourScheduleByStatus(@Param("status")  TourScheduleStatus status);
+
+
+    @Query("""
+    SELECT ts FROM TourSchedule ts
+    JOIN FETCH ts.tour t
+    JOIN FETCH ts.tourPax pax
+    JOIN FETCH ts.tourGuide guide
+    JOIN FETCH ts.operator op
+    WHERE ts.id = :id
+""")
+    Optional<TourSchedule> findScheduleWithBookings(@Param("id") Long id);
 }

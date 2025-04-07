@@ -1085,6 +1085,11 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Override
+    public GeneralResponse<?> getTourBookingsForSettlement(Long tourScheduleId) {
+        return null;
+    }
+
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
 

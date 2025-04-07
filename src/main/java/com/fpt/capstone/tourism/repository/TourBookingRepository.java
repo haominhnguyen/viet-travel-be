@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourBookingRepository extends JpaRepository<TourBooking, Long>, JpaSpecificationExecutor<TourBooking> {
@@ -154,4 +155,13 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
     ) AS subquery
 """)
     Integer getReturnCustomerNumber(LocalDate startDate, LocalDate endDate);
+
+    @Query("""
+    SELECT b FROM TourBooking b
+    JOIN FETCH b.sale
+    JOIN FETCH b.tour
+    LEFT JOIN FETCH b.transactions
+    WHERE b.tourSchedule.id = :id
+""")
+    List<TourBooking> findBookingWithoutCustomersByScheduleId(@Param("id") Long id);
 }
