@@ -3,10 +3,12 @@ package com.fpt.capstone.tourism.mapper;
 import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.common.TourProcessDTO;
 import com.fpt.capstone.tourism.dto.common.TourProcessDetailDTO;
+import com.fpt.capstone.tourism.dto.common.TourScheduleSettlementDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingShortSaleResponseDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
+import com.fpt.capstone.tourism.model.TourSchedule;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -43,4 +45,7 @@ public interface TourMapper extends EntityMapper<TourDTO, Tour>  {
 
 
     TourBookingShortSaleResponseDTO toTourBookingShortSaleResponseDTO(TourBooking tourBooking);
+
+    @Mapping(source = "operator", target = "operator")
+    TourScheduleSettlementDTO toTourScheduleSettlementDTO(TourSchedule tourSchedule);
 }

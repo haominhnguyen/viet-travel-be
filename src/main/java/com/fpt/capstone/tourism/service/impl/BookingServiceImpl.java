@@ -668,6 +668,7 @@ public class BookingServiceImpl implements BookingService {
                         .tour(savedTour)
                         .maxPax(tour.getPax())
                         .minPax(tour.getPax())
+                        .deleted(false)
                         .build();
 
                 List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(), savedTour);

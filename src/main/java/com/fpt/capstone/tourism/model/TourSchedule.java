@@ -52,7 +52,7 @@ public class TourSchedule extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operator_id")
-    private User Operator;
+    private User operator;
 
     @Column(name = "meeting_location")
     private String meetingLocation;

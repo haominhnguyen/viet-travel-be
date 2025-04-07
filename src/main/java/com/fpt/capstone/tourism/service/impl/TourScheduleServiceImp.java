@@ -1,20 +1,24 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.EndDateOption;
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.OperatorAvailabilityDTO;
-import com.fpt.capstone.tourism.dto.common.TourPaxDTO;
+import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.TourScheduleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourScheduleBasicResponseDTO;
 import com.fpt.capstone.tourism.dto.response.TourScheduleResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.IHelper.TourScheduleHelper;
+import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
@@ -36,6 +40,9 @@ public class TourScheduleServiceImp implements TourScheduleService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourPaxRepository tourPaxRepository;
     private final RoleRepository roleRepository;
+
+    private final TourMapper tourMapper;
+    private final TourScheduleHelper tourScheduleHelper;
 
     public GeneralResponse<List<EndDateOption>> calculatePossibleEndDates(Long tourId, LocalDateTime startDate) {
         Tour tour = tourRepository.findById(tourId)
@@ -399,6 +406,23 @@ public class TourScheduleServiceImp implements TourScheduleService {
         tourScheduleRepository.save(schedule);
 
         return GeneralResponse.of(HttpStatus.OK, "Tour schedule cancelled successfully");
+    }
+
+    @Override
+    public GeneralResponse<?> getTourScheduleSettlement(int page, int size, String keyword, String sortField, String sortDirection) {
+        try {
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<TourSchedule> spec = tourScheduleHelper.buildTourScheduleSearchSpecification(keyword, TourScheduleStatus.SETTLEMENT);
+
+            Page<TourSchedule> tourSchedulePage = tourScheduleRepository.findAll(spec, pageable);
+
+            return tourScheduleHelper.buildPublicTourSchedulePagedResponse(tourSchedulePage);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
     }
 
     private TourScheduleBasicResponseDTO mapToResponseDTO(TourSchedule tourSchedule) {

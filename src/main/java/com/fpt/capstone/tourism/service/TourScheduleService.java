@@ -23,4 +23,7 @@ public interface TourScheduleService {
     GeneralResponse<TourScheduleBasicResponseDTO> updateTourSchedule(@Valid TourScheduleRequestDTO scheduleRequestDTO, User user);
 
     GeneralResponse<Object> cancelTourSchedule(Long scheduleId, User user);
+
+
+    GeneralResponse<?> getTourScheduleSettlement(int page, int size, String keyword, String sortField, String sortDirection);
 }

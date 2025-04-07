@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.response.PublicTourScheduleDTO;
 import com.fpt.capstone.tourism.model.TourSchedule;
+import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -117,7 +118,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     Double findRevenueCostByScheduleId(@Param("scheduleId")Long scheduleId);
 
     @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
-            "WHERE ts.Operator.id = :operatorId " +
+            "WHERE ts.operator.id = :operatorId " +
             "AND ts.deleted = false " +
             "AND ts.status IN ('ONGOING','DRAFT','OPEN_FOR_BOOKING','OPEN') " +
             "AND ((ts.startDate BETWEEN :startDate AND :endDate) " +
@@ -140,7 +141,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 
     @Query("SELECT CASE WHEN COUNT(ts) > 0 THEN true ELSE false END FROM TourSchedule ts " +
             "WHERE ts.tour.id = :tourId " +
-            "AND ts.Operator.id = :operatorId " +
+            "AND ts.operator.id = :operatorId " +
             "AND ts.deleted = false " +
             "AND ts.status <> 'CANCELLED' " +
             "AND ((ts.startDate <= :endDate AND ts.endDate >= :startDate))")
@@ -152,7 +153,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 
     @Query("SELECT COUNT(ts) > 0 FROM TourSchedule ts " +
             "WHERE ts.tour.id = :tourId " +
-            "AND ts.Operator.id = :operatorId " +
+            "AND ts.operator.id = :operatorId " +
             "AND ts.id != :excludeId " +
             "AND ts.deleted = false " +
             "AND (" +
@@ -169,7 +170,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
             @Param("excludeId") Long excludeId);
 
     @Query("SELECT COUNT(ts) FROM TourSchedule ts " +
-            "WHERE ts.Operator.id = :operatorId " +
+            "WHERE ts.operator.id = :operatorId " +
             "AND ts.id != :excludeId " +
             "AND ts.deleted = false " +
             "AND ts.status IN ('CONFIRMED', 'IN_PROGRESS') " +
@@ -187,4 +188,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 
     @Query("SELECT ts FROM TourSchedule ts WHERE ts.tour.id = :tourId AND ts.deleted = false")
     List<TourSchedule> findActiveTourSchedulesByTourId(@Param("tourId") Long tourId);
+
+    @Query("SELECT ts FROM TourSchedule ts WHERE ts.status = :status AND ts.deleted = false")
+    List<TourSchedule> findSettlementTourScheduleByStatus(@Param("status")  TourScheduleStatus status);
 }
