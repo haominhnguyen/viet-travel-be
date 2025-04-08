@@ -198,7 +198,7 @@ public class Constants {
         public static final String RESTAURANT = "Restaurant";
         public static final String TRANSPORT = "Transport";
         public static final String ACTIVITY = "Activity";
-
+        public static final String TICKET = "Flight Ticket";
 
         public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
         public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";

@@ -194,7 +194,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             // Validate common fields
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-            Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
+            //Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
 
             // Only validate service details for categories that have detail tables
             if (!ACTIVITY.equalsIgnoreCase(categoryName)) {
@@ -240,7 +240,8 @@ public class ServiceServiceImpl implements ServiceService {
                 transport.setCreatedAt(LocalDateTime.now());
                 transportRepository.save(transport);
             } else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
-            } else {
+            }else if(TICKET.equalsIgnoreCase(categoryName)){}
+            else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
             }
             ServiceResponseDTO responseDTO = createFullResponseDTO(savedService, categoryName);
