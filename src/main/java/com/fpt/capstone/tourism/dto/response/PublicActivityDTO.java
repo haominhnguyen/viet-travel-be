@@ -11,11 +11,8 @@ import lombok.*;
 @Builder
 public class PublicActivityDTO {
     private Long id;
-    private String title;
-    private String content;
+    private String name;
     private String imageUrl;
-    private double pricePerPerson;
-    private GeoPositionDTO geoPosition;
+    private double sellingPrice;
     private PublicLocationDTO location;
-    private ActivityCategoryDTO activityCategory;
 }

@@ -170,4 +170,9 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.cancelService(tourBookingServiceId));
     }
 
+    @PutMapping("/tours/send-accountant/{tourScheduleId}")
+    public ResponseEntity<?> sendAccountant(@PathVariable Long tourScheduleId) {
+        return ResponseEntity.ok(operatorService.sendAccountant(tourScheduleId));
+    }
+
 }

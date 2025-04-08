@@ -3,10 +3,12 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
+import com.fpt.capstone.tourism.model.TourBookingService;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import com.fpt.capstone.tourism.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class AccountantController {
 
     private final TransactionService transactionService;
     private final TourScheduleService tourScheduleService;
+    private final BookingService bookingService;
 
 
     @GetMapping("/transactions/list")
@@ -71,4 +74,15 @@ public class AccountantController {
         return ResponseEntity.ok(tourScheduleService.getTourScheduleSettlement(page, size, keyword, sortField, sortDirection));
     }
 
+
+    @GetMapping("/settlements/details")
+    public ResponseEntity<?> getSettlementDetails(@RequestParam Long tourScheduleId) {
+        return ResponseEntity.ok(tourScheduleService.getSettlementDetails(tourScheduleId));
+    }
+
+
+    @PostMapping("/settlements/finish")
+    public ResponseEntity<?> finishSettlement(@RequestBody Long tourScheduleId) {
+        return ResponseEntity.ok(tourScheduleService.finishSettlement(tourScheduleId));
+    }
 }

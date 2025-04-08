@@ -2,12 +2,11 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.TourScheduleRequestDTO;
-import com.fpt.capstone.tourism.dto.response.TourScheduleBasicResponseDTO;
-import com.fpt.capstone.tourism.dto.response.TourScheduleResponseDTO;
-import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
+import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourScheduleHelper;
 import com.fpt.capstone.tourism.mapper.TourMapper;
+import com.fpt.capstone.tourism.mapper.TourScheduleMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -41,8 +40,12 @@ public class TourScheduleServiceImp implements TourScheduleService {
     private final TourPaxRepository tourPaxRepository;
     private final RoleRepository roleRepository;
 
+    private final TourScheduleMapper tourScheduleMapper;
+
     private final TourMapper tourMapper;
     private final TourScheduleHelper tourScheduleHelper;
+    private final TourBookingRepository tourBookingRepository;
+    private final TourBookingCustomerRepository tourBookingCustomerRepository;
 
     public GeneralResponse<List<EndDateOption>> calculatePossibleEndDates(Long tourId, LocalDateTime startDate) {
         Tour tour = tourRepository.findById(tourId)
@@ -422,6 +425,42 @@ public class TourScheduleServiceImp implements TourScheduleService {
             return tourScheduleHelper.buildPublicTourSchedulePagedResponse(tourSchedulePage);
         } catch (Exception ex) {
             throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getSettlementDetails(Long tourScheduleId) {
+        try {
+            // Fetch tour schedule with all needed associations
+            TourSchedule tourSchedule = tourScheduleRepository.findScheduleWithBookings(tourScheduleId)
+                    .orElseThrow(() -> BusinessException.of("Lịch trình không tồn tại hoặc đã bị xóa"));
+
+            TourSettlementResponseDTO dto = tourScheduleMapper.toDTO(tourSchedule);
+
+            // Map to DTO
+            List<TourBooking> bookings = tourBookingRepository.findBookingWithoutCustomersByScheduleId(tourScheduleId);
+
+            List<TourBookingSettlementResponseDTO> bookingDTOS = bookings.stream().map(tourScheduleMapper::toSettlementDTO).toList();
+
+            dto.setBookings(bookingDTOS);
+
+
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> finishSettlement(Long tourScheduleId) {
+        try {
+            // Fetch tour schedule with all needed associations
+            TourSchedule tourSchedule = tourScheduleRepository.findById(tourScheduleId).orElseThrow();
+           tourSchedule.setStatus(TourScheduleStatus.COMPLETED);
+            tourScheduleRepository.save(tourSchedule);
+            return GeneralResponse.of(TourScheduleStatus.COMPLETED);
+        } catch (Exception ex) {
+            throw BusinessException.of("Không hoàn thành tour", ex);
         }
     }
 

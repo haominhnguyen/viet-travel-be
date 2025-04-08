@@ -50,6 +50,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
                 FROM tour t
                          JOIN tour_location tl ON t.id = tl.tour_id
                 WHERE tl.location_id IN (:locationIds) AND t.is_deleted = FALSE
+                AND t.tour_status IN ('OPENED')
                 GROUP BY t.id
                 ORDER BY RANDOM()
                 LIMIT 3;
