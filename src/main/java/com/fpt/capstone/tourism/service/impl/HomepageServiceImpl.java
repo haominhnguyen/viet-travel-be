@@ -32,6 +32,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final ActivityService activityService;
     private final ServiceProviderService providerService;
     private final LocationService locationService;
+    private final ServiceService serviceService;
     private final ServiceRepository serviceRepository;
     private final ActivityRepository activityRepository;
     private final TourRepository tourRepository;
@@ -54,7 +55,7 @@ public class HomepageServiceImpl implements HomepageService {
             PublicTourDTO topTourOfYear = tourService.findTopTourOfYear();
             List<PublicTourDTO> trendingTours = tourService.findTrendingTours(numberTour);
             List<BlogResponseDTO> newBlogs = blogService.findNewestBlogs(numberBlog);
-            List<ActivityDTO> recommendedActivities = activityService.findRecommendedActivities(numberActivity);
+            List<PublicActivityDTO> recommendedActivities = serviceService.findRecommendedActivities(numberActivity);
             List<PublicLocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);
 
             //Mapping to Dto

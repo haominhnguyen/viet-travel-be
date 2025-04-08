@@ -1090,6 +1090,22 @@ public class BookingServiceImpl implements BookingService {
         return null;
     }
 
+    @Override
+    public GeneralResponse<?> cancelBooking(String bookingCode) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingCode(bookingCode);
+
+            if(!tourBooking.getStatus().equals(TourBookingStatus.PENDING)){
+                throw BusinessException.of("Bạn không có quyền hủy booking này");
+            }
+            tourBooking.setStatus(TourBookingStatus.CANCELLED);
+            tourBookingRepository.save(tourBooking);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Hủy đơn thành công", bookingCode);
+        } catch (Exception ex) {
+            throw BusinessException.of(ex.getMessage(), ex);
+        }
+    }
+
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
 

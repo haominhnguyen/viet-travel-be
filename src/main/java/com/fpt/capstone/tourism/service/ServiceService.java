@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.ServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicActivityDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 
@@ -26,5 +27,7 @@ public interface ServiceService {
     GeneralResponse<?> rejectService(Long tourBookingServiceId);
 
     GeneralResponse<?> getServiceRequestDetail(Long tourBookingServiceId);
+
+    List<PublicActivityDTO> findRecommendedActivities(int numberActivity);
 }
 

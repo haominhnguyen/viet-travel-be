@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.repository;
 import com.fpt.capstone.tourism.dto.response.PublicServiceDTO;
 import com.fpt.capstone.tourism.model.Service;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -118,5 +119,13 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
             ORDER BY RANDOM()
             """)
     List<Service> findRelatedActivities(Long locationId, String categoryName, Pageable pageable);
+
+    @Query("""
+            SELECT s FROM Service s 
+            WHERE s.serviceCategory.categoryName = :categoryName 
+            AND s.deleted = FALSE 
+            ORDER BY RANDOM()
+            """)
+    List<Service> findRandomActivities(String categoryName, PageRequest of);
 }
 

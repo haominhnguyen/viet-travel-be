@@ -6,5 +6,6 @@ public enum TourBookingStatus {
     CANCELLED_WITH_REFUND,
     CANCELLED_WITHOUT_REFUND,
     COMPLETED,
-    SUCCESS
+    SUCCESS,
+    CANCELLED
 }
