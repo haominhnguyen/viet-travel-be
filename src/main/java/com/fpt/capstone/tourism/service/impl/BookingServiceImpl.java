@@ -668,6 +668,7 @@ public class BookingServiceImpl implements BookingService {
                         .tour(savedTour)
                         .maxPax(tour.getPax())
                         .minPax(tour.getPax())
+                        .deleted(false)
                         .build();
 
                 List<TourDay> tourDays = bookingHelper.generateTourDays(savedTour.getNumberDays(), savedTour);
@@ -1082,6 +1083,11 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Take booking failed", ex);
         }
+    }
+
+    @Override
+    public GeneralResponse<?> getTourBookingsForSettlement(Long tourScheduleId) {
+        return null;
     }
 
     private final RoomRepository roomRepository;

@@ -96,4 +96,6 @@ public interface BookingService {
      GeneralResponse<?> sendOperator(SendOperatorDTO dto);
 
      GeneralResponse<?> takeBooking(TakeBookingRequestDTO dto);
+
+     GeneralResponse<?> getTourBookingsForSettlement(Long tourScheduleId);
 }
