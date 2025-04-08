@@ -23,11 +23,11 @@ public class Location extends BaseEntity {
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "geo_position_id")
     private GeoPosition geoPosition;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinTable(name = "tour_location",
             joinColumns = @JoinColumn(name = "location_id"),

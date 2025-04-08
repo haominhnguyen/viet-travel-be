@@ -97,5 +97,5 @@ public interface BookingService {
 
      GeneralResponse<?> takeBooking(TakeBookingRequestDTO dto);
 
-     GeneralResponse<?> getTourBookingsForSettlement(Long tourScheduleId);
+     GeneralResponse<?> changePaymentMethod(Long id, PaymentMethod paymentMethod);
 }

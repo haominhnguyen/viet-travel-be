@@ -76,6 +76,10 @@ public class TourBooking extends BaseEntity {
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
 
+
+    @Column(name = "payment_url", columnDefinition = "text")
+    private String paymentUrl;
+
     @OneToMany(mappedBy = "booking")
     @ToString.Exclude
     private List<TourBookingService> tourBookingServices;
