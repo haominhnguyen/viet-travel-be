@@ -138,7 +138,7 @@ public class OperatorServiceImpl implements OperatorService {
             Pageable pageable = PageRequest.of(page, size, sort);
             Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
                     .and((root, query, criteriaBuilder) -> {
-                        Join<TourSchedule, User> userJoin = root.join("Operator");
+                        Join<TourSchedule, User> userJoin = root.join("operator");
                         return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
                     });
 
