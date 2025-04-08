@@ -988,7 +988,7 @@ public class OperatorServiceImpl implements OperatorService {
             if(!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)){
                 throw BusinessException.of("This tour schedule not ongoing");
             }
-            tourSchedule.setStatus(TourScheduleStatus.COMPLETED);
+            tourSchedule.setStatus(TourScheduleStatus.SETTLEMENT);
             tourScheduleRepository.save(tourSchedule);
             return GeneralResponse.of(tourScheduleId);
         } catch (Exception ex) {
