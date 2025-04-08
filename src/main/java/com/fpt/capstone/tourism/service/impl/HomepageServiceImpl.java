@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -147,8 +148,8 @@ public class HomepageServiceImpl implements HomepageService {
                      ;
 
             //Find activities related to the location
-            List<PublicActivityDTO> activities = activityRepository.findRelatedActivities(id, 6)
-                    .stream().map(activityMapper::toPublicActivityDTO).collect(Collectors.toList());
+            List<PublicActivityDTO> activities = serviceRepository.findRelatedActivities(id, "Activity", PageRequest.of(0, 6))
+                    .stream().map(serviceMapper::toPublicActivityDTO).collect(Collectors.toList());
 
             //Find other locations
             List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(6, id);

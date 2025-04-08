@@ -8,10 +8,7 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.Service;
-import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
-import com.fpt.capstone.tourism.model.enums.PaymentMethod;
-import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
-import com.fpt.capstone.tourism.model.enums.TransactionStatus;
+import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.OperatorService;
@@ -976,6 +973,26 @@ public class OperatorServiceImpl implements OperatorService {
                 Exception ex) {
             throw BusinessException.of("Fail", ex);
 
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendAccountant(Long tourScheduleId) {
+        try {
+            checkAuthor(tourScheduleId);
+            TourSchedule tourSchedule = tourScheduleRepository.findById(tourScheduleId).orElseThrow(
+                    () -> BusinessException.of("No tour schedule found")
+            );
+
+            //Check status of tour schedule
+            if(!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)){
+                throw BusinessException.of("This tour schedule not ongoing");
+            }
+            tourSchedule.setStatus(TourScheduleStatus.COMPLETED);
+            tourScheduleRepository.save(tourSchedule);
+            return GeneralResponse.of(tourScheduleId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Send Accountant Failed", ex);
         }
     }
 

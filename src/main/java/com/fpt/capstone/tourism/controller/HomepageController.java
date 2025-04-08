@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/public")
 public class HomepageController {
     private final HomepageService homepageService;
-    private final LocationRepository locationRepository;
-    private final LocationMapper locationMapper;
 
     @GetMapping("/homepage")
     public ResponseEntity<GeneralResponse<HomepageDTO>> view(@RequestParam(value = "numberTour", defaultValue = "3") int numberTour,
@@ -46,12 +44,7 @@ public class HomepageController {
                                                                             @RequestParam(value = "departLocationId", required = false) Long departLocationId,
                                                                             @RequestParam(value = "sortByPrice", required = false) String sortByPrice) {
 
-        GeneralResponse<PagingDTO<List<PublicTourDTO>>> tourResponse = homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId, sortByPrice);
-//        Map<String, Object> responseData = new HashMap<>();
-//        responseData.put("tours", tourResponse.getData());
-//        List<PublicLocationDTO> locations = locationRepository.findAll().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList());
-//        responseData.put("locations", locations);
-        return ResponseEntity.ok(tourResponse);
+        return ResponseEntity.ok(homepageService.viewAllTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId, sortByPrice));
     }
 
     @GetMapping("/list-hotel")
@@ -62,16 +55,7 @@ public class HomepageController {
                                                                                                    @RequestParam(value = "budgetTo", required = false) Double budgetTo,
                                                                                                    @RequestParam(value = "budgetFrom", required = false) Double budgetFrom
     ) {
-//        List<Location> locations = locationRepository.findByDeletedFalse();
-//        List<PublicLocationSimpleDTO> publicLocations =
-//                locations.stream().map(locationMapper::toPublicLocationSimpleDTO).collect(Collectors.toList());
-        GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> hotel=
-        homepageService.viewAllHotel(page, size, keyword, star);
-//        ListPublicServiceProviderDTO responseData = ListPublicServiceProviderDTO.builder()
-//                .locationDTOS(publicLocations)
-//                .publicServiceProviderDTOS(hotel)
-//                .build();
-        return ResponseEntity.ok(hotel);
+        return ResponseEntity.ok(homepageService.viewAllHotel(page, size, keyword, star));
     }
 
     @GetMapping("/tour-detail/{id}")
