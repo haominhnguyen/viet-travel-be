@@ -20,4 +20,6 @@ public class RoomDTO {
     private String facilities;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long categoryId;
+    private String categoryName;
 }

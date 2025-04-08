@@ -113,15 +113,41 @@ public class ServiceServiceImpl implements ServiceService {
             if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Room room = roomRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
+                if (room.getService() == null) {
+                    room.setService(service);
+                }
                 return GeneralResponse.of(roomMapper.toDTO(room), SERVICE_DETAILS_RETRIEVED);
             } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
+                if (meal.getService() == null) {
+                    meal.setService(service);
+                }
                 return GeneralResponse.of(mealMapper.toDTO(meal), SERVICE_DETAILS_RETRIEVED);
             } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
+                if (transport.getService() == null) {
+                    transport.setService(service);
+                }
                 return GeneralResponse.of(transportMapper.toDTO(transport), SERVICE_DETAILS_RETRIEVED);
+            } else if (ACTIVITY.equalsIgnoreCase(categoryName) || TICKET.equalsIgnoreCase(categoryName)) {
+                Map<String, Object> serviceDetails = new HashMap<>();
+                serviceDetails.put("id", service.getId());
+                serviceDetails.put("serviceId", service.getId());
+                serviceDetails.put("name", service.getName());
+                serviceDetails.put("nettPrice", service.getNettPrice());
+                serviceDetails.put("sellingPrice", service.getSellingPrice());
+                serviceDetails.put("imageUrl", service.getImageUrl());
+                serviceDetails.put("startDate", service.getStartDate());
+                serviceDetails.put("endDate", service.getEndDate());
+                serviceDetails.put("categoryId", service.getServiceCategory().getId());
+                serviceDetails.put("categoryName", categoryName);
+                serviceDetails.put("providerId", service.getServiceProvider().getId());
+                serviceDetails.put("providerName", service.getServiceProvider().getName());
+                serviceDetails.put("createdAt", service.getCreatedAt());
+                serviceDetails.put("updatedAt", service.getUpdatedAt());
+                return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
             } else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_CATEGORY_NOT_FOUND);
             }
@@ -131,7 +157,6 @@ public class ServiceServiceImpl implements ServiceService {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_SERVICE_DETAIL_FAIL);
         }
     }
-
 
     private Specification buildSearchSpecification(
             String keyword,

@@ -20,4 +20,6 @@ public class MealDTO {
     private String mealDetail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long categoryId;
+    private String categoryName;
 }
