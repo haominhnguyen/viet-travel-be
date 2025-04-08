@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final ActivityService activityService;
     private final ServiceProviderService providerService;
     private final LocationService locationService;
+    private final ServiceService serviceService;
     private final ServiceRepository serviceRepository;
     private final ActivityRepository activityRepository;
     private final TourRepository tourRepository;
@@ -53,7 +55,7 @@ public class HomepageServiceImpl implements HomepageService {
             PublicTourDTO topTourOfYear = tourService.findTopTourOfYear();
             List<PublicTourDTO> trendingTours = tourService.findTrendingTours(numberTour);
             List<BlogResponseDTO> newBlogs = blogService.findNewestBlogs(numberBlog);
-            List<ActivityDTO> recommendedActivities = activityService.findRecommendedActivities(numberActivity);
+            List<PublicActivityDTO> recommendedActivities = serviceService.findRecommendedActivities(numberActivity);
             List<PublicLocationDTO> recommendedLocations = locationService.findRecommendedLocations(numberLocation);
 
             //Mapping to Dto
@@ -68,7 +70,6 @@ public class HomepageServiceImpl implements HomepageService {
         } catch (Exception ex){
             throw BusinessException.of("Homepage loaded fail", ex);
         }
-
     }
 
     @Override
@@ -147,8 +148,8 @@ public class HomepageServiceImpl implements HomepageService {
                      ;
 
             //Find activities related to the location
-            List<PublicActivityDTO> activities = activityRepository.findRelatedActivities(id, 6)
-                    .stream().map(activityMapper::toPublicActivityDTO).collect(Collectors.toList());
+            List<PublicActivityDTO> activities = serviceRepository.findRelatedActivities(id, "Activity", PageRequest.of(0, 6))
+                    .stream().map(serviceMapper::toPublicActivityDTO).collect(Collectors.toList());
 
             //Find other locations
             List<PublicLocationDTO> publicLocations = locationService.findRecommendedLocations(6, id);

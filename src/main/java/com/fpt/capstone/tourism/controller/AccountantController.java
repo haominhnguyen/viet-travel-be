@@ -37,8 +37,6 @@ public class AccountantController {
         return ResponseEntity.ok(transactionService.getTransactions(page, size, keyword, sortField, sortDirection, transactionType));
     }
 
-
-
     @GetMapping("/transactions/{id}")
     public ResponseEntity<?> getTransactionDetails(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getTransactionDetails(id));

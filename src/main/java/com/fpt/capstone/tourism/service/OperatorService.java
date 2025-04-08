@@ -66,5 +66,7 @@ public interface OperatorService {
 
     GeneralResponse<?> updateServiceQuantity(ServiceQuantityUpdateDTO requestDTO);
 
+    GeneralResponse<?> sendAccountant(Long tourScheduleId);
+
 //    GeneralResponse<?> getListServiceRequest(int page, int size);
 }
