@@ -348,4 +348,99 @@ public class Constants {
         public static final String REGEX_PHONE = "^[0-9]{10,15}$";
 
     }
+
+
+    public static final class AI {
+        public static final String PLAN_RESPONSE_JSON = """
+                                                            "plan": {
+                                                                "day_1": {
+                                                                date: "dd-MM-yyy",
+                                                                long_description: "",
+                                                              "activities": [
+                                                                {
+                                                                  "id": 1,
+                                                                  "title": "Activity 1 Title",
+                                                                  "content": "Description of activity 1.",
+                                                                  "category": "Category of activity",
+                                                                  "location": {
+                                                                    "latitude": 0,
+                                                                    "longitude": 0
+                                                                  }
+                                                                }
+                                                              ],
+                                                              "hotel": {
+                                                                "id": 1,
+                                                                "name": "Hotel Name",
+                                                                "address": "Hotel Address",
+                                                                "image_url": "Hotel Image URL",
+                                                                "location": {
+                                                                    "latitude": 0,
+                                                                    "longitude": 0
+                                                                  }
+                                                              },
+                                                              "restaurants": [
+                                                                {
+                                                                  "id": 1,
+                                                                  "name": "Restaurant Name",
+                                                                  "address": "Restaurant Address",
+                                                                  "image_url": "Restaurant Image URL",
+                                                                  "location": {
+                                                                    "latitude": 0,
+                                                                    "longitude": 0
+                                                                  }
+                                                                }
+                                                              ]
+                                                            },
+                                                            "day_2": {
+                                                            date: "dd-MM-yyy",
+                                                            long_description: "",
+                                                              "activities": [
+                                                                {
+                                                                  "id": 2,
+                                                                  "title": "Activity 2 Title",
+                                                                  "content": "Description of activity 2.",
+                                                                  "category": "Category of activity",
+                                                                  "location": {
+                                                                    "latitude": 0,
+                                                                    "longitude": 0
+                                                                  }
+                                                                }
+                                                              ],
+                                                              "hotel": {
+                                                                "id": 2,
+                                                                "name": "Hotel Name",
+                                                                "address": "Hotel Address",
+                                                                "image_url": "Hotel Image URL",
+                                                                "location": {
+                                                                    "latitude": 0,
+                                                                    "longitude": 0
+                                                                  }
+                                                              }
+                                                            }
+                                                        """;
+
+
+        public static final String PROMPT_START =  """ 
+                    Bạn là một chuyên gia trong lĩnh vực du lịch và đang hoạt động trong việc giúp khách hàng lên kế hoạch du lịch theo yêu cầu.
+                    
+                    """;
+
+        public static final String PROMPT_END = """ 
+                    
+                    Các lưu ý quan trọng:
+                    - CHỈ sử dụng các dữ liệu về nhà hàng và khách sạn đã cung cấp từ cơ sở dữ liệu để xây dựng kế hoạch.
+                    - Không thêm kiến thức bên ngoài, giả định hoặc đề xuất bổ sung nào khác.
+                    - Nếu có thông tin bị thiếu hoặc không rõ ràng, hãy nêu rõ rằng không thể xác định được.
+                    - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
+                    - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
+
+                    Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
+                    Định dạng phản hồi của bạn PHẢI tuân theo cấu trúc JSON sau:
+
+                    
+                    ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
+                    
+                    """ + PLAN_RESPONSE_JSON;
+
+    }
 }

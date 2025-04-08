@@ -23,4 +23,5 @@ public class BookingConfirmResponse {
     private TourScheduleShortInfoDTO tourSchedule;
     private List<TourCustomerDTO> adults;
     private List<TourCustomerDTO> children;
+    private String paymentUrl;
 }

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.LocationDTO;
 import com.fpt.capstone.tourism.dto.common.LocationShortDTO;
+import com.fpt.capstone.tourism.dto.common.LocationWithoutGeoPositionDTO;
 import com.fpt.capstone.tourism.dto.common.PublicLocationSimpleDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
@@ -21,6 +22,7 @@ public interface LocationMapper extends EntityMapper<LocationDTO, Location>{
     LocationDTO toDTO(Location location);
     LocationShortDTO toLocationShortDTO(Location location);
 
+    LocationWithoutGeoPositionDTO toLocationWithoutGeoPositionDTO(Location location);
 
 
     @Mapping(target = "id", source = "dto.id") // Map only 'id'
