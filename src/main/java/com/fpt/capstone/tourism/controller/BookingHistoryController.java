@@ -30,4 +30,9 @@ public class BookingHistoryController {
     public ResponseEntity<GeneralResponse<?>> viewBookingHistoryDetail(@PathVariable("bookingCode") String bookingCode){
         return ResponseEntity.ok(bookingService.getTourBookingDetails(bookingCode));
     }
+
+    @PutMapping("/cancel-booking/{bookingCode}")
+    public ResponseEntity<GeneralResponse<?>> cancelBooking(@PathVariable("bookingCode") String bookingCode){
+        return ResponseEntity.ok(bookingService.cancelBooking(bookingCode));
+    }
 }

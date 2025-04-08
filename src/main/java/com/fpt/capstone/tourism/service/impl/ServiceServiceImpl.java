@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.ServiceRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicActivityDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.method.P;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,7 @@ public class ServiceServiceImpl implements ServiceService {
     private final TourBookingServiceRepository bookingServiceRepository;
     private final RoomMapper roomMapper;
     private final MealMapper mealMapper;
+    private final ServiceMapper serviceMapper;
     private final TransportMapper transportMapper;
     private final TourBookingServiceMapper bookingServiceMapper;
 
@@ -83,7 +86,7 @@ public class ServiceServiceImpl implements ServiceService {
 
 
     public GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId) {
-        try{
+        try {
             Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
 
@@ -111,18 +114,15 @@ public class ServiceServiceImpl implements ServiceService {
                 Room room = roomRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
                 return GeneralResponse.of(roomMapper.toDTO(room), SERVICE_DETAILS_RETRIEVED);
-            }
-            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
                 return GeneralResponse.of(mealMapper.toDTO(meal), SERVICE_DETAILS_RETRIEVED);
-            }
-            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
                 return GeneralResponse.of(transportMapper.toDTO(transport), SERVICE_DETAILS_RETRIEVED);
-            }
-            else {
+            } else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_CATEGORY_NOT_FOUND);
             }
         } catch (BusinessException e) {
@@ -310,8 +310,7 @@ public class ServiceServiceImpl implements ServiceService {
                 room.setFacilities(requestDTO.getRoomDetails().getFacilities());
                 room.setUpdatedAt(LocalDateTime.now());
                 roomRepository.save(room);
-            }
-            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
                         .orElseGet(() -> {
                             Meal newMeal = new Meal();
@@ -325,8 +324,7 @@ public class ServiceServiceImpl implements ServiceService {
                 meal.setMealDetail(requestDTO.getMealDetails().getMealDetail());
                 meal.setUpdatedAt(LocalDateTime.now());
                 mealRepository.save(meal);
-            }
-            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
                         .orElseGet(() -> {
                             Transport newTransport = new Transport();
@@ -339,10 +337,8 @@ public class ServiceServiceImpl implements ServiceService {
                 transport.setSeatCapacity(requestDTO.getTransportDetails().getSeatCapacity());
                 transport.setUpdatedAt(LocalDateTime.now());
                 transportRepository.save(transport);
-            }
-            else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
-            }
-            else {
+            } else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
+            } else {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
             }
             // Create a response DTO that includes all details
@@ -365,14 +361,12 @@ public class ServiceServiceImpl implements ServiceService {
             if (room != null) {
                 responseDTO.setRoomDetails(roomMapper.toDTO(room));
             }
-        }
-        else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+        } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
             Meal meal = mealRepository.findByServiceId(service.getId()).orElse(null);
             if (meal != null) {
                 responseDTO.setMealDetails(mealMapper.toDTO(meal));
             }
-        }
-        else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+        } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
             Transport transport = transportRepository.findByServiceId(service.getId()).orElse(null);
             if (transport != null) {
                 responseDTO.setTransportDetails(transportMapper.toDTO(transport));
@@ -405,16 +399,14 @@ public class ServiceServiceImpl implements ServiceService {
                     room.setUpdatedAt(LocalDateTime.now());
                     roomRepository.save(room);
                 }
-            }
-            else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId).orElse(null);
                 if (meal != null) {
                     meal.setDeleted(isDeleted);
                     meal.setUpdatedAt(LocalDateTime.now());
                     mealRepository.save(meal);
                 }
-            }
-            else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId).orElse(null);
                 if (transport != null) {
                     transport.setDeleted(isDeleted);
@@ -490,7 +482,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
             LocalDateTime currentDateTime = LocalDateTime.now();
-            if(currentDateTime.isAfter(bookingService.getRequestDate())){
+            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
                 throw BusinessException.of("Booking service has expired");
             }
 
@@ -499,7 +491,7 @@ public class ServiceServiceImpl implements ServiceService {
 
                 //Nếu là đơn hàng yêu cầu update số lượng
                 Integer updateQuantity = bookingService.getRequestedQuantity();
-                if(updateQuantity > 0){
+                if (updateQuantity > 0) {
                     bookingService.setCurrentQuantity(updateQuantity);
                     bookingService.setRequestedQuantity(0);
                 }
@@ -536,7 +528,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
             LocalDateTime currentDateTime = LocalDateTime.now();
-            if(currentDateTime.isAfter(bookingService.getRequestDate())){
+            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
                 throw BusinessException.of("Booking service has expired");
             }
 
@@ -614,6 +606,20 @@ public class ServiceServiceImpl implements ServiceService {
         }
     }
 
+    @Override
+    public List<PublicActivityDTO> findRecommendedActivities(int numberActivity) {
+        try {
+            List<Service> randomActivities = serviceRepository.findRandomActivities("Activity",
+                    PageRequest.of(0, numberActivity)
+            );
+            return randomActivities.stream()
+                    .map(serviceMapper::toPublicActivityDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
+        }
+    }
+
     private Specification<TourBookingService> buildSearchSpecificationForService(String keyword, TourBookingServiceStatus status) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -634,7 +640,8 @@ public class ServiceServiceImpl implements ServiceService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-    private <T>GeneralResponse<PagingDTO<List<T>>> buildPagedResponseService(Page<TourBookingService> page, List<T> list) {
+
+    private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponseService(Page<TourBookingService> page, List<T> list) {
         PagingDTO<List<T>> pagingDTO = PagingDTO.<List<T>>builder()
                 .page(page.getNumber())
                 .size(page.getSize())
@@ -644,11 +651,12 @@ public class ServiceServiceImpl implements ServiceService {
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
+
     private Long getCurrentUserProviderId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() ->  BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of("User not found"));
             return user.getId();
         }
         throw BusinessException.of("Không tìm thấy thông tin người dùng");
