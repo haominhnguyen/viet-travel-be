@@ -263,14 +263,28 @@ class HomepageServiceImplTest {
         assertEquals("Hotel detail loaded fail", exception.getMessage());
     }
     @Test
-    void viewHomepage_ReturnSuccess() {
+    void viewHomepage_ReturnSuccessDefault() {
         when(tourService.findTopTourOfYear()).thenReturn(mockTour);
         when(tourService.findTrendingTours(3)).thenReturn(Collections.singletonList(mockTour));
         when(blogService.findNewestBlogs(3)).thenReturn(Collections.singletonList(mockBlog));
         when(serviceService.findRecommendedActivities(3)).thenReturn(Collections.singletonList(mockPublicActivity));
-        when(locationService.findRecommendedLocations(3)).thenReturn(Collections.singletonList(mockLocation));
+        when(locationService.findRecommendedLocations(7)).thenReturn(Collections.singletonList(mockLocation));
 
-        GeneralResponse<HomepageDTO> response = homepageService.viewHomepage(3, 3, 3, 3);
+        GeneralResponse<HomepageDTO> response = homepageService.viewHomepage(3, 3, 3, 7);
+
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
+        assertNotNull(response.getData());
+    }
+
+    @Test
+    void viewHomepage_ReturnSuccess() {
+        when(tourService.findTopTourOfYear()).thenReturn(mockTour);
+        when(tourService.findTrendingTours(5)).thenReturn(Collections.singletonList(mockTour));
+        when(blogService.findNewestBlogs(5)).thenReturn(Collections.singletonList(mockBlog));
+        when(serviceService.findRecommendedActivities(5)).thenReturn(Collections.singletonList(mockPublicActivity));
+        when(locationService.findRecommendedLocations(5)).thenReturn(Collections.singletonList(mockLocation));
+
+        GeneralResponse<HomepageDTO> response = homepageService.viewHomepage(5, 5, 5, 5);
 
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertNotNull(response.getData());
