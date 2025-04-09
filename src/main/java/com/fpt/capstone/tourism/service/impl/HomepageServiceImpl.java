@@ -70,7 +70,6 @@ public class HomepageServiceImpl implements HomepageService {
         } catch (Exception ex){
             throw BusinessException.of("Homepage loaded fail", ex);
         }
-
     }
 
     @Override

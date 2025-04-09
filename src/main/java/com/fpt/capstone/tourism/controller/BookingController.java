@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,12 @@ public class BookingController {
     @GetMapping("/details/{bookingCode}")
     public ResponseEntity<GeneralResponse<?>> getBookingDetails(@PathVariable("bookingCode") String bookingCode){
         return ResponseEntity.ok(bookingService.getTourBookingDetails(bookingCode));
+    }
+
+
+    @PostMapping("/change-payment-method/{id}")
+    public ResponseEntity<GeneralResponse<?>> changePaymentMethod(@PathVariable(name = "id") Long id ,@RequestBody PaymentMethod paymentMethod){
+        return ResponseEntity.ok(bookingService.changePaymentMethod(id, paymentMethod));
     }
 
 

@@ -40,8 +40,6 @@ public class AuthController {
     public ResponseEntity<GeneralResponse<List<Role>>> getUserRoles() {
         return ResponseEntity.ok(authService.getRoles());
     }
-
-
 }
 
 

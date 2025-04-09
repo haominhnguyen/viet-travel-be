@@ -12,6 +12,7 @@ import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
+import com.fpt.capstone.tourism.service.VNPayService;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -59,6 +60,9 @@ public class BookingServiceImpl implements BookingService {
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+
+
+    private final VNPayService vnPayService;
 
 
     private final LocationMapper locationMapper;
@@ -113,19 +117,26 @@ public class BookingServiceImpl implements BookingService {
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
 
+            String baseUrl = "http://localhost:8080";
+
+            String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
+
+            String paymentUrl = vnPayService.generatePaymentUrl(bookingRequestDTO.getTotal(), bookingCode, baseUrl);
+
             TourBooking tourBooking = TourBooking.builder()
                     .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
                     .seats(bookingRequestDTO.getChildren().size() + bookingRequestDTO.getAdults().size())
                     .note(bookingRequestDTO.getNote())
                     .deleted(false)
-                    .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
+                    .bookingCode(bookingCode)
                     .user(User.builder().id(bookingRequestDTO.getUserId()).build())
                     .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
                     .tourBookingCategory(TourBookingCategory.ONLINE)
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
+                    .paymentUrl(paymentUrl)
                     .build();
 
 
@@ -200,6 +211,7 @@ public class BookingServiceImpl implements BookingService {
                     .paymentMethod(tourBooking.getPaymentMethod())
                     .createdAt(tourBooking.getCreatedAt())
                     .paymentMethod(tourBooking.getPaymentMethod())
+                    .paymentUrl(tourBooking.getPaymentUrl())
                     .build();
 
             return GeneralResponse.of(bookingConfirmResponse);
@@ -1086,8 +1098,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public GeneralResponse<?> getTourBookingsForSettlement(Long tourScheduleId) {
-        return null;
+    public GeneralResponse<?> changePaymentMethod(Long id, PaymentMethod paymentMethod) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(id);
+            tourBooking.setPaymentMethod(paymentMethod);
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(paymentMethod);
+        } catch (Exception ex) {
+            throw BusinessException.of("Sửa phương thức thanh toán thất bại", ex);
+        }
     }
 
     @Override

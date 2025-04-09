@@ -18,4 +18,6 @@ public class TransportDTO {
     private Long serviceId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long categoryId;
+    private String categoryName;
 }
