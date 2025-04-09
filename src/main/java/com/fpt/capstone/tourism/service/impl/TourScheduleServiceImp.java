@@ -350,7 +350,6 @@ public class TourScheduleServiceImp implements TourScheduleService {
                         if (pax.getValidFrom() == null || pax.getValidTo() == null) {
                             return true;
                         }
-
                         // Safe conversion of Date to LocalDate
                         LocalDate paxValidFrom = new java.sql.Date(pax.getValidFrom().getTime()).toLocalDate();
                         LocalDate paxValidTo = new java.sql.Date(pax.getValidTo().getTime()).toLocalDate();
@@ -364,14 +363,10 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         // Get the original operator before update
         User originalOperator = existingSchedule.getOperator();
-
         // Update existing tour schedule with new values
         existingSchedule.setTour(tour);
         existingSchedule.setStartDate(startDate);
         existingSchedule.setEndDate(endDate);
-
-        // If the requestDTO doesn't specify an operator, keep the original operator
-        // This ensures the operator continues to operate this tour even when dates change
         existingSchedule.setOperator(requestDTO.getOperatorId() != null ? operator : originalOperator);
 
         existingSchedule.setTourPax(tourPax);
@@ -379,9 +374,13 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         TourSchedule updatedSchedule = tourScheduleRepository.save(existingSchedule);
 
-        // Update tour status to PENDING after updating the schedule
+        TourStatus currentStatus = tour.getTourStatus();
+
         tour.setTourStatus(TourStatus.PENDING);
-        tourRepository.save(tour);
+
+        if (currentStatus == TourStatus.OPENED) {
+            tour.setTourStatus(TourStatus.OPENED);
+        }
 
         return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
     }

@@ -457,11 +457,8 @@ public class TourPaxServiceImpl implements TourPaxService {
                                 (existing, replacement) -> existing
                         ));
 
-                // Create service association DTOs (simplified for the list view)
                 List<TourDayServicePricingDTO> serviceAssociations = new ArrayList<>();
 
-                // Optionally, you might want to include service associations in the list view
-                // Comment this out if you prefer to keep the list view simple and load service details separately
                 for (TourDayService tds : allTourDayServices) {
                     Service service = tds.getService();
                     ServicePaxPricing pricing = serviceToPricingMap.get(tds.getId());
@@ -494,10 +491,8 @@ public class TourPaxServiceImpl implements TourPaxService {
                         .serviceAssociations(serviceAssociations)
                         .serviceAssociationCount(paxPricings.size())
                         .build();
-
                 paxDTOs.add(paxDTO);
             }
-
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_LOAD_SUCCESS, paxDTOs);
         } catch (BusinessException ex) {
             throw ex;
