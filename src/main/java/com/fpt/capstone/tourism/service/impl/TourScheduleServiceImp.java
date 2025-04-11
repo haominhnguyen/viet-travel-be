@@ -248,10 +248,11 @@ public class TourScheduleServiceImp implements TourScheduleService {
         TourSchedule existingSchedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
 
-        // Check if the schedule is in an updatable state
-//        if (existingSchedule.getStatus() != TourScheduleStatus.DRAFT) {
-//            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only schedules in DRAFT status can be updated");
-//        }
+
+        // Check if the schedule is in ONGOING status - cannot update ongoing schedules
+        if (existingSchedule.getStatus() == TourScheduleStatus.ONGOING) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedules with ONGOING status cannot be updated");
+        }
 
         // Find the tour (using existing tour if tourId is not provided)
         Tour tour = (requestDTO.getTourId() != null)
@@ -366,24 +367,27 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         // Get the original operator before update
         User originalOperator = existingSchedule.getOperator();
+
         // Update existing tour schedule with new values
         existingSchedule.setTour(tour);
         existingSchedule.setStartDate(startDate);
         existingSchedule.setEndDate(endDate);
         existingSchedule.setOperator(requestDTO.getOperatorId() != null ? operator : originalOperator);
-
         existingSchedule.setTourPax(tourPax);
         existingSchedule.setUpdatedAt(LocalDateTime.now());
 
+        // Set tour schedule status to OPEN after update
+        existingSchedule.setStatus(TourScheduleStatus.OPEN);
+
         TourSchedule updatedSchedule = tourScheduleRepository.save(existingSchedule);
 
+        // Update tour status
         TourStatus currentStatus = tour.getTourStatus();
-
         tour.setTourStatus(TourStatus.PENDING);
-
         if (currentStatus == TourStatus.OPENED) {
             tour.setTourStatus(TourStatus.OPENED);
         }
+        tourRepository.save(tour);
 
         return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
     }
