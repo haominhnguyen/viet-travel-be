@@ -1131,6 +1131,7 @@ public class TourServiceImpl implements TourService {
 
             // Filter by tour schedule date
             Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
+            predicates.add(cb.equal(root.get("status"), TourScheduleStatus.OPEN));
             predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), currentDate.plusDays(1)));
             if (fromDate != null) {
                 predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), fromDate));

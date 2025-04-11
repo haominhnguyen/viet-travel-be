@@ -227,7 +227,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
         tourSchedule.setEndDate(requestDTO.getEndDate());
         tourSchedule.setOperator(operator);
         tourSchedule.setTourPax(tourPax);
-        tourSchedule.setStatus(TourScheduleStatus.DRAFT);
+        tourSchedule.setStatus(TourScheduleStatus.OPEN);
         tourSchedule.setDeleted(false);
 
         tourSchedule = tourScheduleRepository.save(tourSchedule);
@@ -249,9 +249,9 @@ public class TourScheduleServiceImp implements TourScheduleService {
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
 
         // Check if the schedule is in an updatable state
-        if (existingSchedule.getStatus() != TourScheduleStatus.DRAFT) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only schedules in DRAFT status can be updated");
-        }
+//        if (existingSchedule.getStatus() != TourScheduleStatus.DRAFT) {
+//            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only schedules in DRAFT status can be updated");
+//        }
 
         // Find the tour (using existing tour if tourId is not provided)
         Tour tour = (requestDTO.getTourId() != null)
