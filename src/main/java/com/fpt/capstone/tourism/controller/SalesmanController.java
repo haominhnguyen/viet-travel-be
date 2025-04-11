@@ -40,7 +40,7 @@ public class SalesmanController {
     public ResponseEntity<GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>>> getPublicTours(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "20") TourType tourType,
+            @RequestParam(defaultValue = "SIC") TourType tourType,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean isDeleted,
             @RequestParam(defaultValue = "id") String sortField,
