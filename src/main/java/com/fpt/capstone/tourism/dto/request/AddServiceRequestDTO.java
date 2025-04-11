@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.dto.request;
 
 import com.fpt.capstone.tourism.model.Service;
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 public class AddServiceRequestDTO {
     private Long bookingId;
     private Long serviceId;
+    @Min(value = 1, message = "Số lượng dịch vụ phải lớn hơn 0")
     private Integer addQuantity;
     private LocalDateTime requestDate;
     private String reason;

@@ -44,7 +44,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     SELECT ts.id, (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0))
     FROM TourSchedule ts
     JOIN ts.tourPax tp
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
     WHERE ts.id IN :scheduleIds AND ts.deleted = FALSE 
     GROUP BY ts.id, tp.maxPax
 """)
@@ -78,7 +78,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("""
     SELECT COALESCE(CAST(SUM(tb.seats) AS integer), 0)
     FROM TourSchedule ts
-    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "CONFIRMED"
+    LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
     WHERE ts.id IN :scheduleId AND ts.deleted = FALSE 
     GROUP BY ts.id
 """)
@@ -96,7 +96,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     @Query("""
     SELECT SUM(COALESCE(tb.sellingPrice, 0) + COALESCE(tb.extraHotelCost, 0))
      FROM TourBooking tb WHERE tb.tourSchedule.id = :scheduleId
-     AND tb.status = "CONFIRMED"
+     AND tb.status = "SUCCESS"
 """)
     Double findTotalTourCostByScheduleId(@Param("scheduleId")Long scheduleId);
 
