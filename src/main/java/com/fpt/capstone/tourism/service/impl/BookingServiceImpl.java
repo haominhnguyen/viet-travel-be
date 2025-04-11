@@ -41,6 +41,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.EMAIL_ALREADY_EXISTS_MESSAGE;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USERNAME_ALREADY_EXISTS_MESSAGE;
 
 @Slf4j
 @Service
@@ -60,6 +62,7 @@ public class BookingServiceImpl implements BookingService {
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceCategoryRepository tourDayServiceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private final UserRoleRepository userRoleRepository;
 
 
     private final VNPayService vnPayService;
@@ -68,6 +71,7 @@ public class BookingServiceImpl implements BookingService {
     private final LocationMapper locationMapper;
     private final TourImageMapper tourImageMapper;
     private final TourBookingCustomerMapper tourBookingCustomerMapper;
+    private final UserFullInformationMapper userFullInformationMapper;
 
 
     private final BookingHelper bookingHelper;
@@ -79,6 +83,8 @@ public class BookingServiceImpl implements BookingService {
     private final LocationRepository locationRepository;
     private final TourPaxRepository tourPaxRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
+
+    private final UserServiceImpl userService;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -117,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
 
-            String baseUrl = "http://localhost:8080";
+            String baseUrl = "http://localhost:8080/v1";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
@@ -263,6 +269,13 @@ public class BookingServiceImpl implements BookingService {
         try {
             List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
 
+
+            String baseUrl = "http://localhost:8080";
+
+            String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
+
+            String paymentUrl = vnPayService.generatePaymentUrl(bookingRequestDTO.getTotalAmount(), bookingCode, baseUrl);
+
             TourBooking tourBooking = TourBooking.builder()
                     .tour(Tour.builder().id(bookingRequestDTO.getTourId()).build())
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
@@ -279,6 +292,7 @@ public class BookingServiceImpl implements BookingService {
                     .sale(User.builder().id(bookingRequestDTO.getSaleId()).build())
                     .expiredAt(bookingRequestDTO.getExpiredAt())
                     .totalAmount(bookingRequestDTO.getTotalAmount())
+                    .paymentUrl(paymentUrl)
                     .build();
 
 
@@ -338,6 +352,13 @@ public class BookingServiceImpl implements BookingService {
 
             TourDetailSaleResponseDTO tourDetailSaleResponseDTO = bookingMapper.toTourDetailSaleResponseDTO(tour);
             tourDetailSaleResponseDTO.setCreatedAt(tour.getCreatedAt());
+
+
+            List<TourScheduleSaleResponseDTO> dtos = tourDetailSaleResponseDTO.getTourSchedules();
+            dtos.removeIf(dto -> dto.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.CANCELLED.toString()) || dto.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.DRAFT.toString()));
+
+
+            tourDetailSaleResponseDTO.setTourSchedules(dtos);
 
             TourListBookingDTO tourListBookingDTO = TourListBookingDTO.builder()
                     .bookings(tourBookingSaleResponseDTOS)
@@ -503,6 +524,8 @@ public class BookingServiceImpl implements BookingService {
         Tour tour = tourBooking.getTour();
         List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
 
+        TourType tourType = tourRepository.getTourTypeByTourId(tour.getId());
+
         List<TourBookingCustomer> customers = tourBookingCustomerRepository.findByBookedPersonAndTourBooking(false, tourBooking);
 
         int totalRooms = calculateTotalRooms(customers);
@@ -515,14 +538,23 @@ public class BookingServiceImpl implements BookingService {
                         .tourDay(tourDay)
                         .service(dayService.getService())
                         .deleted(false)
-                        .status(TourBookingServiceStatus.SUCCESS)
                         .build();
+
+                if(tourType.toString().equalsIgnoreCase("SIC")) {
+                    tourBookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
+                } else {
+                    tourBookingService.setStatus(TourBookingServiceStatus.NOT_ORDERED);
+                }
 
                 com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(dayService.getService().getId()).orElseThrow();
 
                 if (service.getServiceCategory().getCategoryName().equals("Hotel")) {
                     tourBookingService.setCurrentQuantity(totalRooms);
                 } else if (service.getServiceCategory().getCategoryName().equals("Restaurant")) {
+                    tourBookingService.setCurrentQuantity(customers.size());
+                } else if (service.getServiceCategory().getCategoryName().equals("Activity")) {
+                    tourBookingService.setCurrentQuantity(customers.size());
+                } else if (service.getServiceCategory().getCategoryName().equals("Flight Ticket")) {
                     tourBookingService.setCurrentQuantity(customers.size());
                 }
                 tourBookingServiceRepository.save(tourBookingService);
@@ -558,9 +590,18 @@ public class BookingServiceImpl implements BookingService {
             if (Objects.nonNull(tourBooking)) {
                 Tour tour = tourBooking.getTour();
                 List<TourDay> tourDays = tourDayRepository.findAllByTourId(tour.getId());
+                TourType tourType = tourRepository.getTourTypeByTourId(tour.getId());
                 List<TourBookingServiceSaleResponseDTO> responseLst = bookingHelper.getTourBookingListService(tourDays, tourBooking);
+
+                SaleTourBookingServiceListResponseDTO dto = SaleTourBookingServiceListResponseDTO.builder()
+                        .servicesByDay(responseLst)
+                        .tourType(tourType)
+                        .build();
+
+
+
                 log.info("End get tour booking service by booking ID: {}", tourBookingID);
-                return GeneralResponse.of(responseLst);
+                return GeneralResponse.of(dto);
             }
             log.info("Not exist tour booking service with tour booking ID: {}", tourBookingID);
             return GeneralResponse.of(Collections.emptyList());
@@ -1122,6 +1163,70 @@ public class BookingServiceImpl implements BookingService {
             return new GeneralResponse<>(HttpStatus.OK.value(), "Hủy đơn thành công", bookingCode);
         } catch (Exception ex) {
             throw BusinessException.of(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<?> createCustomer(SaleCreateUserRequestDTO dto) {
+        try {
+
+            if (userService.existsByUsername(dto.getUsername())) {
+                throw BusinessException.of(HttpStatus.CONFLICT, USERNAME_ALREADY_EXISTS_MESSAGE);
+            }
+            if (userService.exitsByEmail(dto.getEmail())) {
+                throw BusinessException.of(HttpStatus.CONFLICT, EMAIL_ALREADY_EXISTS_MESSAGE);
+            }
+
+            User entity = userFullInformationMapper.toUser(dto);
+            User savedUser = userRepository.save(entity);
+            UserRole userRole = UserRole.builder()
+                    .role(Role.builder().id(1L).build())
+                    .user(savedUser)
+                    .deleted(false)
+                    .build();
+            userRoleRepository.save(userRole);
+            return GeneralResponse.of(bookingMapper.toBookedPersonDTO(savedUser));
+        } catch (Exception ex) {
+            throw BusinessException.of(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getForwardSchedule(ForwardScheduleRequestDTO dto) {
+        try {
+            List<PublicTourScheduleDTO> response = tourScheduleRepository.findTourScheduleBasicByTourIdAndNotEqualScheduleId(dto.getTourId(), dto.getScheduleId(), dto.getSeats());
+            return GeneralResponse.of(response);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> forwardBooking(ForwardBookingRequestDTO dto) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findByBookingId(dto.getBookingId());
+            tourBooking.setTourSchedule(TourSchedule.builder().id(dto.getScheduleId()).build());
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> checkingAllService(Long bookingId) {
+        try {
+            List<TourBookingService> tourBookingServices = tourBookingServiceRepository.findByTourBookingId(bookingId);
+            for(TourBookingService tbs : tourBookingServices) {
+                if(tbs.getStatus().toString().equalsIgnoreCase(TourBookingServiceStatus.NOT_ORDERED.toString())) {
+                    tbs.setStatus(TourBookingServiceStatus.CHECKING);
+                }
+            }
+            tourBookingServiceRepository.saveAll(tourBookingServices);
+            return GeneralResponse.of(bookingId);
+        } catch (Exception ex) {
+            throw BusinessException.of("checking All Service failed", ex);
         }
     }
 

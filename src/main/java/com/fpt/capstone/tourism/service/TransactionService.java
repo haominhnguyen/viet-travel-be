@@ -14,7 +14,7 @@ import java.util.List;
 public interface TransactionService {
     Transaction createTransaction(Transaction transaction);
 
-    GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, TransactionType transactionType);
+    GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, List<TransactionType> transactionTypes);
 
     GeneralResponse<?> getTransactionDetails(Long id);
 

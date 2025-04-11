@@ -26,7 +26,7 @@ public class TransactionHelperImpl implements TransactionHelper {
     private final TransactionMapper transactionMapper;
 
     @Override
-    public Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, TransactionType transactionType) {
+    public Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -46,7 +46,7 @@ public class TransactionHelperImpl implements TransactionHelper {
                 predicates.add(receivedByPredicate);
             }
 
-            predicates.add(cb.equal(root.get("category"), transactionType));
+            predicates.add(root.get("category").in(transactionTypes));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

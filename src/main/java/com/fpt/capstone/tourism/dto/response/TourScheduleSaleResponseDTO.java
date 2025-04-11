@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.dto.response;
 import com.fpt.capstone.tourism.dto.common.StaffDTO;
 import com.fpt.capstone.tourism.dto.common.TourPaxDTO;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +18,7 @@ public class TourScheduleSaleResponseDTO {
     private Long id;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String status;
+    private TourScheduleStatus status;
     private StaffDTO operator;
     private TourPaxDTO tourPax;
 }

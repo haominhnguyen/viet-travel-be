@@ -28,6 +28,9 @@ public interface BookingMapper {
     TourDTO toTourDTO(Tour tour);
 
     TourBookingDetailSaleResponseDTO toBookingDetailSaleResponseDTO(TourBooking tourBooking);
+
+
+
     TourDetailSaleResponseDTO toTourDetailSaleResponseDTO(Tour tour);
 
     @Mapping(target = "createdAt", source = "createdAt")

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.mapper;
 
+import com.fpt.capstone.tourism.dto.request.SaleCreateUserRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UserCreationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
@@ -19,6 +20,10 @@ public interface UserFullInformationMapper extends EntityMapper<UserFullInformat
     @Mapping(target = "roleNames", expression = "java(mapRoles(user.getUserRoles()))")
     @Mapping(target = "deleted", source = "deleted")
     UserFullInformationResponseDTO toDTO(User user);
+
+
+    User toUser(SaleCreateUserRequestDTO dto);
+
 
     User toEntity(UserCreationRequestDTO userDTO);
 

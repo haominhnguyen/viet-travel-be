@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/accountant")
@@ -32,9 +34,9 @@ public class AccountantController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection,
-            @RequestParam(defaultValue = "RECEIPT") TransactionType transactionType
+            @RequestParam List<TransactionType> transactionTypes
     ) {
-        return ResponseEntity.ok(transactionService.getTransactions(page, size, keyword, sortField, sortDirection, transactionType));
+        return ResponseEntity.ok(transactionService.getTransactions(page, size, keyword, sortField, sortDirection, transactionTypes));
     }
 
     @GetMapping("/transactions/{id}")

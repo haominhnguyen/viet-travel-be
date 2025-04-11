@@ -10,6 +10,7 @@ import java.util.Date;
 @Builder
 public class GeneratePlanRequestDTO {
     private Long locationId;
+    private Long userId;
     private String locationName;
     private Date startDate;
     private Date endDate;

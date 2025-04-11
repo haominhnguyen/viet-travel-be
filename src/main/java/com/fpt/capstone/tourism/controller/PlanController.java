@@ -41,4 +41,10 @@ public class PlanController {
     }
 
 
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> locations(@PathVariable(name = "id") Long planId) {
+        return ResponseEntity.ok(planService.getPlanById(planId));
+    }
+
+
 }

@@ -4,6 +4,7 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.BookingRequestDTO;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.UserDTO;
+import com.fpt.capstone.tourism.dto.request.ChangePaymentMethodDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDetailDTO;
 import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
@@ -49,9 +50,9 @@ public class BookingController {
     }
 
 
-    @PostMapping("/change-payment-method/{id}")
-    public ResponseEntity<GeneralResponse<?>> changePaymentMethod(@PathVariable(name = "id") Long id ,@RequestBody PaymentMethod paymentMethod){
-        return ResponseEntity.ok(bookingService.changePaymentMethod(id, paymentMethod));
+    @PostMapping("/change-payment-method")
+    public ResponseEntity<GeneralResponse<?>> changePaymentMethod(@RequestBody ChangePaymentMethodDTO dto){
+        return ResponseEntity.ok(bookingService.changePaymentMethod(dto.getBookingId(), dto.getPaymentMethod()));
     }
 
 

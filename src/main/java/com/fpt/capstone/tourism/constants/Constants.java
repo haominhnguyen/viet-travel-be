@@ -353,70 +353,81 @@ public class Constants {
     public static final class AI {
         public static final String PLAN_RESPONSE_JSON = """
                                                             "plan": {
-                                                                "day_1": {
-                                                                date: "dd-MM-yyy",
-                                                                long_description: "",
-                                                              "activities": [
-                                                                {
-                                                                  "id": 1,
-                                                                  "title": "Activity 1 Title",
-                                                                  "content": "Description of activity 1.",
-                                                                  "category": "Category of activity",
-                                                                  "location": {
-                                                                    "latitude": 0,
-                                                                    "longitude": 0
-                                                                  }
-                                                                }
-                                                              ],
-                                                              "hotel": {
-                                                                "id": 1,
-                                                                "name": "Hotel Name",
-                                                                "address": "Hotel Address",
-                                                                "image_url": "Hotel Image URL",
-                                                                "location": {
-                                                                    "latitude": 0,
-                                                                    "longitude": 0
-                                                                  }
-                                                              },
-                                                              "restaurants": [
-                                                                {
-                                                                  "id": 1,
-                                                                  "name": "Restaurant Name",
-                                                                  "address": "Restaurant Address",
-                                                                  "image_url": "Restaurant Image URL",
-                                                                  "location": {
-                                                                    "latitude": 0,
-                                                                    "longitude": 0
-                                                                  }
-                                                                }
-                                                              ]
-                                                            },
-                                                            "day_2": {
-                                                            date: "dd-MM-yyy",
-                                                            long_description: "",
-                                                              "activities": [
-                                                                {
-                                                                  "id": 2,
-                                                                  "title": "Activity 2 Title",
-                                                                  "content": "Description of activity 2.",
-                                                                  "category": "Category of activity",
-                                                                  "location": {
-                                                                    "latitude": 0,
-                                                                    "longitude": 0
-                                                                  }
-                                                                }
-                                                              ],
-                                                              "hotel": {
-                                                                "id": 2,
-                                                                "name": "Hotel Name",
-                                                                "address": "Hotel Address",
-                                                                "image_url": "Hotel Image URL",
-                                                                "location": {
-                                                                    "latitude": 0,
-                                                                    "longitude": 0
-                                                                  }
-                                                              }
-                                                            }
+                                                                numberDays: 3,
+                                                                title: "Những viên ngọc văn hóa và kho báu nghệ thuật của Paris",
+                                                                plan_category: Du lịch Cá Nhân,
+                                                                location: Hà Nội,
+                                                                description: "Đắm mình trong bức tranh nghệ thuật và văn hóa phong phú tại một số bảo tàng hấp dẫn nhất của Paris. Khám phá những viên ngọc ẩn như Petit Palais, với những bộ sưu tập tuyệt đẹp trải dài từ nghệ thuật cổ đại đến nghệ thuật hiện đại, và Musée Marmottan Monet ấm cúng, trưng bày những kiệt tác của trường phái Ấn tượng. Đừng bỏ lỡ những màn trình diễn lộng lẫy tại Musée d'Art Moderne de Paris, những sáng tạo kỳ quặc tại Bảo tàng Dalí và các tác phẩm mang tính biểu tượng của Picasso được lưu giữ tại Hôtel Salé thanh lịch, bên cạnh Trung tâm Pompidou tiên tiến định nghĩa lại nghệ thuật hiện đại. Mỗi địa điểm đều mang đến một trải nghiệm độc đáo, mời gọi những người yêu nghệ thuật và du khách bình thường khám phá, tìm hiểu và đánh giá cao di sản nghệ thuật của thành phố xinh đẹp này.",
+                                                                days: [
+                                                                    "day_1": {
+                                                                        date: "dd-MM-yyy",
+                                                                        long_description: "",
+                                                                      "activities": [
+                                                                        {
+                                                                          "id": 1,
+                                                                          "title": "Activity 1 Title",
+                                                                          "content": "Description of activity 1.",
+                                                                          "category": "Category of activity",
+                                                                          "location": {
+                                                                            "latitude": 0,
+                                                                            "longitude": 0
+                                                                          },
+                                                                          duration: 2-3 giờ,
+                                                                          imageUrl: ''
+                                                                        }
+                                                                      ],
+                                                                      "hotel": {
+                                                                        "id": 1,
+                                                                        "name": "Hotel Name",
+                                                                        "address": "Hotel Address",
+                                                                        "image_url": "Hotel Image URL",
+                                                                        "location": {
+                                                                            "latitude": 0,
+                                                                            "longitude": 0
+                                                                          }
+                                                                      },
+                                                                      "restaurants": [
+                                                                        {
+                                                                          "id": 1,
+                                                                          "name": "Restaurant Name",
+                                                                          "address": "Restaurant Address",
+                                                                          "image_url": "Restaurant Image URL",
+                                                                          "location": {
+                                                                            "latitude": 0,
+                                                                            "longitude": 0
+                                                                          }
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    "day_2": {
+                                                                    date: "dd-MM-yyy",
+                                                                    long_description: "",
+                                                                      "activities": [
+                                                                        {
+                                                                          "id": 2,
+                                                                          "title": "Activity 2 Title",
+                                                                          "content": "Description of activity 2.",
+                                                                          "category": "Category of activity",
+                                                                          "location": {
+                                                                            "latitude": 0,
+                                                                            "longitude": 0
+                                                                          },
+                                                                          duration: 2-3 giờ,
+                                                                          imageUrl: ''
+                                                                        }
+                                                                      ],
+                                                                      "hotel": {
+                                                                        "id": 2,
+                                                                        "name": "Hotel Name",
+                                                                        "address": "Hotel Address",
+                                                                        "image_url": "Hotel Image URL",
+                                                                        "location": {
+                                                                            "latitude": 0,
+                                                                            "longitude": 0
+                                                                          }
+                                                                      }
+                                                                    }
+                                                            ]
                                                         """;
 
 
@@ -433,6 +444,11 @@ public class Constants {
                     - Nếu có thông tin bị thiếu hoặc không rõ ràng, hãy nêu rõ rằng không thể xác định được.
                     - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
                     - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
+                    - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
+                    - Ảnh cho các hoạt động (activities) trong ngày hãy tìm đường dẫn free ở trên mạng
+                    - Ảnh cho khách sạn và nhà hàng lấy từ dữ liệu được cung cấp (phần Link Ảnh)
+                    - Phải có ít nhất một khách sạn trong 1 ngày
+                    - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
 
                     Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
                     Định dạng phản hồi của bạn PHẢI tuân theo cấu trúc JSON sau:

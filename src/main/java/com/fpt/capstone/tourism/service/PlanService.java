@@ -16,4 +16,5 @@ public interface PlanService {
 
     GeneralResponse<?> generatePlan(GeneratePlanRequestDTO dto);
 
+    GeneralResponse<?> getPlanById(Long planId);
 }

@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.TopRevenueTourDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -112,4 +113,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             ORDER BY CAST( SUM (ca.finalAmount) AS BIGDECIMAL )  DESC 
             """)
     List<TopRevenueTourDTO> getTopRevenueTourByMonth(LocalDate startDate, LocalDate endDate, List<TransactionType> transactionTypes, CostAccountStatus paid, Pageable pageable);
+
+    @Query(value = "SELECT tour_type FROM tour t WHERE t.id = :tourId", nativeQuery = true)
+    TourType getTourTypeByTourId(@Param("tourId") Long tourId);
+
+
+    Tour findByIdAndTourStatusAndTourType(Long id, TourStatus tourStatus, TourType tourType);
 }

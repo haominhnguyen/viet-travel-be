@@ -184,7 +184,7 @@ public class TourServiceImpl implements TourService {
             List<Long> tourIds = tourRepository.findSameLocationTourIds(locationIds);
             for (Long tourId : tourIds) {
                 //Get tour information
-                Tour tour = tourRepository.findById(tourId).orElseThrow();
+                Tour tour = tourRepository.findByIdAndTourStatusAndTourType(tourId, TourStatus.OPENED, TourType.SIC);
 
                 //Get list tag for each tour
                 List<TagDTO> tags = tagRepository.findTagsByTourId(tourId)

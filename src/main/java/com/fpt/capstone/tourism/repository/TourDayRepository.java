@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.model.TourDay;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,5 +34,7 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     Optional<TourDay> findByTourIdAndDayNumber(Long tourId, Integer dayNumber);
 
     List<TourDay> findAllByTourId(Long tourId);
+
+
 
 }

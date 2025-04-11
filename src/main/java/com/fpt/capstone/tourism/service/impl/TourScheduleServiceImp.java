@@ -417,8 +417,12 @@ public class TourScheduleServiceImp implements TourScheduleService {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
+            List<TourScheduleStatus> statuses = new ArrayList<>();
+            statuses.add(TourScheduleStatus.SETTLEMENT);
+            statuses.add(TourScheduleStatus.ONGOING);
+
             // Build search specification
-            Specification<TourSchedule> spec = tourScheduleHelper.buildTourScheduleSearchSpecification(keyword, TourScheduleStatus.SETTLEMENT);
+            Specification<TourSchedule> spec = tourScheduleHelper.buildTourScheduleSearchSpecification(keyword, statuses);
 
             Page<TourSchedule> tourSchedulePage = tourScheduleRepository.findAll(spec, pageable);
 

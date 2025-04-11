@@ -100,4 +100,12 @@ public interface BookingService {
      GeneralResponse<?> changePaymentMethod(Long id, PaymentMethod paymentMethod);
 
     GeneralResponse<?> cancelBooking(String bookingCode);
+
+     GeneralResponse<?> createCustomer(SaleCreateUserRequestDTO dto);
+
+     GeneralResponse<?> getForwardSchedule(ForwardScheduleRequestDTO dto);
+
+     GeneralResponse<?> forwardBooking(ForwardBookingRequestDTO dto);
+
+     GeneralResponse<?> checkingAllService(Long bookingId);
 }

@@ -132,6 +132,11 @@ public class SalesmanController {
         return ResponseEntity.ok(bookingService.sendCheckingServiceAvailable(tourBookingServiceId));
     }
 
+    @PostMapping("/bookings/services/checking-available/all")
+    public ResponseEntity<?> checking(@RequestBody Long bookingId) {
+        return ResponseEntity.ok(bookingService.checkingAllService(bookingId));
+    }
+
 
     @GetMapping("/tours/private/list")
     public ResponseEntity<?> sendCheckingAvailable(@RequestParam String name) {
@@ -218,5 +223,22 @@ public class SalesmanController {
     @PostMapping("/bookings/take-booking")
     public ResponseEntity<?> takeBooking(@RequestBody TakeBookingRequestDTO dto) {
         return ResponseEntity.ok(bookingService.takeBooking(dto));
+    }
+
+
+    @PostMapping("/customers/create")
+    public ResponseEntity<?> createCustomer(@RequestBody SaleCreateUserRequestDTO dto){
+        return ResponseEntity.ok(bookingService.createCustomer(dto));
+    }
+
+
+    @PostMapping("/tours/forward/schedules")
+    public ResponseEntity<?> createCustomer(@RequestBody ForwardScheduleRequestDTO dto){
+        return ResponseEntity.ok(bookingService.getForwardSchedule(dto));
+    }
+
+    @PostMapping("/tours/forward")
+    public ResponseEntity<?> forwardBooking(@RequestBody ForwardBookingRequestDTO dto){
+        return ResponseEntity.ok(bookingService.forwardBooking(dto));
     }
 }

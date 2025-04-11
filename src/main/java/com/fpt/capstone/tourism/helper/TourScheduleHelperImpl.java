@@ -25,7 +25,7 @@ public class TourScheduleHelperImpl implements TourScheduleHelper {
     private final TourMapper tourMapper;
 
     @Override
-    public Specification<TourSchedule> buildTourScheduleSearchSpecification(String keyword, TourScheduleStatus tourScheduleStatus) {
+    public Specification<TourSchedule> buildTourScheduleSearchSpecification(String keyword, List<TourScheduleStatus> tourScheduleStatus) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -40,7 +40,7 @@ public class TourScheduleHelperImpl implements TourScheduleHelper {
 
             }
 
-            predicates.add(cb.equal(root.get("status"), tourScheduleStatus));
+            predicates.add(root.get("status").in(tourScheduleStatus));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

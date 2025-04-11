@@ -3,13 +3,18 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.LocationWithoutGeoPositionDTO;
+import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.PlanHelper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
+import com.fpt.capstone.tourism.mapper.PlanMapper;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.Plan;
 import com.fpt.capstone.tourism.model.ServiceProvider;
+import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.LocationRepository;
+import com.fpt.capstone.tourism.repository.PlanRepository;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.PlanService;
@@ -28,8 +33,10 @@ public class PlanServiceImpl implements PlanService {
 
     private final LocationRepository locationRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private final PlanRepository planRepository;
 
     private final LocationMapper locationMapper;
+    private final PlanMapper planMapper;
 
     private final PlanHelper planHelper;
 
@@ -123,6 +130,13 @@ public class PlanServiceImpl implements PlanService {
                 contextBuilder.append("- Sở thích cá nhân: Không được cung cấp\n");
             }
 
+            if (dto.isTravelingWithChildren()) {
+                contextBuilder.append("- Có sự tham gia của trẻ em ").append(dto.getPreferences()).append("\n");
+            } else {
+                contextBuilder.append("- Không có sự tham gia của trẻ em\n");
+            }
+
+
             contextBuilder.append("\nHãy sử dụng các thông tin trên để tạo ra một kế hoạch du lịch phù hợp nhất với nhu cầu khách hàng.");
 
             return contextBuilder.toString();
@@ -139,9 +153,30 @@ public class PlanServiceImpl implements PlanService {
                     + buildServiceProviderContext(dto.getLocationId())
                     + Constants.AI.PROMPT_END;
             String response = geminiApiService.getGeminiResponse(prompt);
-            return GeneralResponse.of(response);
+
+            Plan plan = Plan.builder()
+                    .user(User.builder().id(dto.getUserId()).build())
+                    .content(response)
+                    .deleted(false)
+                    .build();
+
+            Plan savedPlan = planRepository.save(plan);
+
+
+            return GeneralResponse.of(savedPlan.getId());
         } catch (Exception ex) {
             throw BusinessException.of("Tạo plan không thành công", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getPlanById(Long planId) {
+        try {
+            Plan plan = planRepository.findById(planId).orElseThrow();
+            PlanDTO dto = planMapper.toPlanDto(plan);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
         }
     }
 
