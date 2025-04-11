@@ -209,7 +209,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
                     .operator(user.getFullName())
                     .maxPax(tourSchedule.getTourPax().getMaxPax())
-                    .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
+                        .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator received tour to operate successfully", operatorTourDTO);
         } catch (Exception ex) {

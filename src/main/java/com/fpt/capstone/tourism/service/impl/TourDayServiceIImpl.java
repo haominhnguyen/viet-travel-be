@@ -113,7 +113,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             tourDay = tourDayRepository.save(tourDay);
 
-            // Get service categories but DON'T create TourDayService entries yet
             List<ServiceCategory> serviceCategories = new ArrayList<>();
 
             for (String categoryName : request.getServiceCategories()) {
@@ -121,8 +120,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
                 serviceCategories.add(category);
 
-                // Store the association between tour day and service category
-                // using the entity references
                 saveTourDayServiceCategory(tourDay, category);
             }
 

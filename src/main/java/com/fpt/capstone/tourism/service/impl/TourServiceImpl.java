@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -53,7 +54,7 @@ public class TourServiceImpl implements TourService {
     private final ServiceRepository serviceRepository;
     private final TourDayResponseMapper tourDayResponseMapper;
     private final TourDayServiceFullMapper tourDayServiceFullMapper;
-
+    private final TourPaxRepository tourPaxRepository;
     @Override
     public PublicTourDTO findTopTourOfYear() {
         try {
@@ -882,6 +883,85 @@ public class TourServiceImpl implements TourService {
         }
     }
 
+    @Override
+    @Transactional
+    public GeneralResponse<TourResponseDTO> sendTourForApproval(Long tourId, User currentUser) {
+        try {
+            // Find the tour by ID
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
+            // Check if the tour is in DRAFT status
+            if (tour.getTourStatus() != TourStatus.DRAFT) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                        "Only tours in DRAFT status can be sent for approval. Current status: " + tour.getTourStatus());
+            }
+
+            // Check if the current user is the creator of the tour or has admin privileges
+            boolean isCreator = tour.getCreatedBy() != null &&
+                    tour.getCreatedBy().getId().equals(currentUser.getId());
+
+            if (!isCreator) {
+                throw BusinessException.of(HttpStatus.FORBIDDEN,
+                        "Only the tour creator or administrators can send a tour for approval");
+            }
+
+            // Validate tour data before sending for approval
+            validateTourForApproval(tour);
+
+            // Update the tour status to PENDING
+            tour.setTourStatus(TourStatus.PENDING);
+            // Save the updated tour
+            Tour updatedTour = tourRepository.save(tour);
+
+            // Map to response DTO
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour successfully sent for approval", tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to send tour for approval: " + ex.getMessage(), ex);
+        }
+    }
+
+    private void validateTourForApproval(Tour tour) {
+        List<String> missingFields = new ArrayList<>();
+
+        // Check required fields
+        if (StringUtils.isEmpty(tour.getName())) {
+            missingFields.add("name");
+        }
+        if (tour.getLocations() == null || tour.getLocations().isEmpty()) {
+            missingFields.add("locations");
+        }
+        if (tour.getDepartLocation() == null) {
+            missingFields.add("departLocation");
+        }
+
+        if (tour.getTourType() == null) {
+            missingFields.add("tourType");
+        }
+
+        // Check if tour days are created
+        List<TourDay> tourDays = tourDayRepository.findByTourIdAndDeletedFalseOrderByDayNumber(tour.getId());
+        if (tourDays.isEmpty() || tourDays.size() != tour.getNumberDays()) {
+            missingFields.add("tourDays");
+        }
+
+        // Check if tour has at least one valid pax configuration
+        List<TourPax> tourPaxes = tourPaxRepository.findByTourIdAndDeletedFalse(tour.getId());
+        if (tourPaxes.isEmpty()) {
+            missingFields.add("paxConfigurations");
+        }
+
+        if (!missingFields.isEmpty()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                    "Tour is missing required information: " + String.join(", ", missingFields));
+        }
+    }
+
     private Specification<Tour> buildSearchSpecificationAdmin(String keyword, TourStatus tourStatus) {
         return (root, query, cb) -> {
             query.distinct(true);
@@ -1051,6 +1131,7 @@ public class TourServiceImpl implements TourService {
 
             // Filter by tour schedule date
             Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
+            predicates.add(cb.equal(root.get("status"), TourScheduleStatus.OPEN));
             predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), currentDate.plusDays(1)));
             if (fromDate != null) {
                 predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), fromDate));

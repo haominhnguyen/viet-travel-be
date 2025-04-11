@@ -13,6 +13,7 @@ public class TourPriceConfigRequestDTO {
     private Double sellingPrice;
     private Double fixedCost;
     private Double extraHotelCost;
+    private Double nettPricePerPax;
     private Date validFrom;
     private Date validTo;
     private Long id;

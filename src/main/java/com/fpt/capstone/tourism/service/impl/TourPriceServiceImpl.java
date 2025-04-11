@@ -147,17 +147,17 @@ public class TourPriceServiceImpl implements TourPriceService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, DATE_RANGE_INVALID);
             }
 
+            // Update all price-related fields
             tourPax.setSellingPrice(requestDTO.getSellingPrice());
             tourPax.setFixedCost(requestDTO.getFixedCost());
             tourPax.setExtraHotelCost(requestDTO.getExtraHotelCost());
+            tourPax.setNettPricePerPax(requestDTO.getNettPricePerPax());
             tourPax.setValidFrom(requestDTO.getValidFrom());
             tourPax.setValidTo(requestDTO.getValidTo());
 
             // Save updated configuration
             tourPax = tourPaxRepository.save(tourPax);
-            // Build response
             TourPriceConfigResponseDTO responseDTO = buildResponseDTO(tourPax);
-
             return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_UPDATED, responseDTO);
         } catch (BusinessException ex) {
             throw ex;

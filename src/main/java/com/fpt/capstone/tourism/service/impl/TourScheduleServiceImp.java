@@ -124,6 +124,11 @@ public class TourScheduleServiceImp implements TourScheduleService {
         Tour tour = tourRepository.findById(requestDTO.getTourId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
+        // Check if the tour status is APPROVED before allowing to set a schedule
+        if (tour.getTourStatus() != TourStatus.APPROVED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour must be in APPROVED status to set a schedule");
+        }
+
         // Get the selected operator
         User operator = userRepository.findById(requestDTO.getOperatorId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, OPERATOR_NOT_FOUND));
@@ -222,15 +227,13 @@ public class TourScheduleServiceImp implements TourScheduleService {
         tourSchedule.setEndDate(requestDTO.getEndDate());
         tourSchedule.setOperator(operator);
         tourSchedule.setTourPax(tourPax);
-        tourSchedule.setStatus(TourScheduleStatus.DRAFT);
+        tourSchedule.setStatus(TourScheduleStatus.OPEN);
         tourSchedule.setDeleted(false);
 
         tourSchedule = tourScheduleRepository.save(tourSchedule);
 
-        // Update tour status to PENDING after setting the schedule
-        tour.setTourStatus(TourStatus.PENDING);
+        tour.setTourStatus(TourStatus.OPENED);
         tourRepository.save(tour);
-
         return GeneralResponse.of(mapToResponseDTO(tourSchedule), SCHEDULE_CREATED_SUCCESS);
     }
 
@@ -245,9 +248,10 @@ public class TourScheduleServiceImp implements TourScheduleService {
         TourSchedule existingSchedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
 
-        // Check if the schedule is in an updatable state
-        if (existingSchedule.getStatus() != TourScheduleStatus.DRAFT) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only schedules in DRAFT status can be updated");
+
+        // Check if the schedule is in ONGOING status - cannot update ongoing schedules
+        if (existingSchedule.getStatus() == TourScheduleStatus.ONGOING) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedules with ONGOING status cannot be updated");
         }
 
         // Find the tour (using existing tour if tourId is not provided)
@@ -300,7 +304,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
         }
 
         // Process TourPax selection
-        TourPax tourPax = existingSchedule.getTourPax(); // Default to existing tourPax
+        TourPax tourPax = existingSchedule.getTourPax();
 
         if (requestDTO.getTourPaxId() != null) {
             // Find the specified pax configuration
@@ -350,7 +354,6 @@ public class TourScheduleServiceImp implements TourScheduleService {
                         if (pax.getValidFrom() == null || pax.getValidTo() == null) {
                             return true;
                         }
-
                         // Safe conversion of Date to LocalDate
                         LocalDate paxValidFrom = new java.sql.Date(pax.getValidFrom().getTime()).toLocalDate();
                         LocalDate paxValidTo = new java.sql.Date(pax.getValidTo().getTime()).toLocalDate();
@@ -369,18 +372,21 @@ public class TourScheduleServiceImp implements TourScheduleService {
         existingSchedule.setTour(tour);
         existingSchedule.setStartDate(startDate);
         existingSchedule.setEndDate(endDate);
-
-        // If the requestDTO doesn't specify an operator, keep the original operator
-        // This ensures the operator continues to operate this tour even when dates change
         existingSchedule.setOperator(requestDTO.getOperatorId() != null ? operator : originalOperator);
-
         existingSchedule.setTourPax(tourPax);
         existingSchedule.setUpdatedAt(LocalDateTime.now());
 
+        // Set tour schedule status to OPEN after update
+        existingSchedule.setStatus(TourScheduleStatus.OPEN);
+
         TourSchedule updatedSchedule = tourScheduleRepository.save(existingSchedule);
 
-        // Update tour status to PENDING after updating the schedule
+        // Update tour status
+        TourStatus currentStatus = tour.getTourStatus();
         tour.setTourStatus(TourStatus.PENDING);
+        if (currentStatus == TourStatus.OPENED) {
+            tour.setTourStatus(TourStatus.OPENED);
+        }
         tourRepository.save(tour);
 
         return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
