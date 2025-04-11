@@ -102,7 +102,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .minPax(pax.getMinPax())
                             .maxPax(pax.getMaxPax())
                             .price(pax.getNettPricePerPax())
-                            .sellingPrice(pax.getSellingPrice()) // Keep this for backward compatibility
+                            .sellingPrice(pax.getSellingPrice())
                             .fixedCost(pax.getFixedCost())
                             .extraHotelCost(pax.getExtraHotelCost())
                             .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())

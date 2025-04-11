@@ -35,4 +35,5 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
 
     List<TourPax> findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(Long tourId, Long paxIdToExclude);
 
+    List<TourPax> findByTourIdAndDeletedFalse(Long id);
 }
