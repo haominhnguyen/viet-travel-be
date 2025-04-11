@@ -49,4 +49,6 @@ public interface TourService {
     GeneralResponse<?> rejectTourProcess(Long tourId);
 
     GeneralResponse<?> viewDashboard(LocalDate fromDate,LocalDate toDate);
+
+    GeneralResponse<TourResponseDTO> sendTourForApproval(Long tourId, User user);
 }
