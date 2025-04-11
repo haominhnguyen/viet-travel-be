@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
@@ -11,6 +12,7 @@ import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.BookingService;
+import com.fpt.capstone.tourism.service.EmailService;
 import com.fpt.capstone.tourism.service.TourBookingCustomerService;
 import com.fpt.capstone.tourism.service.VNPayService;
 import jakarta.persistence.criteria.Expression;
@@ -40,6 +42,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.FilePath.TOUR_IMAGE_FALL_BACK_URL;
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.EMAIL_ALREADY_EXISTS_MESSAGE;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USERNAME_ALREADY_EXISTS_MESSAGE;
@@ -85,6 +88,7 @@ public class BookingServiceImpl implements BookingService {
     private final TourDayServiceRepository tourDayServiceRepository;
 
     private final UserServiceImpl userService;
+    private final EmailService emailService;
 
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
@@ -143,6 +147,7 @@ public class BookingServiceImpl implements BookingService {
                     .tourBookingCategory(TourBookingCategory.ONLINE)
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .paymentUrl(paymentUrl)
+                    .expiredAt(LocalDateTime.now().plusHours(2))
                     .build();
 
 
@@ -1227,6 +1232,60 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(bookingId);
         } catch (Exception ex) {
             throw BusinessException.of("checking All Service failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getEmailContent(SendPriceRequestDTO dto) {
+        try {
+            Tour tourEntity = tourRepository.findById(dto.getTourId()).orElseThrow();
+            TourSchedule tourSchedule = tourScheduleRepository.findById(dto.getScheduleId()).orElseThrow();
+            TourPax tourPax = tourPaxRepository.findById(tourSchedule.getTourPax().getId()).orElseThrow();
+
+            String htmlTemplate = bookingHelper.loadTemplate(Constants.FilePath.PRICE_EMAIL_PATH);
+
+
+            htmlTemplate = htmlTemplate.replace("{{tourName}}", tourEntity.getName())
+                    .replace("{{numberDays}}", String.valueOf(tourEntity.getNumberDays()))
+                    .replace("{{numberNights}}", String.valueOf(tourEntity.getNumberNights()))
+                    .replace("{{departLocation}}", tourEntity.getDepartLocation().getName())
+                    .replace("{{highlights}}", tourEntity.getHighlights())
+                    .replace("{{privacy}}", tourEntity.getPrivacy())
+                    .replace("{{adultPrice}}", String.format("%,.0f", tourPax.getSellingPrice()))
+                    .replace("{{childPrice}}", String.format("%,.0f", tourPax.getSellingPrice() * 0.75))
+                    .replace("{{locations}}", tourEntity.getLocations().stream().map(Location::getName).collect(Collectors.joining(", ")))
+                    .replace("{{tags}}", tourEntity.getTags().stream().map(Tag::getName).collect(Collectors.joining(", ")));
+
+            List<TourDay> sortedTourDays = tourEntity.getTourDays()
+                    .stream()
+                    .sorted(Comparator.comparing(TourDay::getDayNumber))
+                    .toList();
+
+            StringBuilder dayHtml = new StringBuilder();
+            for (TourDay day : sortedTourDays) {
+                dayHtml.append("<div class=\"day\">")
+                        .append("<strong>Ngày ").append(day.getDayNumber()).append(":</strong> ").append(day.getTitle()).append("<br/>")
+                        .append("<em>").append(day.getContent()).append("</em>")
+                        .append("</div>");
+            }
+
+
+            htmlTemplate = htmlTemplate.replace("{{tourDays}}", dayHtml.toString());
+
+            return GeneralResponse.of(htmlTemplate);
+        } catch (Exception ex) {
+            throw BusinessException.of("Tạo email báo giá thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> sendEmailPrice(SendEmailPriceRequestDTO dto) {
+        try {
+            emailService.sendEmailHtml(dto.getEmail(), dto.getSubject(), dto.getContent());
+
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Gửi email báo giá thất bại", ex);
         }
     }
 

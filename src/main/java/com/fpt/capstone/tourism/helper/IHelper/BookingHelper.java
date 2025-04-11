@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import com.fpt.capstone.tourism.model.Tour;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface BookingHelper {
@@ -29,4 +30,5 @@ public interface BookingHelper {
     List<TourBookingServiceSaleResponseDTO> getTourBookingListService(List<TourDay> tourDays, TourBooking tourBooking);
     Specification<Tour> searchByNameAndTourType(String name, TourType tourType);
     List<TourDay> generateTourDays(int numberDays, Tour tour);
+    String loadTemplate(String path) throws IOException;
 }

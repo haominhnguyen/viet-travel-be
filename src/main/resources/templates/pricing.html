@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .tour-image {
+            flex: 1 1 40%;
+        }
+
+        .tour-image img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .tour-info {
+            flex: 1 1 55%;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-top: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            color: #3498db;
+        }
+
+        .day {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f1f5f9;
+            border-radius: 5px;
+        }
+
+        .terms, .pricing {
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .pricing-table th,
+        .pricing-table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- PHẦN 1 -->
+    <div class="header">
+        <div class="tour-info">
+            <h2>{{tourName}}</h2>
+            <p>{{highlights}}</p>
+            <p><strong>Thời gian:</strong> {{numberDays}} ngày {{numberNights}} đêm</p>
+            <p><strong>Điểm khởi hành:</strong> {{departLocation}}</p>
+        </div>
+    </div>
+
+    <!-- PHẦN 2 -->
+    <div>
+        <div class="section-title">📅 Lịch trình tour</div>
+        {{tourDays}}
+    </div>
+
+    <!-- PHẦN 3 -->
+    <div>
+        <div class="section-title">📌 Điều khoản</div>
+        <div class="terms">
+            {{privacy}}
+        </div>
+    </div>
+
+    <!-- PHẦN 4 -->
+    <div>
+        <div class="section-title">💵 Bảng giá</div>
+        <table class="pricing-table">
+            <tr>
+                <th>Loại khách</th>
+                <th>Giá</th>
+            </tr>
+            <tr>
+                <td>Người lớn</td>
+                <td>{{adultPrice}} VND</td>
+            </tr>
+            <tr>
+                <td>Trẻ em</td>
+                <td>{{childPrice}} VND</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        Cảm ơn bạn đã chọn Viet Travel! Mọi thông tin chi tiết, vui lòng liên hệ CSKH.
+    </div>
+</div>
+</body>
+</html>

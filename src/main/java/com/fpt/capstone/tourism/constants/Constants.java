@@ -349,6 +349,11 @@ public class Constants {
 
     }
 
+    public static final class FilePath {
+        public static final String PRICE_EMAIL_PATH= "src/main/resources/templates/pricing.html";
+        public static final String TOUR_IMAGE_FALL_BACK_URL = "https://media.travel.com.vn/TourFiles/4967/Hoi%20An%20Ve%20Dem%20(4).jpg";
+    }
+
 
     public static final class AI {
         public static final String PLAN_RESPONSE_JSON = """
@@ -445,7 +450,7 @@ public class Constants {
                     - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
                     - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
                     - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
-                    - Ảnh cho các hoạt động (activities) trong ngày hãy tìm đường dẫn free ở trên mạng
+                    - Ảnh cho các hoạt động (activities) trong ngày hãy tìm link ảnh bằng google map dùng key là AIzaSyAUdZ-ag1Rr1ZerQ90MU1Q68O7jVEsugZg
                     - Ảnh cho khách sạn và nhà hàng lấy từ dữ liệu được cung cấp (phần Link Ảnh)
                     - Phải có ít nhất một khách sạn trong 1 ngày
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)

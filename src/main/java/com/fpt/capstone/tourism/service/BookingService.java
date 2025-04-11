@@ -108,4 +108,8 @@ public interface BookingService {
      GeneralResponse<?> forwardBooking(ForwardBookingRequestDTO dto);
 
      GeneralResponse<?> checkingAllService(Long bookingId);
+
+     GeneralResponse<?> getEmailContent(SendPriceRequestDTO dto);
+
+     GeneralResponse<?> sendEmailPrice(SendEmailPriceRequestDTO dto);
 }

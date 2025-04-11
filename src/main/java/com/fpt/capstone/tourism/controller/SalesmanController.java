@@ -241,4 +241,14 @@ public class SalesmanController {
     public ResponseEntity<?> forwardBooking(@RequestBody ForwardBookingRequestDTO dto){
         return ResponseEntity.ok(bookingService.forwardBooking(dto));
     }
+
+    @PostMapping("/bookings/send-email")
+    public ResponseEntity<?> getEmailContent(@RequestBody SendPriceRequestDTO dto){
+        return ResponseEntity.ok(bookingService.getEmailContent(dto));
+    }
+
+    @PostMapping("/bookings/send-email/submit")
+    public ResponseEntity<?> sendPrice(@RequestBody SendEmailPriceRequestDTO dto){
+        return ResponseEntity.ok(bookingService.sendEmailPrice(dto));
+    }
 }
