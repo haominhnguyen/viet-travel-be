@@ -9,8 +9,6 @@ import com.fpt.capstone.tourism.dto.request.ServiceUpdateRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.UserRepository;
-import com.fpt.capstone.tourism.service.ActivityCategoryService;
-import com.fpt.capstone.tourism.service.ActivityService;
 import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.service.TourDiscountService;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +28,9 @@ import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformat
 @RequestMapping("/head-of-business/tour/{tourId}/discount")
 public class TourDiscountController {
     private final TourDiscountService tourDiscountService;
-    private final ActivityService activityService;
+    //private final ActivityService activityService;
     private final LocationService locationService;
-    private final ActivityCategoryService activityCategoryService;
+    //private final ActivityCategoryService activityCategoryService;
     private final UserRepository userRepository;
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<TourServiceListDTO>> getTourServicesList(
@@ -142,17 +140,17 @@ public class TourDiscountController {
         return ResponseEntity.ok(locationService.getLocationsByTourId(tourId, page, size, keyword, isDeleted, orderDate));
     }
 
-    @GetMapping("/activity-categories")
-    public ResponseEntity<GeneralResponse<List<ActivityCategoryDTO>>> getAllActivityCategories() {
-        return ResponseEntity.ok(activityCategoryService.getAllActivityCategories());
-    }
+//    @GetMapping("/activity-categories")
+//    public ResponseEntity<GeneralResponse<List<ActivityCategoryDTO>>> getAllActivityCategories() {
+//        return ResponseEntity.ok(activityCategoryService.getAllActivityCategories());
+//    }
 
-    @GetMapping("/locations/{locationId}/activity-categories/{categoryId}/activities")
-    public ResponseEntity<GeneralResponse<List<ActivityBasicDTO>>> getActivitiesByLocationAndCategory(
-            @PathVariable Long locationId,
-            @PathVariable Long categoryId) {
-        return ResponseEntity.ok(activityService.getActivitiesByLocationAndCategory(locationId, categoryId));
-    }
+//    @GetMapping("/locations/{locationId}/activity-categories/{categoryId}/activities")
+//    public ResponseEntity<GeneralResponse<List<ActivityBasicDTO>>> getActivitiesByLocationAndCategory(
+//            @PathVariable Long locationId,
+//            @PathVariable Long categoryId) {
+//        return ResponseEntity.ok(activityService.getActivitiesByLocationAndCategory(locationId, categoryId));
+//    }
 
 //    @PostMapping("/activity/create")
 //    public ResponseEntity<GeneralResponse<ActivityDetailDTO>> createActivity(

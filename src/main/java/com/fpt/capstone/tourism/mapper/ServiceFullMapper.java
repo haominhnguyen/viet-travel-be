@@ -8,7 +8,7 @@ import com.fpt.capstone.tourism.model.Service;
 import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {ServiceDetailMapper.class, TourDayServiceMapper.class, ServiceCategoryFullMapper.class, ServiceProviderMapper.class})
+        uses = {TourDayServiceMapper.class, ServiceCategoryFullMapper.class, ServiceProviderMapper.class})
 public interface ServiceFullMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "serviceCategory", ignore = true)

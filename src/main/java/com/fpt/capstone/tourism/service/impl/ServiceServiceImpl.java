@@ -41,7 +41,7 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceRepository serviceRepository;
     private final ServiceBaseMapper serviceBaseMapper;
     private final ServiceFullMapper serviceFullMapper;
-    private final ServiceDetailMapper serviceDetailMapper;
+    //private final ServiceDetailMapper serviceDetailMapper;
     private final TourDayServiceMapper tourDayServiceMapper;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;

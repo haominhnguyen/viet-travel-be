@@ -2,7 +2,6 @@ package com.fpt.capstone.tourism.dto.response;
 
 import com.fpt.capstone.tourism.dto.common.ServiceCategoryDTO;
 import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceDetail;
 import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.TourDayService;
 import lombok.Builder;
