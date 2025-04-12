@@ -153,6 +153,7 @@ public class ServiceServiceImpl implements ServiceService {
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
                 // Add transport details to the map
                 serviceDetails.put("transportDetails", transportMapper.toDTO(transport));
+            }else if (ACTIVITY.equalsIgnoreCase(categoryName) || TICKET.equalsIgnoreCase(categoryName)) {
             }
             return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
         } catch (BusinessException e) {
