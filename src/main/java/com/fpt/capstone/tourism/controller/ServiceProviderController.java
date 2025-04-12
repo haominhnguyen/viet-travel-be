@@ -32,7 +32,7 @@ public class ServiceProviderController {
     }
 
     @GetMapping("/details/{id}")
-    public ResponseEntity<GeneralResponse<ServiceProviderDTO>> getDetail(@PathVariable Long id) {
+    public ResponseEntity<GeneralResponse<?>> getDetail(@PathVariable Long id) {
         return ResponseEntity.ok(serviceProviderService.getServiceProviderById(id));
     }
 
