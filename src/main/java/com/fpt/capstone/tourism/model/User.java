@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
-import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

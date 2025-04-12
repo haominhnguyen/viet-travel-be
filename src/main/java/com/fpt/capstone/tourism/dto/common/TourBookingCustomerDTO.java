@@ -1,9 +1,7 @@
 package com.fpt.capstone.tourism.dto.common;
 
-import com.fpt.capstone.tourism.enums.Gender;
-import com.fpt.capstone.tourism.model.TourBooking;
+import com.fpt.capstone.tourism.model.enums.Gender;
 import com.fpt.capstone.tourism.model.enums.AgeType;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 

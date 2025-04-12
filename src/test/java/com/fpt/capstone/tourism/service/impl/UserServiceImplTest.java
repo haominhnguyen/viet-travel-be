@@ -7,10 +7,9 @@ import com.fpt.capstone.tourism.dto.request.UserCreationRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UserProfileRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
-import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.Gender;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
-import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
@@ -19,8 +18,6 @@ import com.fpt.capstone.tourism.repository.RoleRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.repository.UserRoleRepository;
 import com.fpt.capstone.tourism.service.CloudinaryService;
-import com.fpt.capstone.tourism.service.UserService;
-import com.fpt.capstone.tourism.service.impl.UserServiceImpl;
 import com.fpt.capstone.tourism.mapper.UserFullInformationMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -47,8 +44,6 @@ import java.util.*;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.FAIL_TO_SAVE_USER_MESSAGE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
-import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {

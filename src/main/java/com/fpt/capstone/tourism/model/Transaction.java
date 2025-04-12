@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 

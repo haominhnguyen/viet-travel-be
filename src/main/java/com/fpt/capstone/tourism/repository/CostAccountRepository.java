@@ -2,7 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.common.RevenueChartDTO;
 import com.fpt.capstone.tourism.model.CostAccount;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

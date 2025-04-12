@@ -1,18 +1,15 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.dto.common.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.common.BookingRequestDTO;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.TourBookingHistoryDTO;
 import com.fpt.capstone.tourism.dto.response.*;
-import com.fpt.capstone.tourism.enums.Gender;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.TourBookingCustomerMapper;
 import com.fpt.capstone.tourism.mapper.TourImageMapper;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.AgeType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.repository.*;
@@ -35,11 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 

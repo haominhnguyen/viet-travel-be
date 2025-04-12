@@ -4,7 +4,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.TourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TourGuideResponseDTO;
-import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.Gender;
 import com.fpt.capstone.tourism.service.TourGuideService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

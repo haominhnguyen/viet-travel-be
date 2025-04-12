@@ -1,13 +1,8 @@
 package com.fpt.capstone.tourism.controller;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
-import com.fpt.capstone.tourism.model.TourBookingService;
-import com.fpt.capstone.tourism.model.TourSchedule;
-import com.fpt.capstone.tourism.model.Transaction;
-import com.fpt.capstone.tourism.model.TransactionType;
-import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import com.fpt.capstone.tourism.service.TransactionService;

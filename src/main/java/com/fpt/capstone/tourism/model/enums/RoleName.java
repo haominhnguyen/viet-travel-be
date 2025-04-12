@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.enums;
+package com.fpt.capstone.tourism.model.enums;
 
 public enum RoleName {
     CUSTOMER,

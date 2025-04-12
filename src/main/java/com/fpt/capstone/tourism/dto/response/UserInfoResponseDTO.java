@@ -1,9 +1,9 @@
 package com.fpt.capstone.tourism.dto.response;
 
 
-import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.Gender;
 
-import com.fpt.capstone.tourism.enums.RoleName;
+import com.fpt.capstone.tourism.model.enums.RoleName;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,14 +1,12 @@
 package com.fpt.capstone.tourism.helper;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourWithNumberBookingDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
 import com.fpt.capstone.tourism.model.Transaction;
-import com.fpt.capstone.tourism.model.TransactionType;
-import com.fpt.capstone.tourism.service.TransactionService;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;

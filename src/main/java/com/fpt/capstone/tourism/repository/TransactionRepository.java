@@ -1,9 +1,8 @@
 package com.fpt.capstone.tourism.repository;
 
-import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.Transaction;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

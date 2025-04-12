@@ -1,13 +1,10 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourWithNumberBookingDTO;
 import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
-import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.Transaction;
-import com.fpt.capstone.tourism.model.TransactionType;
-import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 
 import java.util.List;
 

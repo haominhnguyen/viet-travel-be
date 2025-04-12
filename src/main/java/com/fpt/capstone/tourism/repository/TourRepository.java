@@ -2,7 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.common.TopRevenueTourDTO;
 import com.fpt.capstone.tourism.model.Tour;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;

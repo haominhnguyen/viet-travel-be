@@ -42,7 +42,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.fpt.capstone.tourism.constants.Constants.FilePath.TOUR_IMAGE_FALL_BACK_URL;
 import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.EMAIL_ALREADY_EXISTS_MESSAGE;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USERNAME_ALREADY_EXISTS_MESSAGE;

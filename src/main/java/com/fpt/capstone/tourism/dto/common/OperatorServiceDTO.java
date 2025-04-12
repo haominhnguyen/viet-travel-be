@@ -1,13 +1,9 @@
 package com.fpt.capstone.tourism.dto.common;
 
-import com.fpt.capstone.tourism.model.TransactionType;
-import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder

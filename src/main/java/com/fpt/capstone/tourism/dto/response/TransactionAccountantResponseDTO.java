@@ -1,15 +1,11 @@
 package com.fpt.capstone.tourism.dto.response;
 
 import com.fpt.capstone.tourism.dto.common.CostAccountDTO;
-import com.fpt.capstone.tourism.model.CostAccount;
-import com.fpt.capstone.tourism.model.TourBooking;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;

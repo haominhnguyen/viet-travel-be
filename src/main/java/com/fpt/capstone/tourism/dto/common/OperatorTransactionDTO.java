@@ -1,10 +1,7 @@
 package com.fpt.capstone.tourism.dto.common;
 
-import com.fpt.capstone.tourism.model.CostAccount;
-import com.fpt.capstone.tourism.model.TourBooking;
-import com.fpt.capstone.tourism.model.TransactionType;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
