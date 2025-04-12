@@ -43,6 +43,14 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             AND sv.deleted = FALSE""")
     List<ServiceProvider> getServiceByLocationIdAndServiceCategory(@Param("locationId") Long id, @Param("categoryName") String categoryName);
 
+
+    @Query("""
+            SELECT sv FROM ServiceProvider sv
+            JOIN sv.serviceCategories sc
+            WHERE sc.categoryName = :categoryName
+            AND sv.deleted = FALSE""")
+    List<ServiceProvider> getServiceByServiceCategory(@Param("categoryName") String categoryName);
+
     @Query("""
             SELECT s.serviceProvider.id, MIN(s.sellingPrice)
                 FROM Service s

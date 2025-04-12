@@ -980,7 +980,12 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<?> getServiceProviders(Long locationId, String categoryName) {
         try {
-            List<ServiceProvider> providers = serviceProviderRepository.getServiceByLocationIdAndServiceCategory(locationId, categoryName);
+            List<ServiceProvider> providers;
+            if(categoryName.equalsIgnoreCase("Flight Ticket")) {
+                providers = serviceProviderRepository.getServiceByServiceCategory(categoryName);
+            }  else {
+                providers = serviceProviderRepository.getServiceByLocationIdAndServiceCategory(locationId, categoryName);
+            }
             List<ServiceProviderSimpleDTO> dto = providers.stream().map(bookingMapper::toServiceProviderSimpleDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {

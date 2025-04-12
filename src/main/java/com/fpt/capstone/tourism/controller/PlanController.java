@@ -2,7 +2,10 @@ package com.fpt.capstone.tourism.controller;
 
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
+import com.fpt.capstone.tourism.dto.common.PlanDTO;
+import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
+import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,6 +49,18 @@ public class PlanController {
     @GetMapping("/details/{id}")
     public ResponseEntity<?> locations(@PathVariable(name = "id") Long planId) {
         return ResponseEntity.ok(planService.getPlanById(planId));
+    }
+
+
+
+    @GetMapping("/list")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<PlanDTO>>>> getPlans(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "35") Long userId,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+        return ResponseEntity.ok(planService.getPlans(page, size, sortField, sortDirection, userId));
     }
 
 

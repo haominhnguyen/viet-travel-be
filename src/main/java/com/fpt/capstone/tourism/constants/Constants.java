@@ -361,50 +361,45 @@ public class Constants {
                                                                 numberDays: 3,
                                                                 title: "Những viên ngọc văn hóa và kho báu nghệ thuật của Paris",
                                                                 plan_category: Du lịch Cá Nhân,
+                                                                thumbnail_image_url: "",
                                                                 location: Hà Nội,
                                                                 description: "Đắm mình trong bức tranh nghệ thuật và văn hóa phong phú tại một số bảo tàng hấp dẫn nhất của Paris. Khám phá những viên ngọc ẩn như Petit Palais, với những bộ sưu tập tuyệt đẹp trải dài từ nghệ thuật cổ đại đến nghệ thuật hiện đại, và Musée Marmottan Monet ấm cúng, trưng bày những kiệt tác của trường phái Ấn tượng. Đừng bỏ lỡ những màn trình diễn lộng lẫy tại Musée d'Art Moderne de Paris, những sáng tạo kỳ quặc tại Bảo tàng Dalí và các tác phẩm mang tính biểu tượng của Picasso được lưu giữ tại Hôtel Salé thanh lịch, bên cạnh Trung tâm Pompidou tiên tiến định nghĩa lại nghệ thuật hiện đại. Mỗi địa điểm đều mang đến một trải nghiệm độc đáo, mời gọi những người yêu nghệ thuật và du khách bình thường khám phá, tìm hiểu và đánh giá cao di sản nghệ thuật của thành phố xinh đẹp này.",
                                                                 days: [
-                                                                    "day_1": {
+                                                                    {
                                                                         date: "dd-MM-yyy",
-                                                                        long_description: "",
+                                                                        long_description: "Trải nghiệm đến khu du lịch Fansipan Legend bằng Tàu hỏa leo núi Mường Hoa hiện đại nhất Việt Nam với tổng chiều dài gần 2000m, thưởng ngoạn bức tranh phong cảnh đầy màu sắc của cánh rừng nguyên sinh, thung lũng Mường Hoa.
+                                                                                           Chinh phục đỉnh núi Fansipan với độ cao 3.143m hùng vĩ bằng cáp treo (chi phí tự túc).
+                                                                                           Lễ Phật tại chùa Trình hay cầu phúc lộc, bình an cho gia đình tại Bích Vân Thiền Tự trong hệ thống cảnh quan tâm linh trên đỉnh Fansipan.
+                                                                                           Tiếp tục hành trình, bạn sẽ dùng cơm trưa và tham quan:
+                                                                                           Chinh phục đèo Ô Quy Hồ - con đèo đẹp, hùng vĩ và dài nhất trong Tứ Đại Đỉnh Đèo miền Bắc.
+                                                                                           Khu du lịch Cổng Trời Ô Quy Hồ - một trong những điểm săn mây, ngắm hoàng hôn cực đẹp tại Sapa.
+                                                                                           Cuối cùng dùng cơm tối tại Sapa và tự do nghỉ ngơi.",
                                                                       "activities": [
                                                                         {
                                                                           "id": 1,
                                                                           "title": "Activity 1 Title",
                                                                           "content": "Description of activity 1.",
                                                                           "category": "Category of activity",
-                                                                          "location": {
-                                                                            "latitude": 0,
-                                                                            "longitude": 0
-                                                                          },
-                                                                          duration: 2-3 giờ,
-                                                                          imageUrl: ''
+                                                                          duration: "2-3 giờ",
+                                                                          imageUrl: "Activities Image URL"
                                                                         }
                                                                       ],
                                                                       "hotel": {
                                                                         "id": 1,
                                                                         "name": "Hotel Name",
                                                                         "address": "Hotel Address",
-                                                                        "image_url": "Hotel Image URL",
-                                                                        "location": {
-                                                                            "latitude": 0,
-                                                                            "longitude": 0
-                                                                          }
+                                                                        "image_url": "Hotel Image URL"
                                                                       },
                                                                       "restaurants": [
                                                                         {
                                                                           "id": 1,
                                                                           "name": "Restaurant Name",
                                                                           "address": "Restaurant Address",
-                                                                          "image_url": "Restaurant Image URL",
-                                                                          "location": {
-                                                                            "latitude": 0,
-                                                                            "longitude": 0
-                                                                          }
+                                                                          "image_url": "Restaurant Image URL"
                                                                         }
                                                                       ]
                                                                     },
-                                                                    "day_2": {
+                                                                    {
                                                                     date: "dd-MM-yyy",
                                                                     long_description: "",
                                                                       "activities": [
@@ -413,23 +408,15 @@ public class Constants {
                                                                           "title": "Activity 2 Title",
                                                                           "content": "Description of activity 2.",
                                                                           "category": "Category of activity",
-                                                                          "location": {
-                                                                            "latitude": 0,
-                                                                            "longitude": 0
-                                                                          },
-                                                                          duration: 2-3 giờ,
-                                                                          imageUrl: ''
+                                                                          duration: "2-3 giờ",
+                                                                          imageUrl: "Activities Image URL"
                                                                         }
                                                                       ],
                                                                       "hotel": {
                                                                         "id": 2,
                                                                         "name": "Hotel Name",
                                                                         "address": "Hotel Address",
-                                                                        "image_url": "Hotel Image URL",
-                                                                        "location": {
-                                                                            "latitude": 0,
-                                                                            "longitude": 0
-                                                                          }
+                                                                        "image_url": "Hotel Image URL"
                                                                       }
                                                                     }
                                                             ]
@@ -444,19 +431,18 @@ public class Constants {
         public static final String PROMPT_END = """ 
                     
                     Các lưu ý quan trọng:
-                    - CHỈ sử dụng các dữ liệu về nhà hàng và khách sạn đã cung cấp từ cơ sở dữ liệu để xây dựng kế hoạch.
+                    - CHỈ sử dụng các dữ liệu về nhà hàng, khách sạn đã cung cấp từ cơ sở dữ liệu để xây dựng kế hoạch.
                     - Không thêm kiến thức bên ngoài, giả định hoặc đề xuất bổ sung nào khác.
                     - Nếu có thông tin bị thiếu hoặc không rõ ràng, hãy nêu rõ rằng không thể xác định được.
                     - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
                     - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
                     - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
-                    - Ảnh cho các hoạt động (activities) trong ngày hãy tìm link ảnh bằng google map dùng key là AIzaSyAUdZ-ag1Rr1ZerQ90MU1Q68O7jVEsugZg
-                    - Ảnh cho khách sạn và nhà hàng lấy từ dữ liệu được cung cấp (phần Link Ảnh)
-                    - Phải có ít nhất một khách sạn trong 1 ngày
+                    - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
+                    - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động miễn phí
 
                     Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
-                    Định dạng phản hồi của bạn PHẢI tuân theo cấu trúc JSON sau:
+                    Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
 
                     
                     ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:

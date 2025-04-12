@@ -5,20 +5,24 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.LocationWithoutGeoPositionDTO;
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
+import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.PlanHelper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.mapper.PlanMapper;
-import com.fpt.capstone.tourism.model.Location;
-import com.fpt.capstone.tourism.model.Plan;
-import com.fpt.capstone.tourism.model.ServiceProvider;
-import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.PlanRepository;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
+import com.fpt.capstone.tourism.repository.ServiceRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -34,6 +38,7 @@ public class PlanServiceImpl implements PlanService {
     private final LocationRepository locationRepository;
     private final ServiceProviderRepository serviceProviderRepository;
     private final PlanRepository planRepository;
+    private final ServiceRepository serviceRepository;
 
     private final LocationMapper locationMapper;
     private final PlanMapper planMapper;
@@ -70,7 +75,8 @@ public class PlanServiceImpl implements PlanService {
     public String buildServiceProviderContext(Long locationId) {
         try {
             List<ServiceProvider> hotels = serviceProviderRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, 1L);
-            List<ServiceProvider> restaurants = serviceProviderRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, 1L);
+            List<ServiceProvider> restaurants = serviceProviderRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, 2L);
+            List<com.fpt.capstone.tourism.model.Service> activities = serviceRepository.findByServiceCategoryIdAndLocationId(4L, locationId);
 
             StringBuilder promptBuilder = new StringBuilder("Hãy đề xuất các nhà cung cấp dịch vụ (khách sạn và nhà hàng) phù hợp cho khách hàng dựa trên dữ liệu sau:\n\n");
 
@@ -91,6 +97,22 @@ public class PlanServiceImpl implements PlanService {
                         .append(", Link Ảnh: ").append(provider.getImageUrl())
                         .append("\n");
             }
+
+            // Append restaurant data
+            promptBuilder.append("\n🍽️ Hoạt động:\n");
+            for (com.fpt.capstone.tourism.model.Service service : activities) {
+                promptBuilder.append("- ").append(service.getName().replace("Vé", ""))
+                        .append(", Giá vé: ").append(service.getSellingPrice())
+                        .append(", Link Ảnh: ").append(service.getImageUrl())
+                        .append("\n");
+            }
+
+
+
+            Location location = locationRepository.findById(locationId).orElseThrow();
+            promptBuilder.append("🏨 Link Thumbnail Image: ").append(location.getImage()).append("\n");
+
+
 
             return promptBuilder.toString();
         } catch (Exception ex) {
@@ -154,6 +176,10 @@ public class PlanServiceImpl implements PlanService {
                     + Constants.AI.PROMPT_END;
             String response = geminiApiService.getGeminiResponse(prompt);
 
+
+            response = response.replace("json", "").replace("```", "");
+
+
             Plan plan = Plan.builder()
                     .user(User.builder().id(dto.getUserId()).build())
                     .content(response)
@@ -177,6 +203,34 @@ public class PlanServiceImpl implements PlanService {
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
             throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getPlansByUserId(Long userId) {
+        try {
+            List<Plan> plans = planRepository.getByUserId(userId);
+            List<PlanDTO> dto = plans.stream().map(planMapper::toPlanDto).toList();
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<PlanDTO>>> getPlans(int page, int size, String sortField, String sortDirection, Long userId) {
+        try {
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<Plan> spec = planHelper.buildSearchSpecification(userId);
+
+            Page<Plan> tourBookingPage = planRepository.findAll(spec, pageable);
+
+            return planHelper.buildPagedResponse(tourBookingPage);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
         }
     }
 
