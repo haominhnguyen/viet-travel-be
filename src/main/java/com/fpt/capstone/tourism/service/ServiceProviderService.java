@@ -16,7 +16,7 @@ import org.springframework.data.domain.Page;
 public interface ServiceProviderService {
     GeneralResponse<ServiceProviderDTO> save(ServiceProviderDTO serviceProviderDTO);
 
-    GeneralResponse<ServiceProviderDTO> getServiceProviderById(Long id);
+    GeneralResponse<?> getServiceProviderById(Long id);
 
     GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllServiceProviders(int page, int size, String keyword, Boolean isDeleted, String orderDate);
 

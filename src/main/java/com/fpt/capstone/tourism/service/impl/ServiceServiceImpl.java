@@ -87,81 +87,38 @@ public class ServiceServiceImpl implements ServiceService {
 
     public GeneralResponse<List<TourDayServiceDTO>> getTourDayServicesByServiceId(Long serviceId, Long providerId) {
         try {
-            Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
-
+            Service service;
+            if (providerId != null) {
+                service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+            } else {
+                service = serviceRepository.findById(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+            }
             List<TourDayServiceDTO> tourDayServices = service.getTourDayServices()
                     .stream()
                     .map(tourDayServiceMapper::toDTO)
                     .collect(Collectors.toList());
-
             return GeneralResponse.of(tourDayServices, TOUR_DAY_SERVICES_RETRIEVED);
         } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_TOUR_DAY_SERVICE_FAIL);
         }
     }
 
-//    public GeneralResponse<Object> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
-//        try {
-//            // Fetch the service first
-//            Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
-//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
-//
-//            String categoryName = service.getServiceCategory().getCategoryName();
-//
-//            // Based on category name, fetch the appropriate details
-//            if (HOTEL.equalsIgnoreCase(categoryName)) {
-//                Room room = roomRepository.findByServiceId(serviceId)
-//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
-//                if (room.getService() == null) {
-//                    room.setService(service);
-//                }
-//                return GeneralResponse.of(roomMapper.toDTO(room), SERVICE_DETAILS_RETRIEVED);
-//            } else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
-//                Meal meal = mealRepository.findByServiceId(serviceId)
-//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
-//                if (meal.getService() == null) {
-//                    meal.setService(service);
-//                }
-//                return GeneralResponse.of(mealMapper.toDTO(meal), SERVICE_DETAILS_RETRIEVED);
-//            } else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
-//                Transport transport = transportRepository.findByServiceId(serviceId)
-//                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
-//                if (transport.getService() == null) {
-//                    transport.setService(service);
-//                }
-//                return GeneralResponse.of(transportMapper.toDTO(transport), SERVICE_DETAILS_RETRIEVED);
-//            } else if (ACTIVITY.equalsIgnoreCase(categoryName) || TICKET.equalsIgnoreCase(categoryName)) {
-//                Map<String, Object> serviceDetails = new HashMap<>();
-//                serviceDetails.put("id", service.getId());
-//                serviceDetails.put("serviceId", service.getId());
-//                serviceDetails.put("name", service.getName());
-//                serviceDetails.put("nettPrice", service.getNettPrice());
-//                serviceDetails.put("sellingPrice", service.getSellingPrice());
-//                serviceDetails.put("imageUrl", service.getImageUrl());
-//                serviceDetails.put("startDate", service.getStartDate());
-//                serviceDetails.put("endDate", service.getEndDate());
-//                serviceDetails.put("categoryId", service.getServiceCategory().getId());
-//                serviceDetails.put("categoryName", categoryName);
-//                serviceDetails.put("providerId", service.getServiceProvider().getId());
-//                serviceDetails.put("providerName", service.getServiceProvider().getName());
-//                serviceDetails.put("createdAt", service.getCreatedAt());
-//                serviceDetails.put("updatedAt", service.getUpdatedAt());
-//                return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
-//            } else {
-//                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_CATEGORY_NOT_FOUND);
-//            }
-//        } catch (BusinessException e) {
-//            throw e;
-//        } catch (Exception e) {
-//            throw BusinessException.of(HttpStatus.BAD_REQUEST, GET_SERVICE_DETAIL_FAIL);
-//        }
-//    }
-
     public GeneralResponse<Object> getServiceDetailsByServiceId(Long serviceId, Long providerId) {
         try {
-            Service service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+            Service service;
+            if (providerId != null) {
+                // If providerId is specified, filter by it
+                service = serviceRepository.findByIdAndProviderId(serviceId, providerId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+            } else {
+                // If no providerId is specified, get service regardless of provider
+                service = serviceRepository.findById(serviceId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND));
+            }
 
             Map<String, Object> serviceDetails = new HashMap<>();
             serviceDetails.put("id", service.getId());
@@ -196,6 +153,7 @@ public class ServiceServiceImpl implements ServiceService {
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
                 // Add transport details to the map
                 serviceDetails.put("transportDetails", transportMapper.toDTO(transport));
+            }else if (ACTIVITY.equalsIgnoreCase(categoryName) || TICKET.equalsIgnoreCase(categoryName)) {
             }
             return GeneralResponse.of(serviceDetails, SERVICE_DETAILS_RETRIEVED);
         } catch (BusinessException e) {
@@ -205,14 +163,15 @@ public class ServiceServiceImpl implements ServiceService {
         }
     }
 
-    private Specification buildSearchSpecification(
+    private Specification<Service> buildSearchSpecification(
             String keyword,
             Boolean isDeleted,
             Long providerId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            // Filter by providerId
-            predicates.add(cb.equal(root.get("serviceProvider").get("id"), providerId));
+            if (providerId != null) {
+                predicates.add(cb.equal(root.get("serviceProvider").get("id"), providerId));
+            }
             // Search by name (ignoring accents and case)
             if (keyword != null && !keyword.trim().isEmpty()) {
                 Expression<String> normalizedKeyword = cb.function(
@@ -237,6 +196,12 @@ public class ServiceServiceImpl implements ServiceService {
             if (isDeleted != null) {
                 predicates.add(cb.equal(root.get("deleted"), isDeleted));
             }
+
+            // If no predicates were added, return a predicate that's always true
+            if (predicates.isEmpty()) {
+                return cb.isTrue(cb.literal(true));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -266,26 +231,20 @@ public class ServiceServiceImpl implements ServiceService {
 
             // Validate common fields
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-            //Validator.validatePrices(requestDTO.getNettPrice(), requestDTO.getSellingPrice());
-
-            // Only validate service details for categories that have detail tables
-            if (!ACTIVITY.equalsIgnoreCase(categoryName)) {
+            if (!ACTIVITY.equalsIgnoreCase(categoryName) && !TICKET.equalsIgnoreCase(categoryName)) {
                 Validator.validateServiceDetails(requestDTO, categoryName);
             }
 
             if (serviceRepository.existsByNameAndServiceProviderId(requestDTO.getName(), providerId)) {
                 throw BusinessException.of(HttpStatus.CONFLICT, SERVICE_NAME_EXISTS);
             }
-
             // Create and save the service entity
             Service service = serviceFullMapper.toEntity(requestDTO);
             service.setServiceCategory(category);
             service.setServiceProvider(provider);
             service.setDeleted(false);
             service.setCreatedAt(LocalDateTime.now());
-
             Service savedService = serviceRepository.save(service);
-
             // Handle category-specific details
             if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Room room = new Room();

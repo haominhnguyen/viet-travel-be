@@ -19,6 +19,8 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.hibernate.grammars.hql.HqlParser;
@@ -105,17 +107,17 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             serviceProvider.setDeleted(false);
             serviceProvider.setLocation(location);
             serviceProvider.setGeoPosition( geoPosition);
-            if (serviceProvider.getServiceCategories() != null) {
-                List<ServiceCategoryDTO> serviceCategoryDTOList = serviceProvider.getServiceCategories().stream()
-                        .map(category -> {
-                            ServiceCategoryDTO dto = new ServiceCategoryDTO();
-                            dto.setId(category.getId());
-                            dto.setCategoryName(category.getCategoryName());
-                            dto.setDeleted(category.getDeleted());
-                            return dto;
-                        })
-                        .collect(Collectors.toList());
-                serviceProviderDTO.setServiceCategories(serviceCategoryDTOList);
+            if (serviceProviderDTO.getServiceCategories() != null) {
+                List<ServiceCategory> serviceCategory = serviceProviderDTO.getServiceCategories().stream()
+                        .map(serviceCategoryMapper::toEntity
+//                            ServiceCategoryDTO dto = new ServiceCategoryDTO();
+//                            dto.setId(category.getId());
+//                            dto.setCategoryName(category.getCategoryName());
+//                            dto.setDeleted(category.getDeleted());
+//                            return dto;
+                        )
+                        .toList();
+                serviceProvider.setServiceCategories(serviceCategory);
             }
             serviceProvider.setId(null);
             serviceProvider.setCreatedAt(LocalDateTime.now());
@@ -130,7 +132,24 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             serviceProvider.setUser(serviceUser);
             serviceProviderRepository.save(serviceProvider);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_SERVICE_PROVIDER_SUCCESS, serviceProviderMapper.toDTO(serviceProvider));
+            //Map to DTO
+            ServiceProviderDTO resultDTO = ServiceProviderDTO.builder()
+                    .id(serviceProvider.getId())
+                    .imageUrl(serviceProvider.getImageUrl())
+                    .name(serviceProvider.getName())
+                    .abbreviation(serviceProvider.getAbbreviation())
+                    .website(serviceProvider.getWebsite())
+                    .email(serviceProvider.getEmail())
+                    .star(serviceProvider.getStar())
+                    .phone(serviceProvider.getPhone())
+                    .address(serviceProvider.getAddress())
+                    .deleted(serviceProvider.getDeleted())
+                    .locationId(serviceProvider.getLocation().getId())
+                    .geoPosition(geoPositionMapper.toDTO(serviceProvider.getGeoPosition()))
+                    .serviceCategories(serviceProvider.getServiceCategories().stream().map(serviceCategoryMapper::toDTO).collect(Collectors.toList()))
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_SERVICE_PROVIDER_SUCCESS, resultDTO);
         } catch (BusinessException be){
             throw be;
         } catch (Exception ex){
@@ -141,11 +160,26 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
     @Transactional
     @Override
-    public GeneralResponse<ServiceProviderDTO> getServiceProviderById(Long id) {
+    public GeneralResponse<?> getServiceProviderById(Long id) {
         try{
             ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
-            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, serviceProviderDTO);
+            ServiceProviderDetailDTO resultDTO = ServiceProviderDetailDTO.builder()
+                    .id(serviceProvider.getId())
+                    .imageUrl(serviceProvider.getImageUrl())
+                    .name(serviceProvider.getName())
+                    .abbreviation(serviceProvider.getAbbreviation())
+                    .website(serviceProvider.getWebsite())
+                    .email(serviceProvider.getEmail())
+                    .star(serviceProvider.getStar())
+                    .phone(serviceProvider.getPhone())
+                    .address(serviceProvider.getAddress())
+                    .deleted(serviceProvider.getDeleted())
+                    .location(locationMapper.toPublicLocationSimpleDTO(serviceProvider.getLocation()))
+                    .geoPosition(geoPositionMapper.toDTO(serviceProvider.getGeoPosition()))
+                    .serviceCategories(serviceProvider.getServiceCategories().stream().map(serviceCategoryMapper::toDTO).collect(Collectors.toList()))
+                    .build();
+//            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, resultDTO);
         } catch (BusinessException be){
             throw be;
         } catch (Exception ex){
