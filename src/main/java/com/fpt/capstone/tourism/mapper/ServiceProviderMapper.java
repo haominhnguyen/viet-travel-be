@@ -19,6 +19,9 @@ import java.util.Optional;
 public interface ServiceProviderMapper extends EntityMapper<ServiceProviderDTO, ServiceProvider> {
     PublicServiceProviderDTO toPublicServiceProviderDTO(ServiceProvider serviceProvider);
 
+//    @Mapping(target = "locationId", source = "location.id")
+//    ServiceProviderDTO toServiceProviderDTO(ServiceProvider serviceProvider);
+
 //    @Mapping(target = "locationId", expression = "java(getLocationId(serviceProvider))")
 //    ServiceProviderDTO toDTO(ServiceProvider serviceProvider);
 
