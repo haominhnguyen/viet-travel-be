@@ -1184,6 +1184,7 @@ public class BookingServiceImpl implements BookingService {
             }
 
             User entity = userFullInformationMapper.toUser(dto);
+            entity.setDeleted(false);
             User savedUser = userRepository.save(entity);
             UserRole userRole = UserRole.builder()
                     .role(Role.builder().id(1L).build())

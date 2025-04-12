@@ -56,6 +56,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 throw BusinessException.of(HttpStatus.NOT_FOUND, NO_TOUR_DAYS_FOUND + " for tour with id: " + tourId);
             }
 
+            // Calculate total number of days
+            Integer totalDays = tourDays.size();
+
             List<Long> tourDayIds = tourDays.stream()
                     .map(TourDay::getId)
                     .collect(Collectors.toList());
@@ -68,7 +71,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .map(TourDayService::getId)
                     .collect(Collectors.toList());
 
-            // Get all non-deleted service-specific pax associations from the join table
             List<ServicePaxPricing> allServicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndDeletedFalse(tourDayServiceIds);
 
             // Create a map for quick lookup of service pax associations
@@ -85,17 +87,15 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 serviceToPaxPricingMap.get(serviceId).put(paxId, pricing);
             }
 
-            // Get pax options with a fresh database query to ensure we have the latest data
+            // Get pax options
             // Only consider non-deleted pax configurations
             List<TourPax> paxOptions = paxCount != null
                     ? tourPaxRepository.findByTourIdAndPaxRangeNonDeleted(tourId, paxCount)
                     : tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
 
-            // Create a map to easily find TourPax by ID
             Map<Long, TourPax> paxMap = paxOptions.stream()
                     .collect(Collectors.toMap(TourPax::getId, Function.identity()));
 
-            // Updated to include fixedCost and extraHotelCost
             List<TourPaxOptionDTO> paxOptionDTOs = paxOptions.stream()
                     .map(pax -> TourPaxOptionDTO.builder()
                             .id(pax.getId())
@@ -109,7 +109,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .build())
                     .collect(Collectors.toList());
 
-            // Create a map to group services by category name
+            //map to group services by category name
             Map<String, List<ServiceSummaryDTO>> servicesByCategoryName = new HashMap<>();
 
             for (TourDayService tds : allTourDayServices) {
@@ -122,10 +122,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     // Determine service status
                     String status = determineServiceStatus(service.getStartDate(), service.getEndDate());
 
-                    // Check if this service has any specific pax associations
                     Map<Long, ServicePaxPricing> paxPricingMap = serviceToPaxPricingMap.getOrDefault(tds.getId(), new HashMap<>());
-
-                    // Calculate pax prices for this service
                     Map<String, PaxPriceInfoDTO> paxPrices = new HashMap<>();
 
                     // If no specific pax associations exist for this service, create them
@@ -135,18 +132,13 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             // Create a new association entry for this service and pax with default selling price
                             Double defaultSellingPrice = tds.getSellingPrice() != null ?
                                     tds.getSellingPrice() : service.getSellingPrice();
-
                             ServicePaxPricing newAssociation = ServicePaxPricing.builder()
                                     .tourDayService(tds)
                                     .tourPax(pax)
                                     .sellingPrice(defaultSellingPrice)
                                     .deleted(false)
                                     .build();
-
-                            // Save the new association
                             newAssociation = servicePaxPricingRepository.save(newAssociation);
-
-                            // Add to our maps for use in this request
                             if (!serviceToPaxPricingMap.containsKey(tds.getId())) {
                                 serviceToPaxPricingMap.put(tds.getId(), new HashMap<>());
                             }
@@ -155,12 +147,10 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                         }
                     }
 
-                    // Now build the DTO with pax-specific and service-specific pricing
                     for (TourPax pax : paxOptions) {
                         // Only include non-deleted pax configurations
                         if (!pax.getDeleted() && paxPricingMap.containsKey(pax.getId())) {
                             ServicePaxPricing paxPricing = paxPricingMap.get(pax.getId());
-
                             // Get pricing from TourPax for nett prices and from ServicePaxPricing for selling price
                             Double nettPricePerPax = pax.getNettPricePerPax();
                             // Use the specific selling price from ServicePaxPricing
@@ -173,24 +163,21 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                                 paxPricing.setSellingPrice(sellingPrice);
                                 servicePaxPricingRepository.save(paxPricing);
                             }
-
                             Double serviceNettPrice = service.getNettPrice();
-
                             // Build the DTO with the appropriate pricing
                             paxPrices.put(pax.getId().toString(), PaxPriceInfoDTO.builder()
                                     .paxId(pax.getId())
                                     .minPax(pax.getMinPax())
                                     .maxPax(pax.getMaxPax())
                                     .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
-                                    .price(nettPricePerPax)         // Using nett price per pax from TourPax
-                                    .serviceNettPrice(serviceNettPrice) // Using nett price from Service
-                                    .sellingPrice(sellingPrice)     // Using service-specific selling price from ServicePaxPricing
+                                    .price(nettPricePerPax)
+                                    .serviceNettPrice(serviceNettPrice)
+                                    .sellingPrice(sellingPrice)
                                     .fixedCost(pax.getFixedCost())
                                     .extraHotelCost(pax.getExtraHotelCost())
                                     .build());
                         }
                     }
-
                     ServiceSummaryDTO serviceSummary = ServiceSummaryDTO.builder()
                             .id(service.getId())
                             .name(service.getName())
@@ -226,11 +213,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // Get the tour type as a string
             String tourTypeStr = tour.getTourType() != null ? tour.getTourType().name() : null;
 
-            // Build response with the tour type included
+            // Build response with the tour type and total days included
             TourServiceListDTO response = TourServiceListDTO.builder()
                     .tourId(tourId)
                     .tourName(tour.getName())
-                    .tourType(tourTypeStr) // Include the tour type
+                    .tourType(tourTypeStr)
+                    .totalDays(totalDays)
                     .serviceCategories(categoryDTOs)
                     .paxOptions(paxOptionDTOs)
                     .build();

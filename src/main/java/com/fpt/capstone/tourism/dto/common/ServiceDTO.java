@@ -1,7 +1,6 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceDetail;
 import com.fpt.capstone.tourism.model.ServiceProvider;
 import com.fpt.capstone.tourism.model.TourDayService;
 import jakarta.persistence.*;
@@ -30,5 +29,4 @@ public class ServiceDTO {
     private ServiceCategory serviceCategory;
     private List<TourDayService> tourDayServices;
     private ServiceProvider serviceProvider;
-    private Set<ServiceDetail> serviceDetails;
 }

@@ -12,7 +12,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.model.Activity;
+//import com.fpt.capstone.tourism.model.Activity;
 import com.fpt.capstone.tourism.model.GeoPosition;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.Tour;

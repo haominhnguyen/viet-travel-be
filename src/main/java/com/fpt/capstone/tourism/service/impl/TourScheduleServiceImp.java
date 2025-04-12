@@ -124,9 +124,9 @@ public class TourScheduleServiceImp implements TourScheduleService {
         Tour tour = tourRepository.findById(requestDTO.getTourId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
-        // Check if the tour status is APPROVED before allowing to set a schedule
-        if (tour.getTourStatus() != TourStatus.APPROVED) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour must be in APPROVED status to set a schedule");
+        // Check if the tour status is APPROVED or OPENED
+        if (tour.getTourStatus() != TourStatus.APPROVED && tour.getTourStatus() != TourStatus.OPENED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour must be in APPROVED or OPEN status to set a schedule");
         }
 
         // Get the selected operator

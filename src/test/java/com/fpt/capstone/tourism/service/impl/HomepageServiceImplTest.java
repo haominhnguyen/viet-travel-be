@@ -38,8 +38,8 @@ class HomepageServiceImplTest {
     private BlogService blogService;
     @Mock
     private ServiceService serviceService;
-    @Mock
-    private ActivityService activityService;
+//    @Mock
+//    private ActivityService activityService;
     @Mock
     private ServiceProviderService providerService;
     @Mock
@@ -48,8 +48,8 @@ class HomepageServiceImplTest {
     private TourRepository tourRepository;
     @Mock
     private BlogRepository blogRepository;
-    @Mock
-    private ActivityRepository activityRepository;
+//    @Mock
+//    private ActivityRepository activityRepository;
     @Mock
     private LocationRepository locationRepository;
     @Mock
@@ -58,8 +58,8 @@ class HomepageServiceImplTest {
     private ServiceRepository serviceRepository;
     @Mock
     private TourScheduleRepository tourScheduleRepository;
-    @Mock
-    private ActivityMapper activityMapper;
+//    @Mock
+//    private ActivityMapper activityMapper;
     @Mock
     private LocationMapper locationMapper;
     @Mock
