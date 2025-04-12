@@ -160,11 +160,26 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
     @Transactional
     @Override
-    public GeneralResponse<ServiceProviderDTO> getServiceProviderById(Long id) {
+    public GeneralResponse<?> getServiceProviderById(Long id) {
         try{
             ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
-            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, serviceProviderDTO);
+            ServiceProviderDetailDTO resultDTO = ServiceProviderDetailDTO.builder()
+                    .id(serviceProvider.getId())
+                    .imageUrl(serviceProvider.getImageUrl())
+                    .name(serviceProvider.getName())
+                    .abbreviation(serviceProvider.getAbbreviation())
+                    .website(serviceProvider.getWebsite())
+                    .email(serviceProvider.getEmail())
+                    .star(serviceProvider.getStar())
+                    .phone(serviceProvider.getPhone())
+                    .address(serviceProvider.getAddress())
+                    .deleted(serviceProvider.getDeleted())
+                    .location(locationMapper.toPublicLocationSimpleDTO(serviceProvider.getLocation()))
+                    .geoPosition(geoPositionMapper.toDTO(serviceProvider.getGeoPosition()))
+                    .serviceCategories(serviceProvider.getServiceCategories().stream().map(serviceCategoryMapper::toDTO).collect(Collectors.toList()))
+                    .build();
+//            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, resultDTO);
         } catch (BusinessException be){
             throw be;
         } catch (Exception ex){
