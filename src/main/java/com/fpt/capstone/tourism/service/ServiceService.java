@@ -29,5 +29,6 @@ public interface ServiceService {
     GeneralResponse<?> getServiceRequestDetail(Long tourBookingServiceId);
 
     List<PublicActivityDTO> findRecommendedActivities(int numberActivity);
+
 }
 
