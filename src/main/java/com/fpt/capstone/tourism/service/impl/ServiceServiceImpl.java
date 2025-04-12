@@ -231,7 +231,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             // Validate common fields
             Validator.validateDates(requestDTO.getStartDate(), requestDTO.getEndDate());
-            if (!ACTIVITY.equalsIgnoreCase(categoryName)) {
+            if (!ACTIVITY.equalsIgnoreCase(categoryName) && !TICKET.equalsIgnoreCase(categoryName)) {
                 Validator.validateServiceDetails(requestDTO, categoryName);
             }
 
