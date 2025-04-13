@@ -18,22 +18,54 @@ import java.util.List;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
-    @Query("SELECT tb.tour.id FROM TourBooking tb " +
-            "WHERE YEAR(tb.createdAt) = YEAR(CURRENT_DATE)" +
-            "AND tb.tour.deleted = FALSE " +
-            "AND tb.tour.tourType = 'SIC' " +
-            "GROUP BY tb.tour.id " +
-            "ORDER BY COUNT(tb.tour.id) DESC")
+    @Query("""
+            SELECT tb.tour.id FROM TourBooking tb 
+            JOIN TourSchedule ts ON ts.tour.id = tb.tour.id
+            JOIN TourPax tp ON tp.tour.id = tb.tour.id
+            WHERE YEAR(tb.createdAt) = YEAR(CURRENT_DATE)
+            AND tb.tour.deleted = FALSE 
+            AND tb.tour.tourType = 'SIC' 
+            AND ts.tour.tourStatus = 'OPENED'
+            AND ts.status = 'OPEN'
+            AND ts.startDate > CURRENT_DATE 
+            AND tp.validTo > CURRENT_DATE 
+            GROUP BY tb.tour.id 
+            ORDER BY COUNT(tb.tour.id) DESC
+            """)
     List<Long> findTopTourIdsOfCurrentYear();
 
-    @Query("SELECT tb.tour.id FROM TourBooking tb " +
-            "WHERE tb.tour.deleted = FALSE " +
-            "AND tb.tour.tourType = 'SIC' " +
-            "GROUP BY tb.tour.id " +
-            "ORDER BY COUNT(tb.tour.id) DESC")
-    List<Long> findTrendingTourIds(Pageable pageable);
+    @Query("""
+            SELECT tb.tour.id FROM TourBooking tb
+            GROUP BY tb.tour.id
+            ORDER BY COUNT(tb.tour.id) DESC
+            """)
+    List<Long> findTrendingTourIds();
+    @Query("""
+            SELECT DISTINCT t FROM Tour t
+            JOIN t.tourSchedules ts
+            JOIN t.tourPax tp
+            WHERE t.deleted = FALSE
+            AND t.tourType = 'SIC'
+            AND t.tourStatus = 'OPENED'
+            AND ts.status = 'OPEN'
+            AND ts.startDate > CURRENT_DATE
+            AND tp.validTo > CURRENT_DATE
+            AND t.id IN (:trendingTourIds)
+            """)
+    List<Tour> findPublicTourByIds(List<Long> trendingTourIds, Pageable pageable);
 
-    @Query("SELECT t FROM Tour t WHERE t.deleted = FALSE AND t.tourType = 'SIC' ORDER BY t.createdAt DESC LIMIT 1")
+    @Query("""
+            SELECT t FROM Tour t 
+            JOIN TourSchedule ts on t.id = ts.tour.id
+            JOIN TourPax tp ON t.id = tp.tour.id
+            WHERE t.deleted = FALSE 
+            AND t.tourType = 'SIC' 
+            AND t.tourStatus = 'OPENED'
+            AND ts.status = 'OPEN'
+            AND ts.startDate > CURRENT_DATE 
+            AND tp.validTo > CURRENT_DATE 
+            ORDER BY t.createdAt DESC LIMIT 1
+            """)
     Tour findNewestTour();
 
 
@@ -49,9 +81,15 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     @Query(value = """
                 SELECT t.id
                 FROM tour t
-                         JOIN tour_location tl ON t.id = tl.tour_id
+                JOIN tour_location tl ON t.id = tl.tour_id
+                JOIN tour_schedule ts ON ts.tour_id = t.id
+                JOIN tour_pax tp ON tp.tour_id = t.id
                 WHERE tl.location_id IN (:locationIds) AND t.is_deleted = FALSE
                 AND t.tour_status IN ('OPENED')
+                AND t.tour_type IN ('SIC')
+                AND ts.status IN ('OPEN')
+                AND ts.start_date > CURRENT_DATE
+                AND tp.valid_to > CURRENT_DATE
                 GROUP BY t.id
                 ORDER BY RANDOM()
                 LIMIT 3;
@@ -89,9 +127,14 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     @Query("""
             SELECT t FROM Tour t
+            JOIN TourSchedule ts ON t.id = ts.tour.id
+            JOIN TourPax tp ON t.id = tp.tour.id
             WHERE t.tourType = 'SIC'
             AND t.deleted = FALSE
             AND t.tourStatus = 'OPENED'
+            AND ts.status = 'OPEN'
+            AND ts.startDate > CURRENT_DATE 
+            AND tp.validTo > CURRENT_DATE 
             """)
     List<Tour> findAllPublicTour();
 
@@ -119,4 +162,5 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
 
     Tour findByIdAndTourStatusAndTourType(Long id, TourStatus tourStatus, TourType tourType);
+
 }

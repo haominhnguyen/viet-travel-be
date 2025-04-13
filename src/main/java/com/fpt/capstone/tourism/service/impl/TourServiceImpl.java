@@ -46,12 +46,7 @@ public class TourServiceImpl implements TourService {
     private final TourBookingRepository tourBookingRepository;
     private final CostAccountRepository costAccountRepository;
     private final UserRepository userRepository;
-    private final TourDayAllMapper tourDayAllMapper;
     private final TourDayRepository tourDayRepository;
-    private final TourDayServiceRepository tourDayServiceRepository;
-    private final ServiceRepository serviceRepository;
-    private final TourDayResponseMapper tourDayResponseMapper;
-    private final TourDayServiceFullMapper tourDayServiceFullMapper;
     private final TourPaxRepository tourPaxRepository;
     @Override
     public PublicTourDTO findTopTourOfYear() {
@@ -96,10 +91,10 @@ public class TourServiceImpl implements TourService {
     public List<PublicTourDTO> findTrendingTours(int numberTour) {
         try {
             Pageable pageable = PageRequest.of(0, numberTour);
-            List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
+            List<Long> trendingTourIds = tourRepository.findTrendingTourIds();
 
             // Lấy danh sách các tour từ database theo danh sách ID
-            List<Tour> trendingTours = tourRepository.findAllById(trendingTourIds);
+            List<Tour> trendingTours = tourRepository.findPublicTourByIds(trendingTourIds, pageable);
 
             // Lấy giá thấp nhất từ bảng TourPax
             Map<Long, Double> priceMap = tourRepository.findMinSellingPrices(trendingTourIds)
@@ -277,104 +272,6 @@ public class TourServiceImpl implements TourService {
             throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
     }
-
-//    @Override
-//    @Transactional
-//    public GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser) {
-//        try {
-//            // Validate input
-//            Validator.validateTourRequest(tourRequestDTO);
-//
-//            // Create tour entity
-//            Tour tour = new Tour();
-//            tour.setName(tourRequestDTO.getName());
-//            tour.setHighlights(tourRequestDTO.getHighlights());
-//            tour.setNumberDays(tourRequestDTO.getNumberDays());
-//            tour.setNumberNights(tourRequestDTO.getNumberNights());
-//            tour.setNote(tourRequestDTO.getNote());
-//            tour.setDeleted(false);
-//
-//            // Set locations
-//            List<Location> locations = locationRepository.findAllById(tourRequestDTO.getLocationIds());
-//            tour.setLocations(locations);
-//
-//            // Set tags
-//            if (tourRequestDTO.getTagIds() != null && !tourRequestDTO.getTagIds().isEmpty()) {
-//                List<Tag> tags = tagRepository.findAllById(tourRequestDTO.getTagIds());
-//                tour.setTags(tags);
-//            } else {
-//                tour.setTags(new ArrayList<>());
-//            }
-//
-//            // Set tour type and status
-//            tour.setTourType(TourType.valueOf(tourRequestDTO.getTourType()));
-//            tour.setTourStatus(TourStatus.valueOf(tourRequestDTO.getTourStatus()));
-//
-//            // Set departure location
-//            Location departLocation = locationRepository.findById(tourRequestDTO.getDepartLocationId())
-//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, DEPART_LOCATION_NOT_FOUND));
-//            tour.setDepartLocation(departLocation);
-//
-//            // Set markup percent and privacy
-//            tour.setMarkUpPercent(tourRequestDTO.getMarkUpPercent());
-//            tour.setPrivacy(tourRequestDTO.getPrivacy());
-//
-//            // Set created by - using the user passed from controller
-//            tour.setCreatedBy(currentUser);
-//
-//            // Save tour
-//            Tour savedTour = tourRepository.save(tour);
-//
-//            // Create and save tour images
-//            if (tourRequestDTO.getTourImages() != null && !tourRequestDTO.getTourImages().isEmpty()) {
-//                List<TourImage> tourImages = tourRequestDTO.getTourImages().stream()
-//                        .map(imageDTO -> {
-//                            TourImage tourImage = new TourImage();
-//                            tourImage.setImageUrl(imageDTO.getImageUrl());
-//                            tourImage.setDeleted(false);
-//                            tourImage.setTour(savedTour);
-//                            return tourImage;
-//                        })
-//                        .collect(Collectors.toList());
-//                savedTour.setTourImages(tourImages);
-//            }
-//
-//            // Create and save tour days
-//            if (tourRequestDTO.getTourDays() != null && !tourRequestDTO.getTourDays().isEmpty()) {
-//                List<TourDay> tourDays = tourRequestDTO.getTourDays().stream()
-//                        .map(dayDTO -> {
-//                            TourDay tourDay = new TourDay();
-//                            tourDay.setTitle(dayDTO.getTitle());
-//                            tourDay.setContent(dayDTO.getContent());
-//                            tourDay.setMealPlan(dayDTO.getMealPlan());
-//                            tourDay.setDeleted(false);
-//                            tourDay.setTour(savedTour);
-//
-//                            // Set location
-//                            Location location = locationRepository.findById(dayDTO.getLocationId())
-//                                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
-//                            tourDay.setLocation(location);
-//
-//                            return tourDay;
-//                        })
-//                        .collect(Collectors.toList());
-//                savedTour.setTourDays(tourDays);
-//            }
-//
-//            // Save tour with relationships
-//            Tour completeTour = tourRepository.save(savedTour);
-//
-//            // Map to response DTO
-//            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(completeTour);
-//
-//            return new GeneralResponse<>(HttpStatus.CREATED.value(), TOUR_CREATE_SUCCESS, tourResponseDTO);
-//        } catch (BusinessException ex) {
-//            throw ex;
-//        } catch (Exception ex) {
-//            throw BusinessException.of(TOUR_CREATE_FAIL, ex);
-//        }
-//    }
-
     @Override
     @Transactional
     public GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser) {
