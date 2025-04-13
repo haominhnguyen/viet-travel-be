@@ -32,7 +32,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     JOIN ts.tour t
     JOIN ts.tourPax tp
     LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
-    WHERE t.id = :tourId and tb.tourSchedule.status != 'DRAFT' and tb.tourSchedule.status != 'CANCELLED'
+    WHERE t.id = :tourId 
+    AND ts.status = 'OPEN'
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
     ORDER BY ts.startDate ASC
