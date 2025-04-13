@@ -129,8 +129,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     SELECT SUM(COALESCE(t.amount, 0)) 
     FROM Transaction t 
     JOIN TourBooking tb ON t.booking.id = tb.id AND tb.tourSchedule.id = :scheduleId
-    WHERE t.category IN (com.fpt.capstone.tourism.model.TransactionType.PAYMENT,\s
-                         com.fpt.capstone.tourism.model.TransactionType.ADVANCED)
+    WHERE t.category IN (com.fpt.capstone.tourism.model.enums.TransactionType.PAYMENT,\s
+                         com.fpt.capstone.tourism.model.enums.TransactionType.ADVANCED)
 """)
     Double findPaidTourCostByScheduleId(@Param("scheduleId")Long scheduleId);
 
@@ -138,8 +138,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     SELECT SUM(COALESCE(t.amount, 0)) 
     FROM Transaction t 
     JOIN TourBooking tb ON t.booking.id = tb.id AND tb.tourSchedule.id = :scheduleId
-    WHERE t.category IN (com.fpt.capstone.tourism.model.TransactionType.RECEIPT,\s
-                         com.fpt.capstone.tourism.model.TransactionType.COLLECTION)
+    WHERE t.category IN (com.fpt.capstone.tourism.model.enums.TransactionType.RECEIPT,\s
+                         com.fpt.capstone.tourism.model.enums.TransactionType.COLLECTION)
 """)
     Double findRevenueCostByScheduleId(@Param("scheduleId")Long scheduleId);
 
