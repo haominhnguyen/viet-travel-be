@@ -141,7 +141,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Update transaction status if all cost accounts are PAID
             if (allPaid) {
-                transaction.setTransactionStatus(TransactionStatus.COMPLETED); // Update to desired status
+                transaction.setTransactionStatus(TransactionStatus.PAID); // Update to desired status
             } else {
                 transaction.setTransactionStatus(TransactionStatus.PENDING); // Keep as pending if any cost account is not paid
 
@@ -205,7 +205,7 @@ public class TransactionServiceImpl implements TransactionService {
                    .build();
 
             if (allPaid) {
-                transaction.setTransactionStatus(TransactionStatus.COMPLETED); // Update to desired status
+                transaction.setTransactionStatus(TransactionStatus.PAID); // Update to desired status
             } else {
                 transaction.setTransactionStatus(TransactionStatus.PENDING); // Keep as pending if any cost account is not paid
 

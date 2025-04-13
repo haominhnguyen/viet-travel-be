@@ -200,7 +200,7 @@ public class SalesmanController {
 
     @PostMapping("/bookings/cancel")
     public ResponseEntity<?> updateTourServices(@RequestBody CancelTourBookingRequestDTO dto) {
-        return ResponseEntity.ok(bookingService.cancelTour(dto));
+        return ResponseEntity.ok(bookingService.cancelBooking(dto));
     }
 
 

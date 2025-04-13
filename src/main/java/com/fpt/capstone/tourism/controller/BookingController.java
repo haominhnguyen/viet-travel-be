@@ -10,9 +10,17 @@ import com.fpt.capstone.tourism.dto.response.TourBookingDataResponseDTO;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.UserService;
+import com.fpt.capstone.tourism.service.VNPayService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +30,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final UserService userService;
+    private final VNPayService vnPayService;
 
     @GetMapping("/details/{tourId}/{scheduleId}")
     public ResponseEntity<GeneralResponse<TourBookingDataResponseDTO>> viewTourDetail(@PathVariable("tourId") Long tourId, @PathVariable("scheduleId") Long scheduleId){
@@ -53,6 +62,24 @@ public class BookingController {
     @PostMapping("/change-payment-method")
     public ResponseEntity<GeneralResponse<?>> changePaymentMethod(@RequestBody ChangePaymentMethodDTO dto){
         return ResponseEntity.ok(bookingService.changePaymentMethod(dto.getBookingId(), dto.getPaymentMethod()));
+    }
+
+
+    @GetMapping("/vnpay")
+    public RedirectView getVnPayPayment(HttpServletRequest request) {
+        int paymentStatus = vnPayService.orderReturn(request);
+        String orderInfo = request.getParameter("vnp_OrderInfo");
+
+
+        String redirectUrl = String.format(
+                "http://localhost:4200/tour-booking-detail/%s?status=%s",
+                URLEncoder.encode(orderInfo, StandardCharsets.UTF_8),
+                paymentStatus == 1 ? "success" : "fail"
+        );
+
+        bookingService.confirmPayment(paymentStatus, orderInfo);
+
+        return new RedirectView(redirectUrl);
     }
 
 

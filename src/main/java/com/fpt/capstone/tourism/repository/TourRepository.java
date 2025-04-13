@@ -163,4 +163,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     Tour findByIdAndTourStatusAndTourType(Long id, TourStatus tourStatus, TourType tourType);
 
+    @Query(value = "SELECT * FROM tour t WHERE t.id = :tourId", nativeQuery = true)
+    Tour findTourByTourId(@Param("tourId") Long tourId);
+
 }

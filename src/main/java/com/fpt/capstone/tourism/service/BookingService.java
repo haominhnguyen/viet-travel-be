@@ -8,7 +8,6 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourDay;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 
 import java.util.List;
@@ -87,7 +86,7 @@ public interface BookingService {
 
      void updateTourDayServices(TourDay tourDay, List<Long> serviceIds);
 
-     GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto);
+     GeneralResponse<?> cancelBooking(CancelTourBookingRequestDTO dto);
 
      GeneralResponse<?> sendPricing(Long tourId);
 
@@ -112,4 +111,6 @@ public interface BookingService {
      GeneralResponse<?> getEmailContent(SendPriceRequestDTO dto);
 
      GeneralResponse<?> sendEmailPrice(SendEmailPriceRequestDTO dto);
+
+     void confirmPayment(int paymentStatus, String orderInfo);
 }

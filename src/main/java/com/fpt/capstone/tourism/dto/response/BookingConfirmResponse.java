@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.dto.response;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.model.TourBookingCustomer;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -24,4 +25,5 @@ public class BookingConfirmResponse {
     private List<TourCustomerDTO> adults;
     private List<TourCustomerDTO> children;
     private String paymentUrl;
+    private TourBookingStatus status;
 }

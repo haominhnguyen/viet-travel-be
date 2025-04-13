@@ -5,7 +5,6 @@ import com.fpt.capstone.tourism.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -83,8 +82,8 @@ public class VNPayServiceImpl implements VNPayService {
 
     @Override
     public int orderReturn(HttpServletRequest request){
-        Map fields = new HashMap();
-        for (Enumeration params = request.getParameterNames(); params.hasMoreElements();) {
+        Map<String, Object> fields = new HashMap<>();
+        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = null;
             String fieldValue = null;
             fieldName = URLEncoder.encode((String) params.nextElement(), StandardCharsets.US_ASCII);
