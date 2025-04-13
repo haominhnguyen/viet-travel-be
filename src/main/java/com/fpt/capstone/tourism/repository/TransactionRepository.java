@@ -27,11 +27,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
         SELECT COALESCE(SUM(ca.finalAmount), 0)
         FROM Transaction t
         JOIN CostAccount ca ON ca.transaction.id = t.id
-        WHERE t.booking.id = :bookingId
+        JOIN TourBooking tb ON t.booking.id = tb.id
+        JOIN TourBookingService tbs ON tbs.booking.id = tb.id
+        WHERE tbs.id = :bookingId AND tbs.service.id = :serviceId
         AND t.category = 'PAYMENT'
         AND ca.status = 'PAID'
+        GROUP BY tbs.id
     """)
-    Double getTotalPaidForBooking(@Param("bookingId") Long bookingId);
+    Double getTotalPaidForBooking(@Param("bookingId") Long bookingId, Long serviceId);
 
     @Query("""
         SELECT CAST(COALESCE(SUM(ca.finalAmount), 0) AS bigdecimal)
