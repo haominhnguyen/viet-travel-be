@@ -490,7 +490,11 @@ public class OperatorServiceImpl implements OperatorService {
 //                            .sum();
 //
                 // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
-                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getBooking().getId());
+//                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
+                double paidForBooking = 0;
+                if(bookingService.getStatus().equals(TourBookingServiceStatus.PAID)){
+                    paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                }
 
                 // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
                 double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
@@ -499,15 +503,15 @@ public class OperatorServiceImpl implements OperatorService {
                 totalPaid += paidForBooking;
                 totalAmountToPay += amountToPayForBooking;
 
-                // Xác định trạng thái thanh toán của booking
-                String paymentStatus;
-                if (paidForBooking >= amountToPayForBooking) {
-                    paymentStatus = "PAID"; // Đã thanh toán đủ
-                } else if (paidForBooking > 0) {
-                    paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
-                } else {
-                    paymentStatus = "UNPAID"; // Chưa thanh toán
-                }
+//                // Xác định trạng thái thanh toán của booking
+//                String paymentStatus;
+//                if (paidForBooking >= amountToPayForBooking) {
+//                    paymentStatus = "PAID"; // Đã thanh toán đủ
+//                } else if (paidForBooking > 0) {
+//                    paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
+//                } else {
+//                    paymentStatus = "UNPAID"; // Chưa thanh toán
+//                }
 
                 // Thêm vào danh sách DTO
                 Service service = bookingService.getService();
@@ -527,7 +531,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .bookingStatus(bookingService.getStatus().toString())
                         .paidForBooking(paidForBooking)
                         .amountToPayForBooking(amountToPayForBooking)
-                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
+//                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }
             serviceDTOList.sort(Comparator.comparing(
@@ -574,6 +578,14 @@ public class OperatorServiceImpl implements OperatorService {
             TourBooking tourBooking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
                     () -> BusinessException.of("Booking not found")
             );
+
+            TourBookingService tourBookingService =
+                    bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(
+                            requestDTO.getBookingId(), requestDTO.getServiceId()
+                    );
+
+            tourBookingService.setStatus(TourBookingServiceStatus.PAID);
+            bookingServiceRepository.save(tourBookingService);
 
             Transaction transaction = Transaction.builder()
                     .booking(tourBooking)
