@@ -1324,6 +1324,82 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         }
     }
 
+    @Override
+    public GeneralResponse<ServiceProviderOptionsDTO> getTicketProviders() {
+        try {
+            // 1. Get ticket category
+            ServiceCategory ticketCategory = serviceCategoryRepository.findByCategoryName(TICKET)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + TICKET));
+
+            // 2. Get service providers for ticket category
+            List<ServiceProvider> providers = serviceProviderRepository.findByServiceCategoryId(ticketCategory.getId());
+
+            // 3. Convert to DTOs
+            List<ServiceProviderOptionDTO> providerDTOs = providers.stream()
+                    .map(provider -> ServiceProviderOptionDTO.builder()
+                            .id(provider.getId())
+                            .name(provider.getName())
+                            .imageUrl(provider.getImageUrl())
+                            .star(provider.getStar())
+                            .phone(provider.getPhone())
+                            .email(provider.getEmail())
+                            .address(provider.getAddress())
+                            .build())
+                    .collect(Collectors.toList());
+
+            // 4. Build response (no location info)
+            ServiceProviderOptionsDTO response = ServiceProviderOptionsDTO.builder()
+                    .serviceProviders(providerDTOs)
+                    .locationId(null)
+                    .locationName(null)
+                    .categoryName(TICKET)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Ticket providers retrieved successfully", response);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve ticket providers", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<ServiceProviderServicesDTO> getServicesByTicketProvider(Long providerId) {
+        try {
+            // 1. Validate service provider exists
+            ServiceProvider provider = serviceProviderRepository.findById(providerId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
+
+            // 2. Get ticket category
+            ServiceCategory ticketCategory = serviceCategoryRepository.findByCategoryName(TICKET)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + TICKET));
+
+            List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderId(
+                    TICKET, providerId);
+
+            List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
+
+            ServiceProviderServicesDTO response = ServiceProviderServicesDTO.builder()
+                    .providerId(providerId)
+                    .providerName(provider.getName())
+                    .categoryId(ticketCategory.getId())
+                    .categoryName(ticketCategory.getCategoryName())
+                    .locationId(null)
+                    .locationName(null)
+                    .availableServices(availableServices)
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Ticket services loaded successfully", response);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to load ticket services", ex);
+        }
+    }
+
     private List<AvailableServiceDTO> buildAvailableServicesDTO(List<Service> services) {
         List<AvailableServiceDTO> availableServices = new ArrayList<>();
 
