@@ -741,7 +741,9 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of("Booking Service not found")
             );
             //Kiểm tra trạng thái của service booking
-            if (!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+            if (!(bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+                    || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED))
+            ) {
                 throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
             }
             Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
