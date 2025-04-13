@@ -185,10 +185,14 @@ public class TourServiceImpl implements TourService {
                 //Get tour information
                 Tour tour = tourRepository.findByIdAndTourStatusAndTourType(tourId, TourStatus.OPENED, TourType.SIC);
 
-                //Get list tag for each tour
-                List<TagDTO> tags = tagRepository.findTagsByTourId(tourId)
-                        .stream().map(tagMapper::toDTO).toList();
-                ;
+
+                List<Tag> tagEntities = tagRepository.findTagsByTourId(tourId);
+                List<TagDTO> tags = new ArrayList<>();
+
+                if(!tagEntities.isEmpty()) {
+                    tags = tagEntities.stream().map(tagMapper::toDTO).toList();
+                }
+
 
                 //Get min price for each tour
                 Double minPrice = tourRepository.findMinSellingPriceForTours(tourId);

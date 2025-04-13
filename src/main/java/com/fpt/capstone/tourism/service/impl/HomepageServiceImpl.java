@@ -105,7 +105,7 @@ public class HomepageServiceImpl implements HomepageService {
     public GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id) {
         try{
             Tour currentTour = tourRepository.findById(id).orElseThrow();
-            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
+            List<Long> locationIds = currentTour.getLocations().stream().map(Location::getId).collect(Collectors.toList());
             List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
