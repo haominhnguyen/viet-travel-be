@@ -1021,8 +1021,9 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public GeneralResponse<?> getListServiceRequest(int page, int size) {
         try {
+            Long currentOperatorId = getCurrentUserOperatorId();
             Pageable pageable = PageRequest.of(page, size);
-            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByRequestedQuantityGreaterThanOrStatus(TourBookingServiceStatus.CHECKING, pageable);
+            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByRequestedQuantityGreaterThanOrStatus(currentOperatorId, TourBookingServiceStatus.CHECKING, pageable);
             List<ChangeServiceDTO> resultDTO = bookingServicePage.getContent().stream()
                     .map(bookingServiceMapper::toChangeServiceDTO
                     )
