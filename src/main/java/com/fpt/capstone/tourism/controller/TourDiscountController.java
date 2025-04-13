@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.TICKET;
 import static com.fpt.capstone.tourism.constants.Constants.Message.USER_NOT_AUTHENTICATED;
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.USER_NOT_FOUND;
 
@@ -28,9 +29,7 @@ import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformat
 @RequestMapping("/head-of-business/tour/{tourId}/discount")
 public class TourDiscountController {
     private final TourDiscountService tourDiscountService;
-    //private final ActivityService activityService;
     private final LocationService locationService;
-    //private final ActivityCategoryService activityCategoryService;
     private final UserRepository userRepository;
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<TourServiceListDTO>> getTourServicesList(
@@ -61,8 +60,13 @@ public class TourDiscountController {
             @PathVariable Long providerId,
             @PathVariable String categoryName,
             @PathVariable Long locationId) {
+        if (TICKET.equals(categoryName)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                    "Flight Ticket is not valid here");
+        }
         return ResponseEntity.ok(tourDiscountService.getServicesByProviderAndCategory(providerId, categoryName, locationId));
     }
+
     @PostMapping("/create")
     public ResponseEntity<GeneralResponse<ServiceByCategoryDTO>> createServiceDetail(
             @PathVariable Long tourId,
@@ -103,9 +107,26 @@ public class TourDiscountController {
             @PathVariable Long tourId,
             @RequestParam Long locationId,
             @RequestParam String categoryName) {
+        // Check if category is TICKET and return error
+        if (TICKET.equals(categoryName)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                    "Flight Ticket is not valid here");
+        }
         return ResponseEntity.ok(tourDiscountService.getServiceProviderOptions(locationId, categoryName));
     }
 
+    @GetMapping("/ticket-providers")
+    public ResponseEntity<GeneralResponse<ServiceProviderOptionsDTO>> getTicketProviders(
+            @PathVariable Long tourId) {
+        return ResponseEntity.ok(tourDiscountService.getTicketProviders());
+    }
+
+    @GetMapping("/ticket-provider/{providerId}")
+    public ResponseEntity<GeneralResponse<ServiceProviderServicesDTO>> getServicesByTicketProvider(
+            @PathVariable Long tourId,
+            @PathVariable Long providerId) {
+        return ResponseEntity.ok(tourDiscountService.getServicesByTicketProvider(providerId));
+    }
 
 //    @DeleteMapping("/{serviceId}")
 //    public ResponseEntity<GeneralResponse<Void>> changeServiceStatus(
@@ -113,20 +134,6 @@ public class TourDiscountController {
 //            @PathVariable Long serviceId,
 //            @RequestParam(required = false, defaultValue = "true") Boolean delete) {
 //        return ResponseEntity.ok(tourDiscountService.changeServiceStatus(tourId, serviceId, delete));
-//    }
-
-    //Activity
-//    @GetMapping("/activity")
-//    public ResponseEntity<GeneralResponse<List<ActivityListDTO>>> getActivityList(
-//            @PathVariable Long tourId) {
-//        return ResponseEntity.ok(activityService.getActivityList(tourId));
-//    }
-//
-//    @GetMapping("/activity/{activityId}")
-//    public ResponseEntity<GeneralResponse<ActivityDetailResponseDTO>> getActivityDetail(
-//            @PathVariable Long tourId,
-//            @PathVariable Long activityId) {
-//        return ResponseEntity.ok(activityService.getActivityDetail(tourId, activityId));
 //    }
 
     @GetMapping("/list-location")
@@ -139,35 +146,5 @@ public class TourDiscountController {
             @RequestParam(defaultValue = "desc") String orderDate) {
         return ResponseEntity.ok(locationService.getLocationsByTourId(tourId, page, size, keyword, isDeleted, orderDate));
     }
-
-//    @GetMapping("/activity-categories")
-//    public ResponseEntity<GeneralResponse<List<ActivityCategoryDTO>>> getAllActivityCategories() {
-//        return ResponseEntity.ok(activityCategoryService.getAllActivityCategories());
-//    }
-
-//    @GetMapping("/locations/{locationId}/activity-categories/{categoryId}/activities")
-//    public ResponseEntity<GeneralResponse<List<ActivityBasicDTO>>> getActivitiesByLocationAndCategory(
-//            @PathVariable Long locationId,
-//            @PathVariable Long categoryId) {
-//        return ResponseEntity.ok(activityService.getActivitiesByLocationAndCategory(locationId, categoryId));
-//    }
-
-//    @PostMapping("/activity/create")
-//    public ResponseEntity<GeneralResponse<ActivityDetailDTO>> createActivity(
-//            @PathVariable Long tourId,
-//            @RequestBody ActivityCreateUpdateRequestDTO request) {
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(activityService.createActivity(tourId, request));
-//    }
-//
-//    @PutMapping("/activity/update/{activityId}")
-//    public ResponseEntity<GeneralResponse<ActivityDetailDTO>> updateActivity(
-//            @PathVariable Long tourId,
-//            @PathVariable Long activityId,
-//            @RequestBody ActivityCreateUpdateRequestDTO request) {
-//        return ResponseEntity.ok(activityService.updateActivity(tourId, activityId, request));
-//    }
-
-    //Tour Guide
 
 }
