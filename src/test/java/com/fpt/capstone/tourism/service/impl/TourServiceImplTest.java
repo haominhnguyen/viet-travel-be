@@ -250,7 +250,7 @@ class TourServiceImplTest {
             List<Tour> trendingTours = List.of(mockTour);
             Pageable pageable = PageRequest.of(0, 5);
 
-            when(tourRepository.findTrendingTourIds(pageable)).thenReturn(trendingTourIds);
+            when(tourRepository.findTrendingTourIds()).thenReturn(trendingTourIds);
             when(tourRepository.findAllById(trendingTourIds)).thenReturn(trendingTours);
 
             // Create a properly typed List of Object arrays

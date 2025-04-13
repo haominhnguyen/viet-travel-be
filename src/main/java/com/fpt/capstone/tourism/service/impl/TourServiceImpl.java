@@ -91,10 +91,10 @@ public class TourServiceImpl implements TourService {
     public List<PublicTourDTO> findTrendingTours(int numberTour) {
         try {
             Pageable pageable = PageRequest.of(0, numberTour);
-            List<Long> trendingTourIds = tourRepository.findTrendingTourIds(pageable);
+            List<Long> trendingTourIds = tourRepository.findTrendingTourIds();
 
             // Lấy danh sách các tour từ database theo danh sách ID
-            List<Tour> trendingTours = tourRepository.findAllById(trendingTourIds);
+            List<Tour> trendingTours = tourRepository.findPublicTourByIds(trendingTourIds, pageable);
 
             // Lấy giá thấp nhất từ bảng TourPax
             Map<Long, Double> priceMap = tourRepository.findMinSellingPrices(trendingTourIds)
