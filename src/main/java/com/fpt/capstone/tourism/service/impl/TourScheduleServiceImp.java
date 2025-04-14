@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.helper.IHelper.TourScheduleHelper;
 import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.mapper.TourScheduleMapper;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.*;
@@ -426,6 +427,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
             List<TourScheduleStatus> statuses = new ArrayList<>();
             statuses.add(TourScheduleStatus.SETTLEMENT);
             statuses.add(TourScheduleStatus.ONGOING);
+            statuses.add(TourScheduleStatus.COMPLETED);
 
             // Build search specification
             Specification<TourSchedule> spec = tourScheduleHelper.buildTourScheduleSearchSpecification(keyword, statuses);
@@ -466,8 +468,21 @@ public class TourScheduleServiceImp implements TourScheduleService {
         try {
             // Fetch tour schedule with all needed associations
             TourSchedule tourSchedule = tourScheduleRepository.findById(tourScheduleId).orElseThrow();
-           tourSchedule.setStatus(TourScheduleStatus.COMPLETED);
+            tourSchedule.setStatus(TourScheduleStatus.COMPLETED);
             tourScheduleRepository.save(tourSchedule);
+
+
+            List<TourBooking> tourBookings = tourBookingRepository.findByTourSchedule_Id(tourScheduleId);
+
+            for (TourBooking tourBooking: tourBookings) {
+                if(tourBooking.getStatus().toString().equalsIgnoreCase(TourBookingStatus.SUCCESS.toString())) {
+                    tourBooking.setStatus(TourBookingStatus.COMPLETED);
+                }
+            }
+
+            tourBookingRepository.saveAll(tourBookings);
+
+
             return GeneralResponse.of(TourScheduleStatus.COMPLETED);
         } catch (Exception ex) {
             throw BusinessException.of("Không hoàn thành tour", ex);

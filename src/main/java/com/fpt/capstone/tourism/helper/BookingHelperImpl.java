@@ -117,7 +117,10 @@ public class BookingHelperImpl implements BookingHelper {
             }
 
             //TourBookingStatus
-            predicates.add(cb.equal(root.get("status"), TourBookingStatus.PENDING));
+            predicates.add(cb.or(
+                    cb.equal(root.get("status"), TourBookingStatus.PENDING),
+                    cb.equal(root.get("status"), TourBookingStatus.SUCCESS)
+            ));
 
             //Sale is null
             predicates.add(cb.isNull(root.get("sale")));

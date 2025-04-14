@@ -85,6 +85,7 @@ public class BookingServiceImpl implements BookingService {
     private final LocationRepository locationRepository;
     private final TourPaxRepository tourPaxRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
+    private final TourImageRepository tourImageRepository;
 
     private final UserServiceImpl userService;
     private final EmailService emailService;
@@ -92,7 +93,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
         try {
-            Tour currentTour = tourRepository.findById(tourId).orElseThrow();
+            log.info("Start find tour  with ID: {}", tourId);
+            Tour currentTour = tourRepository.findTourByTourId(tourId);
+            log.info("Start find tour  with ID: {}", tourId);
+            List<TourImage> tourImages = tourImageRepository.findTourImagesByTourId(currentTour.getId());
             PublicTourScheduleDTO tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleByTourId(tourId, scheduleId);
 
             //Mapping to DTO
@@ -104,7 +108,7 @@ public class BookingServiceImpl implements BookingService {
                     .privacy(currentTour.getPrivacy())
                     .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
                     .tourSchedules(tourScheduleBasicDTO)
-                    .tourImage(tourImageMapper.toPublicTourImageDTO(currentTour.getTourImages().get(0)))
+                    .tourImage(tourImageMapper.toPublicTourImageDTO(tourImages.get(0)))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Customer Tour Booking detail loaded successfully", tourBasicDTO);
         } catch (Exception ex) {
@@ -126,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
 
-            String baseUrl = "http://localhost:8080/v1";
+            String baseUrl = "http://localhost:8080/v1/public/booking";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
@@ -147,6 +151,7 @@ public class BookingServiceImpl implements BookingService {
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .paymentUrl(paymentUrl)
                     .expiredAt(LocalDateTime.now().plusHours(2))
+                    .totalAmount(bookingRequestDTO.getTotal())
                     .build();
 
 
@@ -222,6 +227,7 @@ public class BookingServiceImpl implements BookingService {
                     .createdAt(tourBooking.getCreatedAt())
                     .paymentMethod(tourBooking.getPaymentMethod())
                     .paymentUrl(tourBooking.getPaymentUrl())
+                    .status(tourBooking.getStatus())
                     .build();
 
             return GeneralResponse.of(bookingConfirmResponse);
@@ -274,7 +280,7 @@ public class BookingServiceImpl implements BookingService {
             List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
 
 
-            String baseUrl = "http://localhost:8080";
+            String baseUrl = "http://localhost:8080/v1/public/booking";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
@@ -502,7 +508,7 @@ public class BookingServiceImpl implements BookingService {
                 .paymentMethod(paymentMethod)
                 .category(TransactionType.RECEIPT)
                 .paidBy(fullName)
-                .transactionStatus(TransactionStatus.MISSING)
+                .transactionStatus(TransactionStatus.PENDING)
                 .receivedBy("Viet Travel")
                 .build();
 
@@ -775,7 +781,7 @@ public class BookingServiceImpl implements BookingService {
                         .tour(savedTour)
                         .tourPax(tourPax)
                         .deleted(false)
-                        .status(TourScheduleStatus.FULLY_BOOKED)
+                        .status(TourScheduleStatus.OPEN)
                         .build();
             }
             tourScheduleRepository.save(tourSchedule);
@@ -1068,7 +1074,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public GeneralResponse<?> cancelTour(CancelTourBookingRequestDTO dto) {
+    public GeneralResponse<?> cancelBooking(CancelTourBookingRequestDTO dto) {
         try {
             TourBooking tourBookingEntity = tourBookingRepository.findByBookingId(dto.getBookingId());
             tourBookingEntity.setStatus(dto.getStatus());
@@ -1088,7 +1094,18 @@ public class BookingServiceImpl implements BookingService {
             //Hủy hóa đơn
             List<Transaction> transactions = transactionRepository.findAllByBookingAndCategoryIn(tourBookingEntity, List.of(TransactionType.RECEIPT));
             for (Transaction transaction : transactions) {
-                transaction.setTransactionStatus(TransactionStatus.CANCELLED);
+                if(!transaction.getTransactionStatus().toString().equalsIgnoreCase(TransactionStatus.PAID.toString())) {
+                    transaction.setTransactionStatus(TransactionStatus.CANCELLED);
+                }
+
+                List<CostAccount> costAccounts = costAccountRepository.findByTransaction_Id(transaction.getId());
+                for (CostAccount costAccount : costAccounts) {
+                    if(!costAccount.getStatus().toString().equalsIgnoreCase(CostAccountStatus.PAID.toString())) {
+                        costAccount.setStatus(CostAccountStatus.CANCELLED);
+                    }
+                }
+                costAccountRepository.saveAll(costAccounts);
+
             }
 
             transactionRepository.saveAll(transactions);
@@ -1289,6 +1306,42 @@ public class BookingServiceImpl implements BookingService {
             emailService.sendEmailHtml(dto.getEmail(), dto.getSubject(), dto.getContent());
 
             return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Gửi email báo giá thất bại", ex);
+        }
+    }
+
+    @Override
+    public void confirmPayment(int paymentStatus, String orderInfo) {
+        try {
+            PaymentResponseDTO dto = PaymentResponseDTO.builder()
+                    .bookingCode(orderInfo)
+                    .build();
+            if(paymentStatus == 1) {
+                TourBooking tourBooking = tourBookingRepository.findByBookingCode(orderInfo);
+                tourBooking.setStatus(TourBookingStatus.SUCCESS);
+                tourBookingRepository.save(tourBooking);
+
+                List<Transaction> transactions = transactionRepository.findByBooking_Id(tourBooking.getId());
+
+                for(Transaction transaction : transactions) {
+                    transaction.setTransactionStatus(TransactionStatus.PAID);
+                    List<CostAccount> costAccounts = transaction.getCostAccount();
+                    for(CostAccount costAccount : costAccounts) {
+                        costAccount.setStatus(CostAccountStatus.PAID);
+                    }
+
+                    costAccountRepository.saveAll(costAccounts);
+                }
+
+                transactionRepository.saveAll(transactions);
+
+                dto.setPaymentStatus("SUCCESS");
+
+            } else {
+                dto.setPaymentStatus("FAILED");
+            }
+            GeneralResponse.of(dto);
         } catch (Exception ex) {
             throw BusinessException.of("Gửi email báo giá thất bại", ex);
         }

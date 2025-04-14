@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class HomepageServiceImpl implements HomepageService {
     private final TourService tourService;
     private final BlogService blogService;
@@ -104,8 +106,10 @@ public class HomepageServiceImpl implements HomepageService {
     @Override
     public GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id) {
         try{
-            Tour currentTour = tourRepository.findById(id).orElseThrow();
-            List<Long> locationIds = currentTour.getLocations().stream().map(location -> location.getId()).collect(Collectors.toList());
+            log.info("Start find tour booking detail with ID: {}", id);
+            Tour currentTour = tourRepository.findTourByTourId(id);
+            log.info("Start find tour booking detail with ID: {}", id);
+            List<Long> locationIds = currentTour.getLocations().stream().map(Location::getId).collect(Collectors.toList());
             List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
