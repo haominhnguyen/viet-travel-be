@@ -175,4 +175,13 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.sendAccountant(tourScheduleId));
     }
 
+    @GetMapping("/list-tour-private")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<OperatorTourDTO>>>> getListPrivateTour(@RequestParam(defaultValue = "0") int page,
+                                                                                         @RequestParam(defaultValue = "10") int size,
+                                                                                         @RequestParam(required = false) String keyword,
+                                                                                         @RequestParam(value = "status", required = false) String status,
+                                                                                         @RequestParam(defaultValue = "desc") String orderDate) {
+        return ResponseEntity.ok(operatorService.getListTourPrivate(page, size, keyword, status, orderDate));
+    }
+
 }

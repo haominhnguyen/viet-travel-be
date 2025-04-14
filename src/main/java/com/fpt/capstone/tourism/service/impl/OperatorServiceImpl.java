@@ -183,6 +183,10 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourSchedule tourSchedule = tourScheduleRepository.findById(id).orElseThrow();
 
+            if(tourSchedule.getOperator()!= null){
+                throw BusinessException.of("Đã có người điều hành lịch tour này");
+            }
+
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             User user = userRepository.findByUsername(username).orElseThrow(() ->
@@ -208,7 +212,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
                     .operator(user.getFullName())
                     .maxPax(tourSchedule.getTourPax().getMaxPax())
-                        .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
+                    .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Operator received tour to operate successfully", operatorTourDTO);
         } catch (Exception ex) {
@@ -492,7 +496,7 @@ public class OperatorServiceImpl implements OperatorService {
                 // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
 //                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
                 double paidForBooking = 0;
-                if(bookingService.getStatus().equals(TourBookingServiceStatus.PAID)){
+                if (bookingService.getStatus().equals(TourBookingServiceStatus.PAID)) {
                     paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
                 }
 
@@ -998,7 +1002,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Check status of tour schedule
-            if(!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)){
+            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
                 throw BusinessException.of("This tour schedule not ongoing");
             }
             tourSchedule.setStatus(TourScheduleStatus.SETTLEMENT);
@@ -1006,6 +1010,55 @@ public class OperatorServiceImpl implements OperatorService {
             return GeneralResponse.of(tourScheduleId);
         } catch (Exception ex) {
             throw BusinessException.of("Send Accountant Failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTourPrivate(int page, int size, String keyword, String status, String orderDate) {
+        try {
+            Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
+                    .and((root, query, criteriaBuilder) -> {
+                        Join<TourSchedule, Tour> tourJoin = root.join("tour");
+                        return criteriaBuilder.equal(tourJoin.get("tourType"), TourType.PRIVATE);
+                    });
+
+            Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
+
+
+//            List<Long> scheduleIds = tourPage.getContent().stream()
+//                    .map(TourSchedule::getId)
+//                    .collect(Collectors.toList());
+//
+//            Map<Long, Integer> availableSeatsMap = tourScheduleRepository.findAvailableSeatsByScheduleIds(scheduleIds)
+//                    .stream()
+//                    .collect(Collectors.toMap(
+//                            row -> (Long) row[0],  // scheduleId
+//                            row -> (Integer) row[1] // availableSeats
+//                    ));
+
+
+            // Map to DTO
+            List<OperatorTourDTO> operatorTourDTOS = tourPage.getContent().stream()
+                    .map(tourSchedule ->
+                            OperatorTourDTO.builder()
+                                    .scheduleId(tourSchedule.getId())
+                                    .startDate(tourSchedule.getStartDate())
+                                    .endDate(tourSchedule.getEndDate())
+                                    .status(tourSchedule.getStatus().toString())
+                                    .tourName(tourSchedule.getTour().getName())
+                                    .tourGuide(Optional.ofNullable(tourSchedule.getTourGuide()).map(User::getFullName).orElse(null))
+                                    .operator(Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse(null))
+                                    .maxPax(tourSchedule.getTourPax().getMaxPax())
+                                    .build()
+
+                    )
+                    .collect(Collectors.toList());
+
+            return buildPagedResponse(tourPage, operatorTourDTOS);
+        } catch (Exception ex) {
+            throw BusinessException.of("Operator get all tour private fail", ex);
         }
     }
 
