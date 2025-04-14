@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.request.TourScheduleRequestDTO;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourScheduleHelper;
+import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
 import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.mapper.TourScheduleMapper;
 import com.fpt.capstone.tourism.model.*;
@@ -40,8 +41,10 @@ public class TourScheduleServiceImp implements TourScheduleService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourPaxRepository tourPaxRepository;
     private final RoleRepository roleRepository;
+    private final ServiceProviderRepository serviceProviderRepository;
 
     private final TourScheduleMapper tourScheduleMapper;
+    private final ServiceProviderMapper serviceProviderMapper;
 
     private final TourMapper tourMapper;
     private final TourScheduleHelper tourScheduleHelper;
@@ -486,6 +489,20 @@ public class TourScheduleServiceImp implements TourScheduleService {
             return GeneralResponse.of(TourScheduleStatus.COMPLETED);
         } catch (Exception ex) {
             throw BusinessException.of("Không hoàn thành tour", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getProviderByScheduleId(Long tourScheduleId) {
+        try {
+
+            List<ServiceProvider> providers = serviceProviderRepository.findServiceProviderByScheduleId(tourScheduleId);
+
+            List<ServiceProviderSimpleDTO> providerSimpleDTOS = providers.stream().map(serviceProviderMapper::toServiceProviderSimpleDTO).toList();
+
+            return GeneralResponse.of(providerSimpleDTOS);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
         }
     }
 

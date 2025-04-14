@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.OperatorTransactionDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceProviderDTO;
+import com.fpt.capstone.tourism.dto.common.ServiceProviderSimpleDTO;
 import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
 import com.fpt.capstone.tourism.model.CostAccount;
 import com.fpt.capstone.tourism.model.ServiceProvider;
@@ -18,6 +19,9 @@ import java.util.Optional;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ServiceProviderMapper extends EntityMapper<ServiceProviderDTO, ServiceProvider> {
     PublicServiceProviderDTO toPublicServiceProviderDTO(ServiceProvider serviceProvider);
+
+
+    ServiceProviderSimpleDTO toServiceProviderSimpleDTO(ServiceProvider serviceProvider);
 
 //    @Mapping(target = "locationId", source = "location.id")
 //    ServiceProviderDTO toServiceProviderDTO(ServiceProvider serviceProvider);
