@@ -789,34 +789,50 @@ public class TourServiceImpl implements TourService {
             // Find the tour by ID
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
-
             // Check if the tour is in DRAFT status
             if (tour.getTourStatus() != TourStatus.DRAFT) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
                         "Only tours in DRAFT status can be sent for approval. Current status: " + tour.getTourStatus());
             }
-
             // Check if the current user is the creator of the tour or has admin privileges
             boolean isCreator = tour.getCreatedBy() != null &&
                     tour.getCreatedBy().getId().equals(currentUser.getId());
-
             if (!isCreator) {
                 throw BusinessException.of(HttpStatus.FORBIDDEN,
                         "Only the tour creator or administrators can send a tour for approval");
             }
-
             // Validate tour data before sending for approval
             validateTourForApproval(tour);
-
             // Update the tour status to PENDING
             tour.setTourStatus(TourStatus.PENDING);
             // Save the updated tour
             Tour updatedTour = tourRepository.save(tour);
-
             // Map to response DTO
             TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
-
             return new GeneralResponse<>(HttpStatus.OK.value(), "Tour successfully sent for approval", tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to send tour for approval: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<TourResponseDTO> openTour(Long tourId, User currentUser) {
+        try {
+            // Find the tour by ID
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+            // Validate tour data before sending for approval
+            validateTourForApproval(tour);
+            // Update the tour status to PENDING
+            tour.setTourStatus(TourStatus.OPENED);
+            // Save the updated tour
+            Tour updatedTour = tourRepository.save(tour);
+            // Map to response DTO
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour successfully opened", tourResponseDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {

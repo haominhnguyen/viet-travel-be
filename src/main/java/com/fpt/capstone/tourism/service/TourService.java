@@ -51,4 +51,6 @@ public interface TourService {
     GeneralResponse<?> viewDashboard(LocalDate fromDate,LocalDate toDate);
 
     GeneralResponse<TourResponseDTO> sendTourForApproval(Long tourId, User user);
+
+    GeneralResponse<TourResponseDTO> openTour(Long tourId, User user);
 }
