@@ -121,5 +121,15 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
             "AND (sp.deleted = false OR sp.deleted IS NULL)")
     List<ServiceProvider> findByServiceCategoryId(
             @Param("categoryId") Long categoryId);
+
+
+    @Query(value = "select distinct sp.* " +
+            "  from tour_schedule ts " +
+            "  JOIN tour_booking tb ON tb.schedule_id = ts.id " +
+            "  JOIN tour_booking_service tbs ON tbs.tour_booking_id = tb.id " +
+            "  JOIN service s ON s.id = tbs.service_id " +
+            "  JOIN service_provider sp ON sp.id = s.provider_id " +
+            "  where ts.id = :scheduleId and tb.sale_id is not null", nativeQuery = true)
+    List<ServiceProvider> findServiceProviderByScheduleId(@Param("scheduleId") Long scheduleId);
 }
 

@@ -6,7 +6,6 @@ public enum TourScheduleStatus {
     COMPLETED,
     OPEN,
     CANCELLED,
-    FULLY_BOOKED,
     SETTLEMENT
 }
 

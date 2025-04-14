@@ -60,7 +60,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     WHERE t.id = :tourId and ts.id != :tourScheduleId
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
-     HAVING (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0)) > :seats
+     HAVING (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0)) >= :seats
     ORDER BY ts.startDate ASC
 """)
     List<PublicTourScheduleDTO> findTourScheduleBasicByTourIdAndNotEqualScheduleId(@Param("tourId") Long tourId, @Param("tourScheduleId") Long tourScheduleId, @Param("seats") int seats);
