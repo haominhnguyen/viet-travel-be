@@ -588,6 +588,9 @@ public class OperatorServiceImpl implements OperatorService {
                             requestDTO.getBookingId(), requestDTO.getServiceId()
                     );
 
+            if(!tourBookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)){
+                throw BusinessException.of("Đơn này chưa thể gửi thanh toán");
+            }
             tourBookingService.setStatus(TourBookingServiceStatus.PAID);
             bookingServiceRepository.save(tourBookingService);
 
