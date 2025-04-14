@@ -513,11 +513,11 @@ public class ServiceServiceImpl implements ServiceService {
                 throw BusinessException.of("Unauthorized");
             }
 
-            //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
-            LocalDateTime currentDateTime = LocalDateTime.now();
-            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
-                throw BusinessException.of("Booking service has expired");
-            }
+//            //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
+//            LocalDateTime currentDateTime = LocalDateTime.now();
+//            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
+//                throw BusinessException.of("Booking service has expired");
+//            }
 
             //Chỉ có thể approve khi đơn hàng là pending
             if (bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
