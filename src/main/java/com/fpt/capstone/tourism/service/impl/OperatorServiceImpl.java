@@ -1448,7 +1448,12 @@ public class OperatorServiceImpl implements OperatorService {
 
             // Filter by status
             if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
+                try {
+                    TourScheduleStatus enumStatus = TourScheduleStatus.valueOf(status);
+                    predicates.add(cb.equal(root.get("status"), enumStatus));
+                } catch (IllegalArgumentException e) {
+                    throw BusinessException.of("Invalid status value: " + status, e);
+                }
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
