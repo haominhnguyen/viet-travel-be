@@ -529,7 +529,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
             }
 
-            // Create a final reference that will be used with lambda expressions
             final Long requestServiceId = request.getServiceId();
 
             Service service = serviceRepository.findById(requestServiceId)
