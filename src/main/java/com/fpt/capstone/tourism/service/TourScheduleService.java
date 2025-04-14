@@ -30,4 +30,6 @@ public interface TourScheduleService {
     GeneralResponse<?> getSettlementDetails(Long tourScheduleId);
 
     GeneralResponse<?> finishSettlement(Long tourScheduleId);
+
+    GeneralResponse<?>  getProviderByScheduleId(Long tourScheduleId);
 }

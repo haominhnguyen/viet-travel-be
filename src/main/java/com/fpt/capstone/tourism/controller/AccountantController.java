@@ -82,4 +82,10 @@ public class AccountantController {
     public ResponseEntity<?> finishSettlement(@RequestBody Long tourScheduleId) {
         return ResponseEntity.ok(tourScheduleService.finishSettlement(tourScheduleId));
     }
+
+
+    @GetMapping("/settlements/service-provider/{tourScheduleId}")
+    public ResponseEntity<?> listProviderBySchedule(@PathVariable(name = "tourScheduleId") Long tourScheduleId) {
+        return ResponseEntity.ok(tourScheduleService.getProviderByScheduleId(tourScheduleId));
+    }
 }
