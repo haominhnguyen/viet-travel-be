@@ -187,6 +187,10 @@ public class OperatorServiceImpl implements OperatorService {
                 throw BusinessException.of("Đã có người điều hành lịch tour này");
             }
 
+            if(!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)){
+                throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
+            }
+
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             User user = userRepository.findByUsername(username).orElseThrow(() ->
@@ -1501,7 +1505,7 @@ public class OperatorServiceImpl implements OperatorService {
         TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
                 () -> BusinessException.of("No tour schedule found")
         );
-        if (!tourSchedule.getOperator().getId().equals(currentOperatorId)) {
+        if (tourSchedule.getOperator() != null && (!tourSchedule.getOperator().getId().equals(currentOperatorId))) {
             throw BusinessException.of("Unauthorized");
         }
         return true;
