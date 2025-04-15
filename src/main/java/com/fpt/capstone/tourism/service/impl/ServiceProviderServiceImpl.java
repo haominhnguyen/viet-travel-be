@@ -1,45 +1,48 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.*;
-import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PublicServiceProviderDTO;
-import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
-import com.fpt.capstone.tourism.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.helper.validator.Validator;
-import com.fpt.capstone.tourism.mapper.GeoPositionMapper;
-import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.mapper.ServiceCategoryMapper;
-import com.fpt.capstone.tourism.mapper.ServiceProviderMapper;
+import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.Role;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fpt.capstone.tourism.service.UserService;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.hibernate.grammars.hql.HqlParser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -56,10 +59,13 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
     private final ServiceCategoryMapper serviceCategoryMapper;
     private final LocationMapper locationMapper;
     private final GeoPositionMapper geoPositionMapper;
+    private final TourBookingServiceMapper bookingServiceMapper;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
+    private final GeoPositionRepository geoPositionRepository;
+    private final TourBookingServiceRepository bookingServiceRepository;
     private final EmailConfirmationService emailConfirmationService;
     private final UserService userService;
     private final PasswordGenerateImpl passwordGenerate;
@@ -79,10 +85,41 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(serviceProviderRepository.findByPhone(serviceProviderDTO.getPhone()) != null){
                 throw BusinessException.of(PHONE_ALREADY_EXISTS_MESSAGE);
             }
+
+            Location location = locationRepository.findById(serviceProviderDTO.getLocationId()).orElseThrow(null);
+            GeoPosition geoPosition = GeoPosition.builder()
+                    .longitude(serviceProviderDTO.getGeoPosition().getLongitude())
+                    .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
+                    .deleted(false)
+                    .build();
+            geoPosition = geoPositionRepository.save(geoPosition);
+
             //Store data into database
-            ServiceProvider serviceProvider = serviceProviderMapper.toEntity(serviceProviderDTO);
-            serviceProvider.setId(null);
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setImageUrl( serviceProviderDTO.getImageUrl() );
+            serviceProvider.setName( serviceProviderDTO.getName() );
+            serviceProvider.setAbbreviation( serviceProviderDTO.getAbbreviation() );
+            serviceProvider.setWebsite( serviceProviderDTO.getWebsite() );
+            serviceProvider.setEmail( serviceProviderDTO.getEmail() );
+            serviceProvider.setStar( serviceProviderDTO.getStar() );
+            serviceProvider.setPhone( serviceProviderDTO.getPhone() );
+            serviceProvider.setAddress( serviceProviderDTO.getAddress() );
             serviceProvider.setDeleted(false);
+            serviceProvider.setLocation(location);
+            serviceProvider.setGeoPosition( geoPosition);
+            if (serviceProviderDTO.getServiceCategories() != null) {
+                List<ServiceCategory> serviceCategory = serviceProviderDTO.getServiceCategories().stream()
+                        .map(serviceCategoryMapper::toEntity
+//                            ServiceCategoryDTO dto = new ServiceCategoryDTO();
+//                            dto.setId(category.getId());
+//                            dto.setCategoryName(category.getCategoryName());
+//                            dto.setDeleted(category.getDeleted());
+//                            return dto;
+                        )
+                        .toList();
+                serviceProvider.setServiceCategories(serviceCategory);
+            }
+            serviceProvider.setId(null);
             serviceProvider.setCreatedAt(LocalDateTime.now());
 
 
@@ -95,7 +132,24 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             serviceProvider.setUser(serviceUser);
             serviceProviderRepository.save(serviceProvider);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_SERVICE_PROVIDER_SUCCESS, serviceProviderMapper.toDTO(serviceProvider));
+            //Map to DTO
+            ServiceProviderDTO resultDTO = ServiceProviderDTO.builder()
+                    .id(serviceProvider.getId())
+                    .imageUrl(serviceProvider.getImageUrl())
+                    .name(serviceProvider.getName())
+                    .abbreviation(serviceProvider.getAbbreviation())
+                    .website(serviceProvider.getWebsite())
+                    .email(serviceProvider.getEmail())
+                    .star(serviceProvider.getStar())
+                    .phone(serviceProvider.getPhone())
+                    .address(serviceProvider.getAddress())
+                    .deleted(serviceProvider.getDeleted())
+                    .locationId(serviceProvider.getLocation().getId())
+                    .geoPosition(geoPositionMapper.toDTO(serviceProvider.getGeoPosition()))
+                    .serviceCategories(serviceProvider.getServiceCategories().stream().map(serviceCategoryMapper::toDTO).collect(Collectors.toList()))
+                    .build();
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_SERVICE_PROVIDER_SUCCESS, resultDTO);
         } catch (BusinessException be){
             throw be;
         } catch (Exception ex){
@@ -106,11 +160,26 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
     @Transactional
     @Override
-    public GeneralResponse<ServiceProviderDTO> getServiceProviderById(Long id) {
+    public GeneralResponse<?> getServiceProviderById(Long id) {
         try{
             ServiceProvider serviceProvider = serviceProviderRepository.findById(id).orElseThrow();
-            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, serviceProviderDTO);
+            ServiceProviderDetailDTO resultDTO = ServiceProviderDetailDTO.builder()
+                    .id(serviceProvider.getId())
+                    .imageUrl(serviceProvider.getImageUrl())
+                    .name(serviceProvider.getName())
+                    .abbreviation(serviceProvider.getAbbreviation())
+                    .website(serviceProvider.getWebsite())
+                    .email(serviceProvider.getEmail())
+                    .star(serviceProvider.getStar())
+                    .phone(serviceProvider.getPhone())
+                    .address(serviceProvider.getAddress())
+                    .deleted(serviceProvider.getDeleted())
+                    .location(locationMapper.toPublicLocationSimpleDTO(serviceProvider.getLocation()))
+                    .geoPosition(geoPositionMapper.toDTO(serviceProvider.getGeoPosition()))
+                    .serviceCategories(serviceProvider.getServiceCategories().stream().map(serviceCategoryMapper::toDTO).collect(Collectors.toList()))
+                    .build();
+//            ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, resultDTO);
         } catch (BusinessException be){
             throw be;
         } catch (Exception ex){
@@ -164,6 +233,9 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(serviceProviderDTO.getStar() != serviceProvider.getStar()){
                 serviceProvider.setStar(serviceProviderDTO.getStar());
             }
+            if(!serviceProviderDTO.getName().equals(serviceProvider.getName())){
+                serviceProvider.setName(serviceProviderDTO.getName());
+            }
             if(!serviceProviderDTO.getEmail().equals(serviceProvider.getEmail())){
                 //Check duplicate email
                 if(serviceProviderRepository.findByEmail(serviceProviderDTO.getEmail()) != null){
@@ -180,19 +252,51 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             if(!serviceProviderDTO.getAddress().equals(serviceProvider.getAddress())){
                 serviceProvider.setAddress(serviceProviderDTO.getAddress());
             }
-            System.out.println(serviceProviderDTO.getId());
-
-            if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
-                GeoPosition geoPosition = GeoPosition.builder()
-                        .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
-                        .longitude(serviceProviderDTO.getGeoPosition().getLongitude()).build() ;
-                serviceProvider.setGeoPosition(geoPosition);
-            }
-
-            if(!serviceProviderDTO.getLocation().getId().equals(serviceProvider.getLocation().getId())) {
-                Location location = locationRepository.findById(serviceProviderDTO.getLocation().getId()).orElseThrow();
+            if(!serviceProviderDTO.getLocationId().equals(serviceProvider.getLocation().getId())){
+                Location location = locationRepository.findById(serviceProviderDTO.getLocationId()).orElseThrow();
                 serviceProvider.setLocation(location);
             }
+
+//            if(!serviceProviderDTO.getGeoPosition().getId().equals(serviceProvider.getGeoPosition().getId())){
+//                GeoPosition geoPosition = GeoPosition.builder()
+//                        .latitude(serviceProviderDTO.getGeoPosition().getLatitude())
+//                        .longitude(serviceProviderDTO.getGeoPosition().getLongitude()).build() ;
+//                serviceProvider.setGeoPosition(geoPosition);
+//            }
+            if (serviceProviderDTO.getGeoPosition() != null) {
+                Double newLatitude = serviceProviderDTO.getGeoPosition().getLatitude();
+                Double newLongitude = serviceProviderDTO.getGeoPosition().getLongitude();
+
+                // Kiểm tra nếu tọa độ thay đổi
+                if (!newLatitude.equals(serviceProvider.getGeoPosition().getLatitude()) ||
+                        !newLongitude.equals(serviceProvider.getGeoPosition().getLongitude())) {
+
+                    // Kiểm tra xem GeoPosition đã tồn tại trong DB chưa
+                    List<GeoPosition> existingGeo = geoPositionRepository.findByLatitudeAndLongitude(newLatitude, newLongitude);
+
+                    GeoPosition geoPosition;
+                    if (existingGeo.get(0) != null) {
+                        geoPosition = existingGeo.get(0); // Nếu đã có, lấy ra dùng
+                    } else {
+                        geoPosition = GeoPosition.builder()
+                                .latitude(newLatitude)
+                                .longitude(newLongitude)
+                                .build();
+                        geoPosition = geoPositionRepository.save(geoPosition); // Lưu mới vào DB
+                    }
+
+                    serviceProvider.setGeoPosition(geoPosition);
+                }
+            }
+
+
+//            String normalizedName = removeAccents(serviceProviderDTO.getLocationName().toLowerCase());
+//            List<Location> location = locationRepository.findAll().stream()
+//                    .filter(loc -> removeAccents(loc.getName().toLowerCase()).contains(normalizedName)).collect(Collectors.toList());
+
+//            if(location.get(0) != null && (!location.get(0).getName().equals(serviceProvider.getLocation().getName()))) {
+//                serviceProvider.setLocation(location.get(0));
+//            }
             serviceProvider.setServiceCategories(serviceProviderDTO.getServiceCategories()
                     .stream().map(serviceCategoryMapper::toEntity).collect(Collectors.toList()));
 
@@ -238,8 +342,6 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             throw BusinessException.of("Fail to change status service provider", ex);
         }
     }
-
-
 
     private Specification<ServiceProvider> buildSearchSpecification(String keyword, Boolean isDeleted) {
         return (root, query, cb) -> {
@@ -326,6 +428,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
     }
 
+
     private Specification<ServiceProvider> buildSearchSpecification(String keyword, String categoryName, Integer star) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -370,8 +473,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         if (text == null) {
             return null;
         }
-        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{M}"); // Removes diacritics (accents)
+        String normalized = Normalizer.normalize(text, Normalizer.Form.NFD);//Chuyển chữ có dấu thành ký tự gốc + dấu (ví dụ: Đà → Da + dấu huyền).
+        Pattern pattern = Pattern.compile("\\p{M}"); //  Xóa tất cả các dấu khỏi ký tự.
         return pattern.matcher(normalized).replaceAll("");
     }
 
@@ -422,5 +525,6 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             throw BusinessException.of("Create account service provider fail");
         }
     }
+
 }
 

@@ -19,7 +19,7 @@ public class ServiceProvider extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "text")
     private String imageUrl;
 
     private String name;
@@ -45,13 +45,16 @@ public class ServiceProvider extends BaseEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "geo_position_id")
+    @ToString.Exclude
     private GeoPosition geoPosition;
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User user;
 
     @ManyToMany
+    @ToString.Exclude
     @JoinTable(
             name = "provide_service",
             joinColumns = @JoinColumn(name = "provider_id"),

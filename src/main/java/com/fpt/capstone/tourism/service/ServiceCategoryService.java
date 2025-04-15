@@ -19,5 +19,7 @@ public interface ServiceCategoryService {
     GeneralResponse<ServiceCategoryResponseDTO> updateCategory(Long id, ServiceCategoryRequestDTO requestDTO);
 
     GeneralResponse<ServiceCategoryDTO> changeCategoryDeletedStatus(Long id, boolean isDeleted);
+
+    GeneralResponse<List<ServiceCategoryDTO>> getAllServiceCategories();
 }
 

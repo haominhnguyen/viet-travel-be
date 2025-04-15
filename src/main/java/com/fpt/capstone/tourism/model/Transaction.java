@@ -1,10 +1,10 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -20,8 +20,9 @@ public class Transaction extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false)
+    @ToString.Exclude
     private TourBooking booking;
 
     @Column(nullable = false)
@@ -45,5 +46,9 @@ public class Transaction extends BaseEntity{
     private String notes;
 
     @OneToMany(mappedBy = "transaction")
+    @ToString.Exclude
     private List<CostAccount> costAccount;
+
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus transactionStatus;
 }

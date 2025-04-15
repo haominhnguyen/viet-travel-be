@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.ServiceProviderDTO;
+import com.fpt.capstone.tourism.dto.common.ServiceProviderDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,13 +66,14 @@ class ServiceProviderControllerTest {
 
     @Test
     void testGetServiceProviderDetails() throws Exception {
-        ServiceProviderDTO responseDTO = new ServiceProviderDTO();
+        ServiceProviderDetailDTO responseDTO = new ServiceProviderDetailDTO();
         responseDTO.setId(1L);
         responseDTO.setName("Test Provider");
         responseDTO.setEmail("test@provider.com");
 
-        when(serviceProviderService.getServiceProviderById(1L))
-                .thenReturn(new GeneralResponse<>(200, "Success", responseDTO));
+//        when(serviceProviderService.getServiceProviderById(1L))
+//                .thenReturn(true)
+//                .thenReturn(new GeneralResponse<ServiceProviderDetailDTO>(200, "Success", responseDTO));
 
         mockMvc.perform(get("/ceo/service-provider/details/1"))
                 .andExpect(status().isOk())
@@ -88,7 +90,7 @@ class ServiceProviderControllerTest {
         List<ServiceProviderDTO> providers = Collections.singletonList(responseDTO);
         PagingDTO<List<ServiceProviderDTO>> pagingDTO = new PagingDTO<>(0, 10, 1, providers);
 
-        when(serviceProviderService.getAllServiceProviders(0, 10, null, null))
+        when(serviceProviderService.getAllServiceProviders(0, 10, null, null,null))
                 .thenReturn(new GeneralResponse<>(200, "Success", pagingDTO));
 
         mockMvc.perform(get("/ceo/service-provider/list")

@@ -18,7 +18,7 @@ public class PublicTourDetailDTO {
     private String privacy;
     private List<PublicLocationDTO> locations;
     private List<TagDTO> tags;
-    private PublicLocationDTO depart_location;
+    private PublicLocationDTO departLocation;
     private List<PublicTourScheduleDTO> tourSchedules;
     private List<PublicTourImageDTO> tourImages;
     private List<PublicTourDTO> otherTours;

@@ -1,12 +1,9 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.dto.response.BlogResponseDTO;
+import com.fpt.capstone.tourism.dto.response.PublicActivityDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.dto.response.PublicTourDTO;
-import com.fpt.capstone.tourism.model.Activity;
-import com.fpt.capstone.tourism.model.Blog;
-import com.fpt.capstone.tourism.model.Location;
-import com.fpt.capstone.tourism.model.Tour;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +15,6 @@ public class HomepageDTO {
     private PublicTourDTO topTourOfYear;
     private List<PublicTourDTO> trendingTours;
     private List<BlogResponseDTO> newBlogs;
-    private List<ActivityDTO> recommendedActivities;
+    private List<PublicActivityDTO> recommendedActivities;
     private List<PublicLocationDTO> recommendedLocations;
 }

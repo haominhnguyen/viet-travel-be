@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ServiceRequestDTO {
     private String name;
     private Double nettPrice;
@@ -15,4 +16,8 @@ public class ServiceRequestDTO {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Long categoryId;
+    private Long providerId;
+    private RoomDetailsDTO roomDetails;
+    private MealDetailsDTO mealDetails;
+    private TransportDetailsDTO transportDetails;
 }

@@ -2,8 +2,6 @@ package com.fpt.capstone.tourism.dto.common;
 
 import java.time.LocalDateTime;
 
-import com.fpt.capstone.tourism.model.ServiceCategory;
-import com.fpt.capstone.tourism.model.ServiceProvider;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

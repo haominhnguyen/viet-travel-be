@@ -175,6 +175,167 @@ public class Constants {
         public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
         public static final String TOUR_DETAIL_LOAD_FAIL = "Tour detail load failed";
 
+        public static final String INVALID_BLOG_TITLE_LENGTH = "Title must be between 5 and 100 characters.";
+        public static final String INVALID_BLOG_DESCRIPTION_LENGTH = "Description must be between 10 and 300 characters.";
+        public static final String INVALID_BLOG_CONTENT_LENGTH = "Content must be between 50 and 5000 characters.";
+
+        public static final String TOUR_NOT_FOUND = "Tour not found";
+        public static final String TOUR_DAY_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
+        public static final String TOUR_DAY_DETAIL_LOAD_FAIL = "Tour detail load failed";
+        public static final String NO_TOUR_DAY_FOUND  = "No tour days found for this tour";
+
+        public static final String TOUR_DAY_NOT_FOUND = "Tour day not found";
+        public static final String TOUR_DAY_SERVICE_NOT_FOUND = "Tour day service not found";
+        public static final String LOCATION_NOT_FOUND = "Location not found";
+        public static final String SERVICE_ID_REQUIRED = "Service ID is required for new tour day services";
+        public static final String TOUR_DAY_UPDATE_SUCCESS = "Tour day updated successfully";
+        public static final String TOUR_DAY_UPDATE_FAIL = "Failed to update tour day";
+
+        public static final String ROOM_NOT_FOUND = "Room not found";
+        public static final String MEAL_NOT_FOUND = "Meal not found";
+        public static final String TRANSPORT_NOT_FOUND = "Transport not found";
+        public static final String HOTEL = "Hotel";
+        public static final String RESTAURANT = "Restaurant";
+        public static final String TRANSPORT = "Transport";
+        public static final String ACTIVITY = "Activity";
+        public static final String TICKET = "Flight Ticket";
+
+        public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
+        public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";
+        public static final String NEGATIVE_AVAILABLE_QUANTITY = "Available quantity must not be negative";
+        public static final String UNEXPECTED_ROOM_DETAILS = "Room details provided for non-hotel service";
+
+        public static final String MEAL_DETAILS_REQUIRED = "Meal details are required for restaurant services";
+        public static final String MEAL_TYPE_REQUIRED = "Meal type must be specified";
+        public static final String UNEXPECTED_MEAL_DETAILS = "Meal details provided for non-restaurant service";
+
+        public static final String TRANSPORT_DETAILS_REQUIRED = "Transport details are required for transport services";
+        public static final String INVALID_SEAT_CAPACITY = "Seat capacity must be greater than zero";
+        public static final String UNEXPECTED_TRANSPORT_DETAILS = "Transport details provided for non-transport service";
+
+        public static final String INVALID_DAYS_NIGHTS = "Number of days must be greater than number of nights";
+        public static final String TOUR_DAYS_MISMATCH = "Number of tour days must match the specified number of days";
+        public static final String TOUR_CREATE_SUCCESS = "Tour created successfully";
+        public static final String TOUR_UPDATE_SUCCESS = "Tour updated successfully";
+        public static final String TOUR_DELETE_SUCCESS = "Tour deleted successfully";
+        public static final String TOURS_LOAD_SUCCESS = "Tours loaded successfully";
+        public static final String TOURS_SEARCH_SUCCESS = "Tours search completed successfully";
+        public static final String TOUR_CREATE_FAIL = "Failed to create tour";
+        public static final String TOUR_UPDATE_FAIL = "Failed to update tour";
+        public static final String TOURS_LOAD_FAIL = "Failed to load tours";
+        public static final String LOCATION_REQUIRED = "At least one location is required";
+        public static final String DEPART_LOCATION_NOT_FOUND = "Departure location not found";
+        public static final String DEPART_LOCATION_REQUIRED = "Departure location is required";
+        public static final String TAG_NOT_FOUND = "One or more tags not found";
+        public static final String INVALID_TOUR_TYPE = "Invalid tour type";
+        public static final String INVALID_TOUR_STATUS = "Invalid tour status";
+        public static final String TOUR_REQUEST_NULL = "Tour request cannot be null";
+        public static final String TOUR_NAME_EMPTY = "Tour name cannot be empty";
+        public static final String NUMBER_DAYS_INVALID = "Number of days must be greater than 0";
+        public static final String NUMBER_NIGHTS_INVALID = "Number of nights cannot be negative";
+        public static final String TOUR_MUST_HAVE_LOCATION = "Tour must have at least one location";
+        public static final String TOUR_TYPE_REQUIRED = "Tour type is required";
+        public static final String TOUR_TYPE_INVALID = "Invalid tour type";
+        public static final String TOUR_STATUS_REQUIRED = "Tour status is required";
+        public static final String TOUR_STATUS_INVALID = "Invalid tour status";
+        public static final String MARKUP_PERCENT_INVALID = "Markup percent cannot be negative";
+        public static final String NUMBER_DAYS_MISMATCH = "Number of days must match the number of tour day entries";
+        public static final String TOUR_DAY_TITLE_EMPTY = "Tour day title cannot be empty";
+        public static final String TOUR_DAY_LOCATION_REQUIRED = "Tour day location is required";
+        public static final String CANNOT_MODIFY_OPENED_TOUR = "Cannot modify an opened tour";
+        public static final String CANNOT_ADD_DELETED_SERVICE = "Cannot add a deleted service";
+        public static final String SERVICE_ALREADY_ADDED = "This service is already added to this tour day";
+        public static final String SERVICE_ADD_SUCCESS = "Service added to tour day successfully";
+        public static final String TOUR_DAY_CREATED_SUCCESS = "Tour day created successfully";
+        public static final String TOUR_DAY_UPDATED_SUCCESS = "Tour day updated successfully";
+        public static final String TOUR_DAY_DELETED_SUCCESS = "Tour day deleted successfully";
+        public static final String TOUR_DAY_RESTORED_SUCCESS = "Tour day restored successfully";
+        public static final String INVALID_SERVICE_CATEGORY = "Invalid service category. Must be one of: Hotel, Restaurant, Transport";
+        public static final String NO_TOUR_DAYS_FOUND = "No tour days found";
+        public static final String SERVICES_LOAD_SUCCESS = "Tour services retrieved successfully";
+        public static final String SERVICES_LOAD_FAIL = "Failed to retrieve tour services";
+        public static final String PAX_CONFIG_NOT_FOUND = "Pax configuration not found";
+        public static final String PAX_CONFIG_NOT_ASSOCIATED = "Pax configuration not associated with this tour";
+        public static final String PAX_CONFIG_OVERLAP = "Pax configuration overlaps with existing configurations";
+        public static final String PAX_CONFIG_INVALID_RANGE = "Min pax must be less than or equal to max pax";
+        public static final String PAX_CONFIG_INVALID_DATES = "Valid from date must be before valid to date";
+
+        public static final String PAX_CONFIGS_LOAD_SUCCESS = "Pax configurations retrieved successfully";
+        public static final String PAX_CONFIG_LOAD_SUCCESS = "Pax configuration retrieved successfully";
+        public static final String PAX_CONFIG_CREATE_SUCCESS = "Pax configuration created successfully";
+        public static final String PAX_CONFIG_UPDATE_SUCCESS = "Pax configuration updated successfully";
+        public static final String PAX_CONFIG_DELETE_SUCCESS = "Pax configuration deleted successfully";
+        public static final String SERVICE_NOT_ASSOCIATED = "Service not associated with this tour";
+        public static final String SERVICE_DETAIL_LOAD_SUCCESS = "Service details retrieved successfully";
+        public static final String SERVICE_DETAIL_LOAD_FAIL = "Failed to retrieve service details";
+        public static final String PROVIDER_SERVICES_LOAD_SUCCESS = "Provider services retrieved successfully";
+        public static final String PROVIDER_SERVICES_LOAD_FAIL = "Failed to retrieve provider services details";
+
+        public static final String NO_SERVICES_AVAILABLE= "No tour services found";
+        public static final String SERVICE_UPDATE_FAIL = "Service update failed";
+
+        public static final String DAY_NUMBER_REQUIRED = "Day number is required";
+        public static final String SERVICE_ALREADY_ASSOCIATED = "Service already associated with this tour day";
+        public static final String SERVICE_CREATE_FAIL = "Service creation failed";
+        public static final String SERVICE_DELETE_FAIL = "Service delete failed";
+
+        public static final String ACTIVITY_LIST_LOAD_SUCCESS = "Activity list loaded successfully";
+        public static final String ACTIVITY_LIST_LOAD_FAIL = "Failed to load activity list";
+        public static final String ACTIVITY_DETAIL_LOAD_SUCCESS = "Activity detail loaded successfully";
+        public static final String ACTIVITY_DETAIL_LOAD_FAIL = "Failed to load activity detail";
+        public static final String ACTIVITY_NOT_FOUND = "Activity not found";
+        public static final String ACTIVITY_NOT_ASSOCIATED = "Activity is not associated with the tour";
+        public static final String ACTIVITY_EXISTED = "Existed activity";
+
+        public static final String CATEGORY_LIST_LOAD_SUCCESS = "Activity categories loaded successfully";
+        public static final String CATEGORY_LIST_LOAD_FAIL = "Failed to load activity categories";
+        public static final String ACTIVITY_CREATE_SUCCESS = "Activity created successfully";
+        public static final String ACTIVITY_CREATE_FAIL = "Failed to create activity";
+        public static final String ACTIVITY_UPDATE_SUCCESS = "Activity updated successfully";
+        public static final String ACTIVITY_UPDATE_FAIL = "Failed to update activity";
+        public static final String ACTIVITY_ALREADY_EXISTS = "Activity already exists for this tour day";
+        public static final String ACTIVITY_LOADED_SUCCESS = "Activity loaded successfully";
+        public static final String ACTIVITY_LOADED_FAIL = "Failed to load activity";
+        public static final String CATEGORY_SERVICES_LOAD_SUCCESS = "Category services loaded successfully";
+        public static final String CATEGORY_SERVICES_LOAD_FAIL = "Failed to load category services";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Provider category services loaded successfully";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Failed to load provider category services";
+        public static final String MARKUP_UPDATE_SUCCESS = "Markup updated successfully";
+        public static final String MARKUP_UPDATE_FAIL = "Failed to update markup";
+        public static final String MARKUP_RETRIEVE_SUCCESS = "Markup retrieved successfully";
+        public static final String MARKUP_RETRIEVE_FAIL = "Failed to retrieve markup";
+        public static final String MARK_UP_REQUIRED = "Markup required";
+        public static final String MARK_UP_MUST_BE_NUMBER = "Markup must be a number";
+        public static final String MARK_UP_POSITIVE = "Markup must be positive";
+        public static final String MARK_UP_LIMIT  = "Markup must not exceed 100%";
+
+        public static final String USER_NOT_FOUND = "User not found";
+        public static final String OPERATOR_ROLE_NOT_FOUND = "Operator role not found";
+        public static final String USER_NOT_OPERATOR = "Selected user is not an operator";
+        public static final String OPERATOR_NOT_FOUND = "Operator not found";
+        public static final String OPERATOR_OVERBOOKED = "Operator already has more than 3 active tours during this period";
+        public static final String SCHEDULE_CREATED_SUCCESS = "Tour schedule created successfully";
+        public static final String SERVICE_REMOVED = "Service removed successfully";
+        public static final String SERVICE_REMOVE_FAIL = "Failed to remove service";
+
+        public static final String PAX_RANGE_INVALID = "Maximum pax must be greater than or equal to minimum pax";
+        public static final String DATE_RANGE_INVALID = "Valid to date must be after valid from date";
+        public static final String OVERLAP_EXISTS = "A price configuration with overlapping pax range and date range already exists";
+        public static final String CONFIG_CREATED = "Price configuration created successfully";
+        public static final String CONFIG_UPDATED = "Price configuration updated successfully";
+        public static final String CONFIG_DELETED = "Price configuration deleted successfully";
+        public static final String CONFIGS_RETRIEVED = "Price configurations retrieved successfully";
+        public static final String TOUR_PAX_NOT_FOUND = "Tour pax configuration not found";
+        public static final String TOUR_PAX_MISMATCH = "Tour pax configuration does not belong to this tour";
+        public static final String TOUR_PAX_DELETED = "Cannot use a deleted tour pax configuration";
+        public static final String TOUR_PAX_INVALID_DATES = "Tour schedule dates are outside the validity period of the selected pax configuration";
+        public static final String TOUR_PAX_NOT_AVAILABLE = "No pax configurations available for this tour. Please create a pax configuration first.";
+        public static final String TOUR_PAX_NO_VALID = "No valid pax configuration found for the specified date range. Please create a valid pax configuration or adjust the schedule dates.";
+        public static final String ROLE_OPERATOR = "OPERATOR";
+        public static final int MAX_OPERATOR_TOURS = 3;
+        public static final String CATEGORIES_LOAD_SUCCESS = "Categories loaded successfully";
+        public static final String CATEGORIES_LOAD_FAIL = "Failed to load categories";
+        public static final String OPERATOR_NOT_VALID = "Operator is already assigned to this tour during the requested period";
     }
 
 
@@ -185,6 +346,108 @@ public class Constants {
         public static final String REGEX_FULLNAME = "^[a-zA-Z][a-zA-Z\s]*$";
         public static final String REGEX_EMAIL = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
         public static final String REGEX_PHONE = "^[0-9]{10,15}$";
+
+    }
+
+    public static final class FilePath {
+        public static final String PRICE_EMAIL_PATH= "src/main/resources/templates/pricing.html";
+        public static final String TOUR_IMAGE_FALL_BACK_URL = "https://media.travel.com.vn/TourFiles/4967/Hoi%20An%20Ve%20Dem%20(4).jpg";
+    }
+
+
+    public static final class AI {
+        public static final String PLAN_RESPONSE_JSON = """
+                                                            "plan": {
+                                                                numberDays: 3,
+                                                                title: "Những viên ngọc văn hóa và kho báu nghệ thuật của Paris",
+                                                                plan_category: Du lịch Cá Nhân,
+                                                                thumbnail_image_url: "",
+                                                                location: Hà Nội,
+                                                                description: "Đắm mình trong bức tranh nghệ thuật và văn hóa phong phú tại một số bảo tàng hấp dẫn nhất của Paris. Khám phá những viên ngọc ẩn như Petit Palais, với những bộ sưu tập tuyệt đẹp trải dài từ nghệ thuật cổ đại đến nghệ thuật hiện đại, và Musée Marmottan Monet ấm cúng, trưng bày những kiệt tác của trường phái Ấn tượng. Đừng bỏ lỡ những màn trình diễn lộng lẫy tại Musée d'Art Moderne de Paris, những sáng tạo kỳ quặc tại Bảo tàng Dalí và các tác phẩm mang tính biểu tượng của Picasso được lưu giữ tại Hôtel Salé thanh lịch, bên cạnh Trung tâm Pompidou tiên tiến định nghĩa lại nghệ thuật hiện đại. Mỗi địa điểm đều mang đến một trải nghiệm độc đáo, mời gọi những người yêu nghệ thuật và du khách bình thường khám phá, tìm hiểu và đánh giá cao di sản nghệ thuật của thành phố xinh đẹp này.",
+                                                                days: [
+                                                                    {
+                                                                        date: "dd-MM-yyy",
+                                                                        long_description: "Trải nghiệm đến khu du lịch Fansipan Legend bằng Tàu hỏa leo núi Mường Hoa hiện đại nhất Việt Nam với tổng chiều dài gần 2000m, thưởng ngoạn bức tranh phong cảnh đầy màu sắc của cánh rừng nguyên sinh, thung lũng Mường Hoa.
+                                                                                           Chinh phục đỉnh núi Fansipan với độ cao 3.143m hùng vĩ bằng cáp treo (chi phí tự túc).
+                                                                                           Lễ Phật tại chùa Trình hay cầu phúc lộc, bình an cho gia đình tại Bích Vân Thiền Tự trong hệ thống cảnh quan tâm linh trên đỉnh Fansipan.
+                                                                                           Tiếp tục hành trình, bạn sẽ dùng cơm trưa và tham quan:
+                                                                                           Chinh phục đèo Ô Quy Hồ - con đèo đẹp, hùng vĩ và dài nhất trong Tứ Đại Đỉnh Đèo miền Bắc.
+                                                                                           Khu du lịch Cổng Trời Ô Quy Hồ - một trong những điểm săn mây, ngắm hoàng hôn cực đẹp tại Sapa.
+                                                                                           Cuối cùng dùng cơm tối tại Sapa và tự do nghỉ ngơi.",
+                                                                      "activities": [
+                                                                        {
+                                                                          "id": 1,
+                                                                          "title": "Activity 1 Title",
+                                                                          "content": "Description of activity 1.",
+                                                                          "category": "Category of activity",
+                                                                          duration: "2-3 giờ",
+                                                                          imageUrl: "Activities Image URL"
+                                                                        }
+                                                                      ],
+                                                                      "hotel": {
+                                                                        "id": 1,
+                                                                        "name": "Hotel Name",
+                                                                        "address": "Hotel Address",
+                                                                        "image_url": "Hotel Image URL"
+                                                                      },
+                                                                      "restaurants": [
+                                                                        {
+                                                                          "id": 1,
+                                                                          "name": "Restaurant Name",
+                                                                          "address": "Restaurant Address",
+                                                                          "image_url": "Restaurant Image URL"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    {
+                                                                    date: "dd-MM-yyy",
+                                                                    long_description: "",
+                                                                      "activities": [
+                                                                        {
+                                                                          "id": 2,
+                                                                          "title": "Activity 2 Title",
+                                                                          "content": "Description of activity 2.",
+                                                                          "category": "Category of activity",
+                                                                          duration: "2-3 giờ",
+                                                                          imageUrl: "Activities Image URL"
+                                                                        }
+                                                                      ],
+                                                                      "hotel": {
+                                                                        "id": 2,
+                                                                        "name": "Hotel Name",
+                                                                        "address": "Hotel Address",
+                                                                        "image_url": "Hotel Image URL"
+                                                                      }
+                                                                    }
+                                                            ]
+                                                        """;
+
+
+        public static final String PROMPT_START =  """ 
+                    Bạn là một chuyên gia trong lĩnh vực du lịch và đang hoạt động trong việc giúp khách hàng lên kế hoạch du lịch theo yêu cầu.
+                    
+                    """;
+
+        public static final String PROMPT_END = """ 
+                    
+                    Các lưu ý quan trọng:
+                    - CHỈ sử dụng các dữ liệu về nhà hàng, khách sạn đã cung cấp từ cơ sở dữ liệu để xây dựng kế hoạch.
+                    - Không thêm kiến thức bên ngoài, giả định hoặc đề xuất bổ sung nào khác.
+                    - Nếu có thông tin bị thiếu hoặc không rõ ràng, hãy nêu rõ rằng không thể xác định được.
+                    - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
+                    - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
+                    - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
+                    - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
+                    - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
+                    - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động miễn phí
+
+                    Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
+                    Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
+
+                    
+                    ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
+                    
+                    """ + PLAN_RESPONSE_JSON;
 
     }
 }

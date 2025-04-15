@@ -18,8 +18,8 @@ import java.util.Set;
 public class TourDayDTO {
     private Long id;
     private String title;
-    private String content;
+    private Integer dayNumber;
     private String mealPlan;
     private Boolean deleted;
-    private Location location;
+    private LocationDTO location;
 }

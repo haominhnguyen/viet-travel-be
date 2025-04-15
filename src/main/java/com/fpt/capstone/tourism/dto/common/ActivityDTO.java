@@ -1,9 +1,6 @@
 package com.fpt.capstone.tourism.dto.common;
 
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
-import com.fpt.capstone.tourism.model.ActivityCategory;
-import com.fpt.capstone.tourism.model.GeoPosition;
-import com.fpt.capstone.tourism.model.Location;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

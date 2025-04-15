@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
-import com.fpt.capstone.tourism.enums.RoleName;
+import com.fpt.capstone.tourism.model.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
 import com.fpt.capstone.tourism.helper.TokenEncryptorImpl;
@@ -25,8 +25,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +57,6 @@ public class AuthServiceImpl implements AuthService {
             User user = userService.findUserByUsername(userDTO.getUsername());
 
             if (Boolean.TRUE.equals(user.getDeleted())) {
-
                 throw BusinessException.of(HttpStatus.FORBIDDEN.toString());
             }
 

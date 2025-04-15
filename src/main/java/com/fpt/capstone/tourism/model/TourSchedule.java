@@ -1,11 +1,11 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,14 +30,16 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pax_id", nullable = false)
     private TourPax tourPax;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    private String status;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private TourScheduleStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
@@ -49,7 +51,7 @@ public class TourSchedule extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operator_id")
-    private User Operator;
+    private User operator;
 
     @Column(name = "meeting_location")
     private String meetingLocation;
@@ -57,12 +59,9 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "departure_time", columnDefinition = "TIME")
     private LocalTime departureTime;
 
-
-    @OneToMany(mappedBy = "tourSchedule")
+    @OneToMany(mappedBy = "tourSchedule", fetch = FetchType.LAZY)
     private Set<TourOperationLog> operationLogs;
 
-    @OneToMany(mappedBy = "tourSchedule")
+    @OneToMany(mappedBy = "tourSchedule", fetch = FetchType.LAZY)
     private List<TourBooking> bookings;
-
-
 }

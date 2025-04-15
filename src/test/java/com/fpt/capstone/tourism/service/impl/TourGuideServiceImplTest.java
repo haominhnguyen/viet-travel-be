@@ -7,7 +7,7 @@ import static org.mockito.Mockito.*;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.TourGuideRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourGuideResponseDTO;
-import com.fpt.capstone.tourism.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.Gender;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TourGuideMapper;
 import com.fpt.capstone.tourism.model.Role;
@@ -16,7 +16,6 @@ import com.fpt.capstone.tourism.model.UserRole;
 import com.fpt.capstone.tourism.repository.RoleRepository;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.repository.UserRoleRepository;
-import com.fpt.capstone.tourism.service.impl.TourGuideServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;

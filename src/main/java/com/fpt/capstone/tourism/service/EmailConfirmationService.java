@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service;
 
+import com.fpt.capstone.tourism.dto.common.MailServiceDTO;
 import com.fpt.capstone.tourism.model.Token;
 import com.fpt.capstone.tourism.model.User;
 
@@ -12,4 +13,6 @@ public interface EmailConfirmationService {
     Token validateConfirmationToken(String token);
 
     void sendAccountServiceProvider(User user, String randomPassword);
+
+    void sendMailServiceProvider(MailServiceDTO mailServiceDTO);
 }

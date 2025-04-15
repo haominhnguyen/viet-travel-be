@@ -1,5 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,21 +26,22 @@ public class Tour extends BaseEntity{
     @Column(name = "number_day")
     private int numberDays;
     @Column(name = "number_night")
-    private int numberNight;
+    private int numberNights;
 
     private String note;
 
     @Column(name = "is_deleted")
     private Boolean deleted;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinTable(name = "tour_location",
             joinColumns = @JoinColumn(name = "tour_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id"))
     private List<Location> locations;
 
-
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinTable(
             name = "tour_tag",
             joinColumns = @JoinColumn(name = "tour_id"),
@@ -46,14 +49,22 @@ public class Tour extends BaseEntity{
     )
     private List<Tag> tags;
 
-    private boolean opened;
+    @Column(name = "tour_type")
+    @Enumerated(EnumType.STRING)
+    private TourType tourType;
+
+    @Column(name = "tour_status")
+    @Enumerated(EnumType.STRING)
+    private TourStatus tourStatus;
 
     @OneToMany(mappedBy = "tour")
+    @ToString.Exclude
     private Set<TourPax> tourPax;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinColumn(name = "depart_location_id")
-    private Location depart_location;
+    private Location departLocation;
 
     @Column(name = "mark_up_percent")
     private double markUpPercent;
@@ -61,16 +72,19 @@ public class Tour extends BaseEntity{
     @Column(columnDefinition = "text")
     private String privacy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<TourSchedule> tourSchedules;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TourImage> tourImages;
 
-    @OneToMany(mappedBy = "tour")
+    @ToString.Exclude
+    @OneToMany(mappedBy = "tour", fetch = FetchType.LAZY)
     private List<TourDay> tourDays;
 }
