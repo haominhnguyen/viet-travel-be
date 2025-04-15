@@ -7,7 +7,7 @@ spring:
     # For new ENV
 #    username: postgres
 #    password: 123456
-#    url: jdbc:postgresql://104.214.181.102/g79
+#    url: jdbc:postgresql://104.214.172.68/postgres
 
     # For old ENV
     username: ${DB_USERNAME:postgres.rajhtsimmhavwpftclqv}
