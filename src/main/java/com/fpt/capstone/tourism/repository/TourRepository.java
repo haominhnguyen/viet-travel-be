@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -161,5 +162,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     @Query(value = "SELECT * FROM tour t WHERE t.id = :tourId", nativeQuery = true)
     Tour findTourByTourId(@Param("tourId") Long tourId);
+
+    @Query(value = """
+    SELECT id, name FROM tour WHERE id IN (:ids)
+""", nativeQuery = true)
+    List<Object[]> findToursByIds(@Param("ids") List<Long> ids);
 
 }

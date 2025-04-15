@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/salesman")
-public class SalesmanController {
+public class  SalesmanController {
 
     private static final Logger logger = Logger.getLogger(SalesmanController.class.getName());
 

@@ -736,7 +736,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
             if (bookingService != null) {
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Dịch vụ đã tồn tại trong tour", requestDTO);
+                throw BusinessException.of(HttpStatus.BAD_REQUEST,"Dịch vụ đã tồn tại trong tour", requestDTO);
             } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)

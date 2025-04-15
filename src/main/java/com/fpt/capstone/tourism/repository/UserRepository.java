@@ -82,4 +82,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
             ORDER BY EXTRACT(YEAR FROM u.createdAt) DESC, EXTRACT(MONTH FROM u.createdAt) DESC
             """)
     List<NewUsersChartDTO> getNewUserByMonth(LocalDate startDate, LocalDate endDate);
+
+    @Query(value = """
+SELECT u.id FROM User u
+WHERE u.username = :name
+""")
+    Long findIdByUsername(String name);
 }
