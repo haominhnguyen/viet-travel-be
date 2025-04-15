@@ -18,4 +18,21 @@ public interface TourImageRepository extends JpaRepository<TourImage, Long>, Jpa
 SELECT ti FROM TourImage ti WHERE ti.tour.id = :tourId 
 """)
     List<TourImage> findTourImagesByTourId(@Param("tourId")Long tourId);
+
+    @Query(value = """
+    SELECT DISTINCT ON (tour_id) tour_id, image_url
+    FROM tour_image
+    WHERE tour_id IN (:tourIds)
+    ORDER BY tour_id, id
+""", nativeQuery = true)
+    List<Object[]> findFirstImageForTours(List<Long> tourIds);
+
+    @Query(value = """
+    SELECT tour_id, image_url 
+    FROM tour_image 
+    WHERE tour_id IN (:ids)
+    ORDER BY tour_id, id
+""", nativeQuery = true)
+    List<Object[]> findImagesByTourIds(@Param("ids") List<Long> ids);
+
 }
