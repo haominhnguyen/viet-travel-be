@@ -1349,6 +1349,117 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+
+    @Override
+    public GeneralResponse<?> getAllRefundRequest(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection) {
+        try {
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Build search specification
+            Specification<TourBooking> spec = buildSearchSpecification(keyword, isDeleted)
+                    .and((root, query, criteriaBuilder) -> {
+                        return criteriaBuilder.equal(root.get("status"), TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND);
+                    });
+
+            Page<TourBooking> tourBookingPage = tourBookingRepository.findAll(spec, pageable);
+
+            return bookingHelper.buildPagedResponse(tourBookingPage);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+    }
+
+    public Specification<TourBooking> buildSearchSpecification(String keyword, Boolean isDeleted) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Normalize Vietnamese text for search (ignore case and accents)
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                Expression<String> normalizedKeyword = cb.function("unaccent", String.class, cb.literal(keyword.toLowerCase()));
+
+                // Search in booking code
+                Expression<String> normalizedBookingCode = cb.function("unaccent", String.class, cb.lower(root.get("bookingCode")));
+                Predicate bookingCodePredicate = cb.like(normalizedBookingCode, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+
+                // Search in tour name
+                Join<TourBooking, Tour> tourJoin = root.join("tour", JoinType.LEFT);
+                Expression<String> normalizedTourName = cb.function("unaccent", String.class, cb.lower(tourJoin.get("name")));
+                Predicate tourNamePredicate = cb.like(normalizedTourName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
+
+
+
+                predicates.add(cb.or(bookingCodePredicate, tourNamePredicate));
+            }
+
+            //TourBookingStatus
+            predicates.add(cb.or(
+                    cb.equal(root.get("status"), TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND)
+            ));
+
+            // Filter by status
+            if (keyword != null) {
+                try {
+                    TourBookingStatus status = TourBookingStatus.valueOf(keyword.toUpperCase());
+                    predicates.add(cb.equal(root.get("status"), status));
+                } catch (IllegalArgumentException e) {
+                    // Ignore invalid status values
+                }
+            }
+
+            // Filter by deletion status
+            if (isDeleted != null) {
+                predicates.add(cb.equal(root.get("deleted"), isDeleted));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    @Override
+    public GeneralResponse<?> getDetailRefundRequest(Long tourBookingId) {
+        try {
+            List<RefundDetailDTO> refundDetailDTO = tourBookingRepository.findDetailRefundRequestByBookingId(tourBookingId, TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND);
+            return GeneralResponse.of(refundDetailDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Get Data failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> approveRefundRequest(Long tourBookingId) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(tourBookingId).orElseThrow(
+                    () -> BusinessException.of("Không tìm thấy booking")
+            );
+            if(!tourBooking.getStatus().equals(TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND)){
+                throw BusinessException.of("Không có quyền duyệt");
+            }
+            tourBooking.setStatus(TourBookingStatus.CANCELLED_WITH_REFUND);
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(tourBookingId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Approve failed", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> rejectRefundRequest(Long tourBookingId) {
+        try {
+            TourBooking tourBooking = tourBookingRepository.findById(tourBookingId).orElseThrow(
+                    () -> BusinessException.of("Không tìm thấy booking")
+            );
+            if(!tourBooking.getStatus().equals(TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND)){
+                throw BusinessException.of("Không có quyền duyệt");
+            }
+            tourBooking.setStatus(TourBookingStatus.CANCELLED_WITHOUT_REFUND);
+            tourBookingRepository.save(tourBooking);
+            return GeneralResponse.of(tourBookingId);
+        } catch (Exception ex) {
+            throw BusinessException.of("Reject failed", ex);
+        }
+    }
+
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
 

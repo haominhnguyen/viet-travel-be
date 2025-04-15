@@ -183,11 +183,11 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourSchedule tourSchedule = tourScheduleRepository.findById(id).orElseThrow();
 
-            if(tourSchedule.getOperator()!= null){
+            if (tourSchedule.getOperator() != null) {
                 throw BusinessException.of("Đã có người điều hành lịch tour này");
             }
 
-            if(!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)){
+            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
                 throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
             }
 
@@ -539,6 +539,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .bookingStatus(bookingService.getStatus().toString())
                         .paidForBooking(paidForBooking)
                         .amountToPayForBooking(amountToPayForBooking)
+                        .tourDayId(bookingService.getTourDay().getId())
 //                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }
@@ -588,11 +589,11 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             TourBookingService tourBookingService =
-                    bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(
-                            requestDTO.getBookingId(), requestDTO.getServiceId()
+                    bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(
+                            requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId()
                     );
 
-            if(!tourBookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)){
+            if (!tourBookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
                 throw BusinessException.of("Đơn này chưa thể gửi thanh toán");
             }
             tourBookingService.setStatus(TourBookingServiceStatus.PAID);
@@ -673,9 +674,9 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId) {
+    public GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId, Long serviceCategoryId) {
         try {
-            List<Service> services = serviceRepository.findByServiceProviderIdAndDeletedFalse(serviceProviderId);
+            List<Service> services = serviceRepository.findByServiceProviderIdAndServiceCategoryIdAndDeletedFalse(serviceProviderId, serviceCategoryId);
             List<ServiceSimpleDTO> resultDTO = services.stream()
                     .map(serviceMapper::toSimpleDTO)
                     .collect(Collectors.toList());
@@ -732,11 +733,11 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             checkAuthor(booking.getTourSchedule().getId());
-            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId());
+            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
             if (bookingService != null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST,"Dịch vụ đã tồn tại trong tour", requestDTO);
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Dịch vụ đã tồn tại trong tour", requestDTO);
             } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)
@@ -1305,7 +1306,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
                 emailService.sendMailServiceProvider(mailServiceDTO);
             }
-                bookingServiceRepository.save(bookingService);
+            bookingServiceRepository.save(bookingService);
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();

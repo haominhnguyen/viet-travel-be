@@ -19,7 +19,7 @@ public class AccountantController {
 
     private final TransactionService transactionService;
     private final TourScheduleService tourScheduleService;
-    private final BookingService bookingService;
+//    private final BookingService bookingService;
 
 
     @GetMapping("/transactions/list")

@@ -17,4 +17,5 @@ public class AddServiceRequestDTO {
     private Integer addQuantity;
     private LocalDateTime requestDate;
     private String reason;
+    private Long tourDayId;
 }

@@ -40,7 +40,7 @@ public interface OperatorService {
 
     GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId);
 
-    GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId);
+    GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId, Long serviceCategoryId);
 
     GeneralResponse<?> getServiceDetail(Long serviceId);
 

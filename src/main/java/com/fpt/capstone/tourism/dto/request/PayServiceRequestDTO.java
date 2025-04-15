@@ -22,4 +22,5 @@ public class PayServiceRequestDTO {
     private Long serviceId;
     @Min(value = 1, message = "Số lượng dịch vụ phải lớn hơn 0")
     private Integer quantity;
+    private Long tourDayId;
 }
