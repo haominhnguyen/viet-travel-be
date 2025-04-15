@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -21,9 +22,12 @@ public class TourPax extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
+
+    @OneToMany(mappedBy = "tourPax", fetch = FetchType.LAZY)
+    private List<TourSchedule> tourSchedule;
 
     @Column(name = "fixed_cost")
     private Double fixedCost;

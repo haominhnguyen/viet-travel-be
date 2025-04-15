@@ -54,7 +54,7 @@ public interface BookingService {
 
      GeneralResponse<?> cancelService(Long tourBookingServiceId);
 
-     GeneralResponse<?> sendCheckingServiceAvailable(Long tourBookingServiceId);
+     GeneralResponse<?> sendCheckingServiceAvailable(CheckingServiceAvailableDTO dto);
 
      GeneralResponse<?> getTourPrivateByName(String name) ;
 
