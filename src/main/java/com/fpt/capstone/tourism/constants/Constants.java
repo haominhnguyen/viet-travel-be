@@ -3,339 +3,270 @@ package com.fpt.capstone.tourism.constants;
 
 public class Constants {
     public static final class UserExceptionInformation {
-        public static final String USER_NOT_FOUND_CODE = "000100";
-        public static final String USER_NOT_FOUND_MESSAGE = "User not found";
-        public static final String USERNAME_ALREADY_EXISTS_MESSAGE = "Username already exists";
-        public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Email already exists";
-        public static final String PHONE_ALREADY_EXISTS_MESSAGE = "Phone already exists";
-        public static final String FAIL_TO_SAVE_USER_MESSAGE = "Fail to save user";
-        public static final String GENDER_INVALID = "Gender is invalid";
-        public static final String USER_INFORMATION_NULL_OR_EMPTY = "This section is required";
-        public static final String USERNAME_INVALID = "Username contains only letters, numbers, -, _ with range from 8 to 30";
-        public static final String PASSWORD_INVALID = "Password contains 8 characters or more (must contain 1 uppercase letter, " +
-                "1 lowercase letter and 1 special character";
-        public static final String FULL_NAME_INVALID = "Full name starts with a letter, use only letters and white space";
-        public static final String PHONE_INVALID = "Phone must contain 10 characters";
-        public static final String EMAIL_INVALID = "Email is invalid";
-        public static final String ROLES_NAME_INVALID = "Role name is invalid";
-        public static final String USER_NOT_FOUND = "User not found, please login with a valid account to see your profile";
+        public static final String USER_NOT_FOUND_MESSAGE = "Không tìm thấy người dùng";
+        public static final String USERNAME_ALREADY_EXISTS_MESSAGE = "Tên đăng nhập đã tồn tại";
+        public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Email đã được sử dụng";
+        public static final String PHONE_ALREADY_EXISTS_MESSAGE = "Số điện thoại đã được sử dụng";
+        public static final String FAIL_TO_SAVE_USER_MESSAGE = "Lưu thông tin người dùng thất bại";
+        public static final String GENDER_INVALID = "Giới tính không hợp lệ";
+        public static final String USER_INFORMATION_NULL_OR_EMPTY = "Thông tin này là bắt buộc";
+        public static final String USERNAME_INVALID = "Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự";
+        public static final String PASSWORD_INVALID = "Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt";
+        public static final String FULL_NAME_INVALID = "Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng";
+        public static final String PHONE_INVALID = "Số điện thoại phải gồm đúng 10 chữ số";
+        public static final String EMAIL_INVALID = "Email không hợp lệ";
+        public static final String ROLES_NAME_INVALID = "Tên vai trò không hợp lệ";
+        public static final String USER_NOT_FOUND = "Không tìm thấy người dùng, vui lòng đăng nhập bằng tài khoản hợp lệ để xem thông tin cá nhân";
     }
 
 
     public static final class Message {
-        public static final String LOGIN_SUCCESS_MESSAGE = "Login successfully";
-        public static final String PASSWORD_UPDATED_SUCCESS_MESSAGE = "Your password is updated successfully";
-        public static final String PASSWORD_UPDATED_FAIL_MESSAGE = "Your password is updated fail";
-        public static final String LOGIN_FAIL_MESSAGE = "Login Failed! Invalid username or password";
-        public static final String EMAIL_CONFIRMATION_REQUEST_MESSAGE = "Thank you for your registration, please check your email to complete verification";
-        public static final String REGISTER_FAIL_MESSAGE = "User registered failed due to server error!";
-        public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Passwords do not match";
-        public static final String PASSWORDS_INCORRECT_MESSAGE = "Current password is incorrect";
-        public static final String CHANGE_PASSWORD_SUCCESS_MESSAGE = "Change password successfully";
-        public static final String CHANGE_PASSWORD_FAIL_MESSAGE = "Change password fail";
-        public static final String EMAIL_NOT_CONFIRMED_MESSAGE = "Email not confirmed. Please check your email for the confirmation link.";
-        public static final String INVALID_CONFIRMATION_TOKEN_MESSAGE = "Invalid or expired confirmation link.";
-        public static final String TOKEN_USED_MESSAGE = "Email had already been confirmed before. Do not need to confirm again";
-        public static final String EMAIL_CONFIRMED_SUCCESS_MESSAGE = "Registration successfully! Please log in to continue.";
-        public static final String TOKEN_ENCRYPTION_FAILED_MESSAGE = "Encrypted token has failed.";
-        public static final String TOKEN_EXPIRED_MESSAGE = "Token expired.";
-        public static final String USER_NOT_AUTHENTICATED = "User is not authenticated";
-        public static final String UPDATE_PROFILE_SUCCESS = "Successfully update user profile";
-        public static final String UPDATE_PROFILE_FAIL = "Update user profile fail";
-        public static final String UPDATE_AVATAR_SUCCESS = "Update avatar successfully";
-        public static final String UPDATE_AVATAR_FAIL = "Update avatar fail";
-        public static final String GET_PROFILE_SUCCESS = "Successfully get user profile";
-        public static final String GET_PROFILE_FAIL = "Get user profile fail";
-        public static final String INVALID_REGISTER_INFO= "Register information is invalid";
-        public static final String INVALID_CONFIRMATION_TOKEN = "Invalid confirmation token, please check again";
-        public static final String CONFIRM_EMAIL_FAILED = "Confirm email failed";
-        public static final String CREATE_BLOG_SUCCESS_MESSAGE = "Blog created successfully";
-        public static final String CREATE_BLOG_FAIL_MESSAGE = "Blog created failed";
-        public static final String GENERAL_SUCCESS_MESSAGE = "Successfully";
-        public static final String GENERAL_FAIL_MESSAGE = "Failed";
-        public static final String DUPLICATE_SERVICE_CONTACT_PHONE = "Phone number already exists.";
-        public static final String SERVICE_CONTACT_NOT_FOUND = "Service contact not found.";
-        public static final String CREATE_SERVICE_CONTACT_SUCCESS = "Service contact created successfully.";
-        public static final String CREATE_SERVICE_CONTACT_FAIL = "Failed to create service contact.";
-        public static final String GET_SERVICE_CONTACT_SUCCESS = "Service contact retrieved successfully.";
-        public static final String GET_SERVICE_CONTACT_FAIL = "Failed to retrieve service contact.";
-        public static final String GET_ALL_SERVICE_CONTACTS_SUCCESS = "Service contacts retrieved successfully.";
-        public static final String GET_ALL_SERVICE_CONTACTS_FAIL = "Failed to retrieve service contacts.";
-        public static final String SERVICE_CONTACTS_NOT_EXITS = "Failed to retrieve service contacts because service contact is not exits.";
-        public static final String UPDATE_SERVICE_CONTACT_SUCCESS = "Service contact updated successfully.";
-        public static final String UPDATE_SERVICE_CONTACT_FAIL = "Failed to update service contact.";
-        public static final String DELETE_SERVICE_CONTACT_SUCCESS = "Service contact deleted successfully.";
-        public static final String DELETE_SERVICE_CONTACT_FAIL = "Failed to delete service contact.";
-        public static final String EMPTY_FULL_NAME = "Full name cannot be empty";
-        public static final String EMPTY_USERNAME = "User name cannot be empty";
-        public static final String EMPTY_PASSWORD = "Password cannot be empty";
-        public static final String EMPTY_REPASSWORD = "Re Password cannot be empty";
-        public static final String EMPTY_ADDRESS = "Address cannot be empty";
-        public static final String EMPTY_PHONE_NUMBER = "Phone number cannot be empty";
-        public static final String INVALID_PHONE_NUMBER = "Invalid phone number format. Must be 10-15 digits.";
-        public static final String EMPTY_EMAIL = "Email cannot be empty";
-        public static final String INVALID_EMAIL = "Invalid email format";
-        public static final String EMPTY_POSITION = "Position cannot be empty";
+        public static final String LOGIN_SUCCESS_MESSAGE = "Đăng nhập thành công";
+        public static final String PASSWORD_UPDATED_SUCCESS_MESSAGE = "Mật khẩu của bạn đã được cập nhật thành công";
+        public static final String PASSWORD_UPDATED_FAIL_MESSAGE = "Cập nhật mật khẩu thất bại";
+        public static final String LOGIN_FAIL_MESSAGE = "Đăng nhập thất bại! Tên đăng nhập hoặc mật khẩu không đúng";
+        public static final String EMAIL_CONFIRMATION_REQUEST_MESSAGE = "Cảm ơn bạn đã đăng ký. Vui lòng kiểm tra email để hoàn tất xác minh";
+        public static final String REGISTER_FAIL_MESSAGE = "Đăng ký tài khoản thất bại do lỗi hệ thống!";
+        public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Mật khẩu và xác nhận mật khẩu không trùng khớp";
+        public static final String PASSWORDS_INCORRECT_MESSAGE = "Mật khẩu hiện tại không chính xác";
+        public static final String CHANGE_PASSWORD_SUCCESS_MESSAGE = "Đổi mật khẩu thành công";
+        public static final String CHANGE_PASSWORD_FAIL_MESSAGE = "Đổi mật khẩu thất bại";
+        public static final String INVALID_CONFIRMATION_TOKEN_MESSAGE = "Liên kết xác nhận không hợp lệ hoặc đã hết hạn";
+        public static final String TOKEN_USED_MESSAGE = "Email này đã được xác nhận trước đó. Không cần xác nhận lại";
+        public static final String EMAIL_CONFIRMED_SUCCESS_MESSAGE = "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục";
+        public static final String TOKEN_ENCRYPTION_FAILED_MESSAGE = "Mã hóa token thất bại";
+        public static final String USER_NOT_AUTHENTICATED = "Người dùng chưa được xác thực";
+        public static final String UPDATE_PROFILE_SUCCESS = "Cập nhật hồ sơ người dùng thành công";
+        public static final String UPDATE_PROFILE_FAIL = "Cập nhật hồ sơ người dùng thất bại";
+        public static final String UPDATE_AVATAR_SUCCESS = "Cập nhật ảnh đại diện thành công";
+        public static final String UPDATE_AVATAR_FAIL = "Cập nhật ảnh đại diện thất bại";
+        public static final String GET_PROFILE_SUCCESS = "Lấy thông tin hồ sơ người dùng thành công";
+        public static final String GET_PROFILE_FAIL = "Lấy thông tin hồ sơ người dùng thất bại";
+        public static final String CONFIRM_EMAIL_FAILED = "Xác nhận email thất bại";
+        public static final String CREATE_BLOG_SUCCESS_MESSAGE = "Tạo bài viết thành công";
+        public static final String CREATE_BLOG_FAIL_MESSAGE = "Tạo bài viết thất bại";
+        public static final String GENERAL_SUCCESS_MESSAGE = "Thành công";
+        public static final String GENERAL_FAIL_MESSAGE = "Thất bại";
+        public static final String EMPTY_FULL_NAME = "Họ và tên không được để trống";
+        public static final String EMPTY_USERNAME = "Tên đăng nhập không được để trống";
+        public static final String EMPTY_PASSWORD = "Mật khẩu không được để trống";
+        public static final String EMPTY_REPASSWORD = "Xác nhận mật khẩu không được để trống";
+        public static final String EMPTY_ADDRESS = "Địa chỉ không được để trống";
+        public static final String EMPTY_PHONE_NUMBER = "Số điện thoại không được để trống";
+        public static final String INVALID_PHONE_NUMBER = "Định dạng số điện thoại không hợp lệ. Phải từ 10 đến 15 chữ số";
+        public static final String EMPTY_EMAIL = "Email không được để trống";
+        public static final String INVALID_EMAIL = "Định dạng email không hợp lệ";
+        public static final String EMPTY_POSITION = "Vị trí không được để trống";
 
-        public static final String EMPTY_IMAGE_URL = "Image URL cannot be empty";
-        public static final String EMPTY_ABBREVIATION = "Abbreviation cannot be empty";
-        public static final String EMPTY_WEBSITE = "Website cannot be empty";
-        public static final String DUPLICATE_SERVICE_CONTACT_EMAIL= "This contact email already exists.";
-        public static final String SERVICE_PROVIDER_NOT_FOUND = "Service provider not found. Please try again.";
-        public static final String RESET_PASSWORD_REQUEST_SUCCESS = "User request reset password successfully";
-        public static final String RESET_PASSWORD_REQUEST_FAIL = "User request reset password fail";
-        public static final String GET_USER_SUCCESS_MESSAGE = "Get user successfully";
-        public static final String GET_USER_FAIL_MESSAGE = "Get user failed";
-        public static final String DUPLICATE_USERNAME_MESSAGE = "Username already exists, please choose another one";
-        public static final String ROLE_NOT_FOUND = "Role not found";
-        public static final String CREATE_USER_SUCCESS_MESSAGE = "User created successfully";
-        public static final String CREATE_USER_FAIL_MESSAGE = "User created failed";
-        public static final String UPDATE_USER_SUCCESS_MESSAGE = "User updated successfully";
-        public static final String UPDATE_USER_FAIL_MESSAGE = "User updated failed";
-        public static final String DELETE_USER_SUCCESS_MESSAGE = "User deleted successfully";
-        public static final String DELETE_USER_FAIL_MESSAGE = "User deleted failed";
-        public static final String GET_ALL_USER_SUCCESS_MESSAGE = "Get all users successfully";
-        public static final String GET_ALL_USER_FAIL_MESSAGE = "Get all users failed";
-        public static final String USER_ALREADY_ACTIVE_MESSAGE = "The user is already active.";
-        public static final String RECOVER_USER_SUCCESS_MESSAGE = "User successfully recovered.";
-        public static final String RECOVER_USER_FAIL_MESSAGE = "Failed to recover user.";
-        public static final String EMPTY_LOCATION_NAME = "Location name cannot be empty";
-        public static final String EMPTY_BLOG_TITLE = "Title cannot be empty";
-        public static final String EMPTY_BLOG_DESCRIPTION = "Description cannot be empty";
-        public static final String EMPTY_BLOG_CONTENT = "Content cannot be empty";
-        public static final String EMPTY_LOCATION_DESCRIPTION = "Location description cannot be empty";
-        public static final String EMPTY_LOCATION_IMAGE = "Location image cannot be empty";
-        public static final String EMPTY_LOCATION_GEO_POSITION = "Location geography position cannot be empty";
-        public static final String EXISTED_LOCATION = "Location is existed";
-        public static final String CREATE_LOCATION_SUCCESS = "Create location successfully";
-        public static final String CREATE_LOCATION_FAIL = "Create location fail";
-        public static final String BLOG_NOT_FOUND = "Blog not found";
-        public static final String UPDATE_BLOG_SUCCESS_MESSAGE = "Blog successfully updated.";
-        public static final String UPDATE_BLOG_FAIL_MESSAGE = "Blog failed to update.";
-        public static final String DELETE_BLOG_SUCCESS_MESSAGE = "Blog successfully deleted.";
 
-        public static final String GET_LOCATION_SUCCESS = "Get location successfully";
-        public static final String GET_LOCATION_FAIL = "Get location fail";
-        public static final String ROLES_RETRIEVED_SUCCESS_MESSAGE = "Get roles successfully";
-        public static final String ROLES_RETRIEVED_FAIL_MESSAGE = "Get roles failed";
-        public static final String CREATE_SERVICE_PROVIDER_SUCCESS = "Create service provider successfully";
-        public static final String CREATE_SERVICE_PROVIDER_FAIL = "Create service provider fail";
-        public static final String UPDATE_SERVICE_PROVIDER_SUCCESS = "Update service provider successfully";
-        public static final String UPDATE_SERVICE_PROVIDER_FAIL = "Update service provider fail";
+        public static final String EMPTY_IMAGE_URL = "Đường dẫn hình ảnh không được để trống";
+        public static final String EMPTY_ABBREVIATION = "Từ viết tắt không được để trống";
+        public static final String EMPTY_WEBSITE = "Website không được để trống";
+        public static final String SERVICE_PROVIDER_NOT_FOUND = "Không tìm thấy nhà cung cấp dịch vụ. Vui lòng thử lại";
+        public static final String RESET_PASSWORD_REQUEST_SUCCESS = "Yêu cầu đặt lại mật khẩu được gửi thành công";
+        public static final String RESET_PASSWORD_REQUEST_FAIL = "Yêu cầu đặt lại mật khẩu thất bại";
+        public static final String GET_USER_SUCCESS_MESSAGE = "Lấy thông tin người dùng thành công";
+        public static final String GET_USER_FAIL_MESSAGE = "Lấy thông tin người dùng thất bại";
+        public static final String DUPLICATE_USERNAME_MESSAGE = "Tên đăng nhập đã tồn tại, vui lòng chọn tên khác";
+        public static final String ROLE_NOT_FOUND = "Không tìm thấy vai trò";
+        public static final String CREATE_USER_SUCCESS_MESSAGE = "Tạo người dùng thành công";
+        public static final String CREATE_USER_FAIL_MESSAGE = "Tạo người dùng thất bại";
+        public static final String UPDATE_USER_SUCCESS_MESSAGE = "Cập nhật người dùng thành công";
+        public static final String UPDATE_USER_FAIL_MESSAGE = "Cập nhật người dùng thất bại";
+        public static final String GET_ALL_USER_SUCCESS_MESSAGE = "Lấy danh sách người dùng thành công";
+        public static final String GET_ALL_USER_FAIL_MESSAGE = "Lấy danh sách người dùng thất bại";
+        public static final String EMPTY_LOCATION_NAME = "Tên địa điểm không được để trống";
+        public static final String EMPTY_BLOG_TITLE = "Tiêu đề bài viết không được để trống";
+        public static final String EMPTY_BLOG_DESCRIPTION = "Mô tả bài viết không được để trống";
+        public static final String EMPTY_BLOG_CONTENT = "Nội dung bài viết không được để trống";
+        public static final String EMPTY_LOCATION_DESCRIPTION = "Mô tả địa điểm không được để trống";
+        public static final String EMPTY_LOCATION_IMAGE = "Hình ảnh địa điểm không được để trống";
+        public static final String EMPTY_LOCATION_GEO_POSITION = "Vị trí địa lý của địa điểm không được để trống";
+        public static final String EXISTED_LOCATION = "Địa điểm đã tồn tại";
+        public static final String CREATE_LOCATION_SUCCESS = "Tạo địa điểm thành công";
+        public static final String CREATE_LOCATION_FAIL = "Tạo địa điểm thất bại";
+        public static final String BLOG_NOT_FOUND = "Không tìm thấy bài viết";
+        public static final String UPDATE_BLOG_SUCCESS_MESSAGE = "Cập nhật bài viết thành công";
+        public static final String UPDATE_BLOG_FAIL_MESSAGE = "Cập nhật bài viết thất bại";
 
-        public static final String GET_TAGS_NOT_FOUND_MESSAGE = "Get tags failed";
-        public static final String BLOG_RETRIEVED_SUCCESS_MESSAGE = "Blog retrieved successfully";
-        public static final String BLOG_RETRIEVED_FAIL_MESSAGE = "Blog retrieved failed";
-        public static final String EMPTY_PRICE = "Price can not be empty";
-        public static final String EMPTY_LOCATION = "Location can not be empty";
-        public static final String EMPTY_ACTIVITY_CATEGORY = "Activity category can not be empty";
 
-        public static final String SERVICE_NOT_EXITS = "Service not exits";
-        public static final String CATEGORY_ALREADY_EXISTS = "Category already exists";
-        public static final String CATEGORY_NOT_FOUND = "Category not found";
-        public static final String CATEGORY_LOADED = "Category loaded";
-        public static final String CATEGORY_CREATED = "Category created successfully";
-        public static final String CATEGORY_UPDATED = "Category updated successfully";
-        public static final String CATEGORY_DELETED = "Category deleted successfully";
+        public static final String ROLES_RETRIEVED_SUCCESS_MESSAGE = "Lấy danh sách vai trò thành công";
+        public static final String ROLES_RETRIEVED_FAIL_MESSAGE = "Lấy danh sách vai trò thất bại";
 
-        public static final String SERVICE_NOT_FOUND = "Service not found";
-        public static final String SERVICE_RETRIEVE_FAIL = "Service retrieve failed";
-        public static final String SERVICE_RETRIEVE_SUCCESS = "Service retrieved successfully";
-        public static final String SERVICE_NOT_BELONG_TO_PROVIDER = "Service does not belong to provider";
-        public static final String TOUR_DAY_SERVICES_RETRIEVED = "Tour day services retrieved successfully";
-        public static final String SERVICE_DETAILS_RETRIEVED = "Service details retrieved successfully";
-        public static final String GET_TOUR_DAY_SERVICE_FAIL = "Get tour day service failed";
-        public static final String GET_SERVICE_DETAIL_FAIL = "Get service detail failed";
+        public static final String CREATE_SERVICE_PROVIDER_SUCCESS = "Tạo nhà cung cấp dịch vụ thành công";
+        public static final String CREATE_SERVICE_PROVIDER_FAIL = "Tạo nhà cung cấp dịch vụ thất bại";
+        public static final String UPDATE_SERVICE_PROVIDER_SUCCESS = "Cập nhật nhà cung cấp dịch vụ thành công";
+        public static final String UPDATE_SERVICE_PROVIDER_FAIL = "Cập nhật nhà cung cấp dịch vụ thất bại";
 
-        public static final String SERVICE_DETAIL_CREATED = "Service detail created successfully";
-        public static final String SERVICE_DETAIL_UPDATED = "Service detail updated successfully";
-        public static final String SERVICE_DETAIL_DELETED = "Service detail deleted successfully";
-        public static final String SERVICE_DETAIL_RETRIEVED = "Service detail retrieved successfully";
-        public static final String SERVICE_DETAIL_NOT_FOUND = "Service detail not found";
-        public static final String CREATE_SERVICE_DETAIL_FAIL = "Failed to create service detail";
-        public static final String UPDATE_SERVICE_DETAIL_FAIL = "Failed to update service detail";
-        public static final String DELETE_SERVICE_DETAIL_FAIL = "Failed to delete service detail";
-        public static final String GET_SERVICE_DETAILS_FAIL = "Failed to retrieve service details";
-        public static final String SERVICE_DETAIL_RESTORED = "Service detail restored successfully";
-        public static final String CHANGE_SERVICE_DETAIL_STATUS_FAIL = "Failed to change service detail status";
-        public static final String SERVICE_DETAIL_TITLE_EXISTS = "Service detail title already exists";
-        public static final String CREATE_SERVICE_FAIL = "Failed to create service detail";
-        public static final String UPDATE_SERVICE_FAIL = "Failed to update service detail";
-        public static final String CHANGE_SERVICE_STATUS_FAIL = "Failed to change service detail status";
+        public static final String GET_TAGS_NOT_FOUND_MESSAGE = "Lấy thẻ (tags) thất bại";
+        public static final String BLOG_RETRIEVED_FAIL_MESSAGE = "Lấy bài viết thất bại";
 
-        public static final String SERVICE_CATEGORY_NOT_FOUND = "Service category not found";
-        public static final String SERVICE_NAME_EXISTS = "Service name already exists";
-        public static final String SERVICE_CREATED = "Service created successfully";
-        public static final String SERVICE_UPDATED = "Service updated successfully";
-        public static final String SERVICE_DELETED = "Service deleted successfully";
-        public static final String SERVICE_RESTORED = "Service restored successfully";
-        public static final String INVALID_DATE_RANGE = "Invalid date range";
-        public static final String INVALID_PRICE_RANGE = "Selling price must be greater than or equal to nett price";
-        public static final String INVALID_PRICE = "Price must be a valid number";
-        public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
-        public static final String TOUR_DETAIL_LOAD_FAIL = "Tour detail load failed";
+        public static final String EMPTY_PRICE = "Giá không được để trống";
+        public static final String EMPTY_LOCATION = "Địa điểm không được để trống";
+        public static final String EMPTY_ACTIVITY_CATEGORY = "Danh mục hoạt động không được để trống";
 
-        public static final String INVALID_BLOG_TITLE_LENGTH = "Title must be between 5 and 100 characters.";
-        public static final String INVALID_BLOG_DESCRIPTION_LENGTH = "Description must be between 10 and 300 characters.";
-        public static final String INVALID_BLOG_CONTENT_LENGTH = "Content must be between 50 and 5000 characters.";
+        public static final String CATEGORY_ALREADY_EXISTS = "Danh mục đã tồn tại";
+        public static final String CATEGORY_NOT_FOUND = "Không tìm thấy danh mục";
+        public static final String CATEGORY_LOADED = "Tải danh mục thành công";
+        public static final String CATEGORY_CREATED = "Tạo danh mục thành công";
+        public static final String CATEGORY_UPDATED = "Cập nhật danh mục thành công";
 
-        public static final String TOUR_NOT_FOUND = "Tour not found";
-        public static final String TOUR_DAY_DETAIL_LOAD_SUCCESS = "Tour detail loaded successfully";
-        public static final String TOUR_DAY_DETAIL_LOAD_FAIL = "Tour detail load failed";
-        public static final String NO_TOUR_DAY_FOUND  = "No tour days found for this tour";
 
-        public static final String TOUR_DAY_NOT_FOUND = "Tour day not found";
-        public static final String TOUR_DAY_SERVICE_NOT_FOUND = "Tour day service not found";
-        public static final String LOCATION_NOT_FOUND = "Location not found";
-        public static final String SERVICE_ID_REQUIRED = "Service ID is required for new tour day services";
-        public static final String TOUR_DAY_UPDATE_SUCCESS = "Tour day updated successfully";
-        public static final String TOUR_DAY_UPDATE_FAIL = "Failed to update tour day";
+        public static final String SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ";
+        public static final String SERVICE_RETRIEVE_SUCCESS = "Lấy thông tin dịch vụ thành công";
+        public static final String TOUR_DAY_SERVICES_RETRIEVED = "Lấy danh sách dịch vụ theo ngày tour thành công";
+        public static final String SERVICE_DETAILS_RETRIEVED = "Lấy chi tiết dịch vụ thành công";
+        public static final String GET_TOUR_DAY_SERVICE_FAIL = "Lấy dịch vụ theo ngày tour thất bại";
+        public static final String GET_SERVICE_DETAIL_FAIL = "Lấy chi tiết dịch vụ thất bại";
 
-        public static final String ROOM_NOT_FOUND = "Room not found";
-        public static final String MEAL_NOT_FOUND = "Meal not found";
-        public static final String TRANSPORT_NOT_FOUND = "Transport not found";
+        public static final String CREATE_SERVICE_FAIL = "Tạo chi tiết dịch vụ thất bại";
+        public static final String UPDATE_SERVICE_FAIL = "Cập nhật chi tiết dịch vụ thất bại";
+        public static final String CHANGE_SERVICE_STATUS_FAIL = "Thay đổi trạng thái dịch vụ thất bại";
+
+        public static final String SERVICE_CATEGORY_NOT_FOUND = "Không tìm thấy danh mục dịch vụ";
+        public static final String SERVICE_NAME_EXISTS = "Tên dịch vụ đã tồn tại";
+        public static final String SERVICE_CREATED = "Tạo dịch vụ thành công";
+        public static final String SERVICE_UPDATED = "Cập nhật dịch vụ thành công";
+        public static final String SERVICE_DELETED = "Xóa dịch vụ thành công";
+        public static final String SERVICE_RESTORED = "Khôi phục dịch vụ thành công";
+
+        public static final String INVALID_DATE_RANGE = "Khoảng thời gian không hợp lệ";
+        public static final String INVALID_PRICE_RANGE = "Giá bán phải lớn hơn hoặc bằng giá gốc (nett)";
+        public static final String INVALID_PRICE = "Giá phải là một số hợp lệ";
+
+        public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tải chi tiết tour thành công";
+        public static final String TOUR_DETAIL_LOAD_FAIL = "Tải chi tiết tour thất bại";
+
+        public static final String INVALID_BLOG_TITLE_LENGTH = "Tiêu đề phải từ 5 đến 100 ký tự";
+        public static final String INVALID_BLOG_DESCRIPTION_LENGTH = "Mô tả phải từ 10 đến 300 ký tự";
+        public static final String INVALID_BLOG_CONTENT_LENGTH = "Nội dung phải từ 50 đến 5000 ký tự";
+
+
+        public static final String TOUR_NOT_FOUND = "Không tìm thấy tour";
+        public static final String TOUR_DAY_DETAIL_LOAD_SUCCESS = "Tải chi tiết ngày tour thành công";
+        public static final String TOUR_DAY_DETAIL_LOAD_FAIL = "Tải chi tiết ngày tour thất bại";
+        public static final String NO_TOUR_DAY_FOUND = "Không tìm thấy ngày tour nào cho tour này";
+
+        public static final String TOUR_DAY_NOT_FOUND = "Không tìm thấy ngày tour";
+        public static final String LOCATION_NOT_FOUND = "Không tìm thấy địa điểm";
+        public static final String SERVICE_ID_REQUIRED = "Cần có ID dịch vụ để thêm dịch vụ vào ngày tour mới";
+
+
         public static final String HOTEL = "Hotel";
         public static final String RESTAURANT = "Restaurant";
         public static final String TRANSPORT = "Transport";
         public static final String ACTIVITY = "Activity";
         public static final String TICKET = "Flight Ticket";
 
-        public static final String ROOM_DETAILS_REQUIRED = "Room details are required for hotel services";
-        public static final String INVALID_ROOM_CAPACITY = "Room capacity must be greater than zero";
-        public static final String NEGATIVE_AVAILABLE_QUANTITY = "Available quantity must not be negative";
-        public static final String UNEXPECTED_ROOM_DETAILS = "Room details provided for non-hotel service";
 
-        public static final String MEAL_DETAILS_REQUIRED = "Meal details are required for restaurant services";
-        public static final String MEAL_TYPE_REQUIRED = "Meal type must be specified";
-        public static final String UNEXPECTED_MEAL_DETAILS = "Meal details provided for non-restaurant service";
+        public static final String ROOM_NOT_FOUND = "Không tìm thấy phòng";
+        public static final String MEAL_NOT_FOUND = "Không tìm thấy bữa ăn";
+        public static final String TRANSPORT_NOT_FOUND = "Không tìm thấy phương tiện";
 
-        public static final String TRANSPORT_DETAILS_REQUIRED = "Transport details are required for transport services";
-        public static final String INVALID_SEAT_CAPACITY = "Seat capacity must be greater than zero";
-        public static final String UNEXPECTED_TRANSPORT_DETAILS = "Transport details provided for non-transport service";
+        public static final String ROOM_DETAILS_REQUIRED = "Cần có thông tin chi tiết phòng cho dịch vụ khách sạn";
+        public static final String INVALID_ROOM_CAPACITY = "Sức chứa phòng phải lớn hơn 0";
+        public static final String NEGATIVE_AVAILABLE_QUANTITY = "Số lượng khả dụng không được là số âm";
+        public static final String UNEXPECTED_ROOM_DETAILS = "Không nên có thông tin phòng cho dịch vụ không phải khách sạn";
 
-        public static final String INVALID_DAYS_NIGHTS = "Number of days must be greater than number of nights";
-        public static final String TOUR_DAYS_MISMATCH = "Number of tour days must match the specified number of days";
-        public static final String TOUR_CREATE_SUCCESS = "Tour created successfully";
-        public static final String TOUR_UPDATE_SUCCESS = "Tour updated successfully";
-        public static final String TOUR_DELETE_SUCCESS = "Tour deleted successfully";
-        public static final String TOURS_LOAD_SUCCESS = "Tours loaded successfully";
-        public static final String TOURS_SEARCH_SUCCESS = "Tours search completed successfully";
-        public static final String TOUR_CREATE_FAIL = "Failed to create tour";
-        public static final String TOUR_UPDATE_FAIL = "Failed to update tour";
-        public static final String TOURS_LOAD_FAIL = "Failed to load tours";
-        public static final String LOCATION_REQUIRED = "At least one location is required";
-        public static final String DEPART_LOCATION_NOT_FOUND = "Departure location not found";
-        public static final String DEPART_LOCATION_REQUIRED = "Departure location is required";
-        public static final String TAG_NOT_FOUND = "One or more tags not found";
-        public static final String INVALID_TOUR_TYPE = "Invalid tour type";
-        public static final String INVALID_TOUR_STATUS = "Invalid tour status";
-        public static final String TOUR_REQUEST_NULL = "Tour request cannot be null";
-        public static final String TOUR_NAME_EMPTY = "Tour name cannot be empty";
-        public static final String NUMBER_DAYS_INVALID = "Number of days must be greater than 0";
-        public static final String NUMBER_NIGHTS_INVALID = "Number of nights cannot be negative";
-        public static final String TOUR_MUST_HAVE_LOCATION = "Tour must have at least one location";
-        public static final String TOUR_TYPE_REQUIRED = "Tour type is required";
-        public static final String TOUR_TYPE_INVALID = "Invalid tour type";
-        public static final String TOUR_STATUS_REQUIRED = "Tour status is required";
-        public static final String TOUR_STATUS_INVALID = "Invalid tour status";
-        public static final String MARKUP_PERCENT_INVALID = "Markup percent cannot be negative";
-        public static final String NUMBER_DAYS_MISMATCH = "Number of days must match the number of tour day entries";
-        public static final String TOUR_DAY_TITLE_EMPTY = "Tour day title cannot be empty";
-        public static final String TOUR_DAY_LOCATION_REQUIRED = "Tour day location is required";
-        public static final String CANNOT_MODIFY_OPENED_TOUR = "Cannot modify an opened tour";
-        public static final String CANNOT_ADD_DELETED_SERVICE = "Cannot add a deleted service";
-        public static final String SERVICE_ALREADY_ADDED = "This service is already added to this tour day";
-        public static final String SERVICE_ADD_SUCCESS = "Service added to tour day successfully";
-        public static final String TOUR_DAY_CREATED_SUCCESS = "Tour day created successfully";
-        public static final String TOUR_DAY_UPDATED_SUCCESS = "Tour day updated successfully";
-        public static final String TOUR_DAY_DELETED_SUCCESS = "Tour day deleted successfully";
-        public static final String TOUR_DAY_RESTORED_SUCCESS = "Tour day restored successfully";
-        public static final String INVALID_SERVICE_CATEGORY = "Invalid service category. Must be one of: Hotel, Restaurant, Transport";
-        public static final String NO_TOUR_DAYS_FOUND = "No tour days found";
-        public static final String SERVICES_LOAD_SUCCESS = "Tour services retrieved successfully";
-        public static final String SERVICES_LOAD_FAIL = "Failed to retrieve tour services";
-        public static final String PAX_CONFIG_NOT_FOUND = "Pax configuration not found";
-        public static final String PAX_CONFIG_NOT_ASSOCIATED = "Pax configuration not associated with this tour";
-        public static final String PAX_CONFIG_OVERLAP = "Pax configuration overlaps with existing configurations";
-        public static final String PAX_CONFIG_INVALID_RANGE = "Min pax must be less than or equal to max pax";
-        public static final String PAX_CONFIG_INVALID_DATES = "Valid from date must be before valid to date";
+        public static final String MEAL_DETAILS_REQUIRED = "Cần có thông tin chi tiết bữa ăn cho dịch vụ nhà hàng";
+        public static final String MEAL_TYPE_REQUIRED = "Phải chỉ định loại bữa ăn";
+        public static final String UNEXPECTED_MEAL_DETAILS = "Không nên có thông tin bữa ăn cho dịch vụ không phải nhà hàng";
 
-        public static final String PAX_CONFIGS_LOAD_SUCCESS = "Pax configurations retrieved successfully";
-        public static final String PAX_CONFIG_LOAD_SUCCESS = "Pax configuration retrieved successfully";
-        public static final String PAX_CONFIG_CREATE_SUCCESS = "Pax configuration created successfully";
-        public static final String PAX_CONFIG_UPDATE_SUCCESS = "Pax configuration updated successfully";
-        public static final String PAX_CONFIG_DELETE_SUCCESS = "Pax configuration deleted successfully";
-        public static final String SERVICE_NOT_ASSOCIATED = "Service not associated with this tour";
-        public static final String SERVICE_DETAIL_LOAD_SUCCESS = "Service details retrieved successfully";
-        public static final String SERVICE_DETAIL_LOAD_FAIL = "Failed to retrieve service details";
-        public static final String PROVIDER_SERVICES_LOAD_SUCCESS = "Provider services retrieved successfully";
-        public static final String PROVIDER_SERVICES_LOAD_FAIL = "Failed to retrieve provider services details";
+        public static final String TRANSPORT_DETAILS_REQUIRED = "Cần có thông tin chi tiết phương tiện cho dịch vụ vận chuyển";
+        public static final String INVALID_SEAT_CAPACITY = "Số ghế phải lớn hơn 0";
+        public static final String UNEXPECTED_TRANSPORT_DETAILS = "Không nên có thông tin phương tiện cho dịch vụ không phải vận chuyển";
 
-        public static final String NO_SERVICES_AVAILABLE= "No tour services found";
-        public static final String SERVICE_UPDATE_FAIL = "Service update failed";
+        public static final String TOUR_CREATE_SUCCESS = "Tạo tour thành công";
+        public static final String TOUR_UPDATE_SUCCESS = "Cập nhật tour thành công";
+        public static final String TOUR_CREATE_FAIL = "Tạo tour thất bại";
+        public static final String TOUR_UPDATE_FAIL = "Cập nhật tour thất bại";
 
-        public static final String DAY_NUMBER_REQUIRED = "Day number is required";
-        public static final String SERVICE_ALREADY_ASSOCIATED = "Service already associated with this tour day";
-        public static final String SERVICE_CREATE_FAIL = "Service creation failed";
-        public static final String SERVICE_DELETE_FAIL = "Service delete failed";
+        public static final String DEPART_LOCATION_NOT_FOUND = "Không tìm thấy địa điểm khởi hành";
+        public static final String TOUR_REQUEST_NULL = "Yêu cầu tour không được để trống";
+        public static final String TOUR_NAME_EMPTY = "Tên tour không được để trống";
+        public static final String NUMBER_DAYS_INVALID = "Số ngày phải lớn hơn 0";
+        public static final String NUMBER_NIGHTS_INVALID = "Số đêm không được là số âm";
+        public static final String TOUR_MUST_HAVE_LOCATION = "Tour phải có ít nhất một địa điểm";
+        public static final String TOUR_TYPE_REQUIRED = "Phải chỉ định loại tour";
+        public static final String TOUR_TYPE_INVALID = "Loại tour không hợp lệ";
+        public static final String TOUR_STATUS_REQUIRED = "Phải chỉ định trạng thái tour";
+        public static final String TOUR_STATUS_INVALID = "Trạng thái tour không hợp lệ";
+        public static final String MARKUP_PERCENT_INVALID = "Phần trăm lợi nhuận không được âm";
 
-        public static final String ACTIVITY_LIST_LOAD_SUCCESS = "Activity list loaded successfully";
-        public static final String ACTIVITY_LIST_LOAD_FAIL = "Failed to load activity list";
-        public static final String ACTIVITY_DETAIL_LOAD_SUCCESS = "Activity detail loaded successfully";
-        public static final String ACTIVITY_DETAIL_LOAD_FAIL = "Failed to load activity detail";
-        public static final String ACTIVITY_NOT_FOUND = "Activity not found";
-        public static final String ACTIVITY_NOT_ASSOCIATED = "Activity is not associated with the tour";
-        public static final String ACTIVITY_EXISTED = "Existed activity";
+        public static final String TOUR_DAY_CREATED_SUCCESS = "Tạo ngày tour thành công";
+        public static final String TOUR_DAY_UPDATED_SUCCESS = "Cập nhật ngày tour thành công";
+        public static final String TOUR_DAY_DELETED_SUCCESS = "Xóa ngày tour thành công";
 
-        public static final String CATEGORY_LIST_LOAD_SUCCESS = "Activity categories loaded successfully";
-        public static final String CATEGORY_LIST_LOAD_FAIL = "Failed to load activity categories";
-        public static final String ACTIVITY_CREATE_SUCCESS = "Activity created successfully";
-        public static final String ACTIVITY_CREATE_FAIL = "Failed to create activity";
-        public static final String ACTIVITY_UPDATE_SUCCESS = "Activity updated successfully";
-        public static final String ACTIVITY_UPDATE_FAIL = "Failed to update activity";
-        public static final String ACTIVITY_ALREADY_EXISTS = "Activity already exists for this tour day";
-        public static final String ACTIVITY_LOADED_SUCCESS = "Activity loaded successfully";
-        public static final String ACTIVITY_LOADED_FAIL = "Failed to load activity";
-        public static final String CATEGORY_SERVICES_LOAD_SUCCESS = "Category services loaded successfully";
-        public static final String CATEGORY_SERVICES_LOAD_FAIL = "Failed to load category services";
-        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Provider category services loaded successfully";
-        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Failed to load provider category services";
-        public static final String MARKUP_UPDATE_SUCCESS = "Markup updated successfully";
-        public static final String MARKUP_UPDATE_FAIL = "Failed to update markup";
-        public static final String MARKUP_RETRIEVE_SUCCESS = "Markup retrieved successfully";
-        public static final String MARKUP_RETRIEVE_FAIL = "Failed to retrieve markup";
-        public static final String MARK_UP_REQUIRED = "Markup required";
-        public static final String MARK_UP_MUST_BE_NUMBER = "Markup must be a number";
-        public static final String MARK_UP_POSITIVE = "Markup must be positive";
-        public static final String MARK_UP_LIMIT  = "Markup must not exceed 100%";
+        public static final String INVALID_SERVICE_CATEGORY = "Loại dịch vụ không hợp lệ. Phải là: Khách sạn, Nhà hàng, Vận chuyển";
+        public static final String NO_TOUR_DAYS_FOUND = "Không tìm thấy ngày tour nào";
+        public static final String SERVICES_LOAD_SUCCESS = "Tải dịch vụ tour thành công";
+        public static final String SERVICES_LOAD_FAIL = "Tải dịch vụ tour thất bại";
 
-        public static final String USER_NOT_FOUND = "User not found";
-        public static final String OPERATOR_ROLE_NOT_FOUND = "Operator role not found";
-        public static final String USER_NOT_OPERATOR = "Selected user is not an operator";
-        public static final String OPERATOR_NOT_FOUND = "Operator not found";
-        public static final String OPERATOR_OVERBOOKED = "Operator already has more than 3 active tours during this period";
-        public static final String SCHEDULE_CREATED_SUCCESS = "Tour schedule created successfully";
-        public static final String SERVICE_REMOVED = "Service removed successfully";
-        public static final String SERVICE_REMOVE_FAIL = "Failed to remove service";
+        public static final String PAX_CONFIG_NOT_FOUND = "Không tìm thấy cấu hình Pax";
+        public static final String PAX_CONFIG_NOT_ASSOCIATED = "Cấu hình Pax không liên kết với tour này";
+        public static final String PAX_CONFIG_OVERLAP = "Cấu hình Pax bị trùng với cấu hình đã có";
+        public static final String PAX_CONFIG_INVALID_RANGE = "Số lượng Pax tối thiểu phải nhỏ hơn hoặc bằng tối đa";
+        public static final String PAX_CONFIG_INVALID_DATES = "Ngày bắt đầu phải trước ngày kết thúc";
 
-        public static final String PAX_RANGE_INVALID = "Maximum pax must be greater than or equal to minimum pax";
-        public static final String DATE_RANGE_INVALID = "Valid to date must be after valid from date";
-        public static final String OVERLAP_EXISTS = "A price configuration with overlapping pax range and date range already exists";
-        public static final String CONFIG_CREATED = "Price configuration created successfully";
-        public static final String CONFIG_UPDATED = "Price configuration updated successfully";
-        public static final String CONFIG_DELETED = "Price configuration deleted successfully";
-        public static final String CONFIGS_RETRIEVED = "Price configurations retrieved successfully";
-        public static final String TOUR_PAX_NOT_FOUND = "Tour pax configuration not found";
-        public static final String TOUR_PAX_MISMATCH = "Tour pax configuration does not belong to this tour";
-        public static final String TOUR_PAX_DELETED = "Cannot use a deleted tour pax configuration";
-        public static final String TOUR_PAX_INVALID_DATES = "Tour schedule dates are outside the validity period of the selected pax configuration";
-        public static final String TOUR_PAX_NOT_AVAILABLE = "No pax configurations available for this tour. Please create a pax configuration first.";
-        public static final String TOUR_PAX_NO_VALID = "No valid pax configuration found for the specified date range. Please create a valid pax configuration or adjust the schedule dates.";
+        public static final String PAX_CONFIG_LOAD_SUCCESS = "Tải cấu hình Pax thành công";
+        public static final String PAX_CONFIG_CREATE_SUCCESS = "Tạo cấu hình Pax thành công";
+        public static final String PAX_CONFIG_UPDATE_SUCCESS = "Cập nhật cấu hình Pax thành công";
+        public static final String PAX_CONFIG_DELETE_SUCCESS = "Xóa cấu hình Pax thành công";
+
+        public static final String SERVICE_NOT_ASSOCIATED = "Dịch vụ không được liên kết với tour này";
+        public static final String SERVICE_DETAIL_LOAD_SUCCESS = "Tải chi tiết dịch vụ thành công";
+        public static final String SERVICE_DETAIL_LOAD_FAIL = "Tải chi tiết dịch vụ thất bại";
+
+        public static final String PROVIDER_SERVICES_LOAD_SUCCESS = "Tải dịch vụ của nhà cung cấp thành công";
+        public static final String PROVIDER_SERVICES_LOAD_FAIL = "Tải dịch vụ của nhà cung cấp thất bại";
+
+        public static final String NO_SERVICES_AVAILABLE = "Không có dịch vụ tour nào";
+        public static final String SERVICE_UPDATE_FAIL = "Cập nhật dịch vụ thất bại";
+
+        public static final String DAY_NUMBER_REQUIRED = "Số ngày là bắt buộc";
+        public static final String SERVICE_CREATE_FAIL = "Tạo dịch vụ thất bại";
+        public static final String SERVICE_DELETE_FAIL = "Xóa dịch vụ thất bại";
+
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Tải dịch vụ theo loại của nhà cung cấp thành công";
+        public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Tải dịch vụ theo loại của nhà cung cấp thất bại";
+
+        public static final String MARKUP_UPDATE_SUCCESS = "Cập nhật lợi nhuận thành công";
+        public static final String MARKUP_UPDATE_FAIL = "Cập nhật lợi nhuận thất bại";
+        public static final String MARKUP_RETRIEVE_SUCCESS = "Lấy thông tin lợi nhuận thành công";
+        public static final String MARKUP_RETRIEVE_FAIL = "Lấy thông tin lợi nhuận thất bại";
+
+        public static final String MARK_UP_REQUIRED = "Phải nhập tỷ lệ lợi nhuận";
+        public static final String MARK_UP_MUST_BE_NUMBER = "Tỷ lệ lợi nhuận phải là một số";
+        public static final String MARK_UP_POSITIVE = "Tỷ lệ lợi nhuận phải là số dương";
+        public static final String MARK_UP_LIMIT = "Tỷ lệ lợi nhuận không được vượt quá 100%";
+
+        public static final String OPERATOR_ROLE_NOT_FOUND = "Không tìm thấy vai trò điều hành viên";
+        public static final String USER_NOT_OPERATOR = "Người dùng được chọn không phải là điều hành viên";
+        public static final String OPERATOR_NOT_FOUND = "Không tìm thấy điều hành viên";
+        public static final String OPERATOR_OVERBOOKED = "Điều hành viên đã có hơn 3 tour đang hoạt động trong thời gian này";
+
+        public static final String SCHEDULE_CREATED_SUCCESS = "Tạo lịch trình tour thành công";
+        public static final String SERVICE_REMOVE_FAIL = "Xóa dịch vụ khỏi tour thất bại";
+
+        public static final String DATE_RANGE_INVALID = "Ngày kết thúc phải sau ngày bắt đầu";
+
+        public static final String CONFIG_UPDATED = "Cập nhật cấu hình giá thành công";
+        public static final String CONFIG_DELETED = "Xóa cấu hình giá thành công";
+        public static final String CONFIGS_RETRIEVED = "Lấy danh sách cấu hình giá thành công";
+
+        public static final String TOUR_PAX_NOT_FOUND = "Không tìm thấy cấu hình số lượng khách của tour";
+        public static final String TOUR_PAX_MISMATCH = "Cấu hình số lượng khách không thuộc về tour này";
+        public static final String TOUR_PAX_DELETED = "Không thể sử dụng cấu hình số lượng khách đã bị xóa";
+
+        public static final String TOUR_PAX_INVALID_DATES = "Lịch trình tour nằm ngoài khoảng thời gian hiệu lực của cấu hình số lượng khách đã chọn";
+
+        public static final String TOUR_PAX_NOT_AVAILABLE = "Không có cấu hình số lượng khách nào cho tour này. Vui lòng tạo trước.";
+        public static final String TOUR_PAX_NO_VALID = "Không tìm thấy cấu hình số lượng khách hợp lệ trong khoảng ngày được chọn. Vui lòng tạo cấu hình hoặc điều chỉnh ngày lịch trình.";
+
         public static final String ROLE_OPERATOR = "OPERATOR";
         public static final int MAX_OPERATOR_TOURS = 3;
-        public static final String CATEGORIES_LOAD_SUCCESS = "Categories loaded successfully";
-        public static final String CATEGORIES_LOAD_FAIL = "Failed to load categories";
-        public static final String OPERATOR_NOT_VALID = "Operator is already assigned to this tour during the requested period";
+        public static final String CATEGORIES_LOAD_SUCCESS = "Tải danh mục thành công";
+        public static final String CATEGORIES_LOAD_FAIL = "Tải danh mục thất bại";
     }
 
 
