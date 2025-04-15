@@ -27,21 +27,21 @@ public class PublicBlogController {
     @GetMapping("/food-and-drinks")
     public ResponseEntity<List<PublicBlogResponseDTO>> getFoodAndDrinkBlogs(
             @RequestParam(defaultValue = "3") int numberOfBlogs) {
-        List<PublicBlogResponseDTO> foodAndDrinkBlogs = blogService.getBlogsByTagName("Food & Drinks", numberOfBlogs);
+        List<PublicBlogResponseDTO> foodAndDrinkBlogs = blogService.getBlogsByTagName("Ẩm thực", numberOfBlogs);
         return ResponseEntity.ok(foodAndDrinkBlogs);
     }
 
     @GetMapping("/adventure")
     public ResponseEntity<List<PublicBlogResponseDTO>> getAdventureBlogs(
             @RequestParam(defaultValue = "6") int numberOfBlogs) {
-        List<PublicBlogResponseDTO> adventureBlogs = blogService.getBlogsByTagName("Adventure", numberOfBlogs);
+        List<PublicBlogResponseDTO> adventureBlogs = blogService.getBlogsByTagName("Phiêu lưu", numberOfBlogs);
         return ResponseEntity.ok(adventureBlogs);
     }
 
     @GetMapping("/cultural")
     public ResponseEntity<List<PublicBlogResponseDTO>> getCulturalBlogs(
             @RequestParam(defaultValue = "3") int numberOfBlogs) {
-        List<PublicBlogResponseDTO> culturalBlogs = blogService.getBlogsByTagName("Cultural", numberOfBlogs);
+        List<PublicBlogResponseDTO> culturalBlogs = blogService.getBlogsByTagName("Văn hóa", numberOfBlogs);
         return ResponseEntity.ok(culturalBlogs);
     }
 

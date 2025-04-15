@@ -1305,7 +1305,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
                 emailService.sendMailServiceProvider(mailServiceDTO);
             }
-            bookingServiceRepository.save(bookingService);
+                bookingServiceRepository.save(bookingService);
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();
