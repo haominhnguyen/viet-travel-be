@@ -647,10 +647,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public GeneralResponse<?> sendCheckingServiceAvailable(Long tourBookingServiceId) {
+    public GeneralResponse<?> sendCheckingServiceAvailable(CheckingServiceAvailableDTO dto) {
         try {
-            TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
+            TourBookingService tourBookingService = tourBookingServiceRepository.findById(dto.getTourBookingServiceId()).orElseThrow();
             tourBookingService.setStatus(TourBookingServiceStatus.CHECKING);
+
+            if(dto.getNewQuantity() > 0) {
+                tourBookingService.setRequestedQuantity(dto.getNewQuantity());
+                tourBookingService.setReason(dto.getReason());
+                tourBookingService.setRequestDate(LocalDateTime.now());
+            }
+
+
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {

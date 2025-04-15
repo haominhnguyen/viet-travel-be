@@ -128,8 +128,8 @@ public class SalesmanController {
 
 
     @PostMapping("/bookings/services/checking-available")
-    public ResponseEntity<?> sendCheckingAvailable(@RequestBody Long tourBookingServiceId) {
-        return ResponseEntity.ok(bookingService.sendCheckingServiceAvailable(tourBookingServiceId));
+    public ResponseEntity<?> sendCheckingAvailable(@RequestBody CheckingServiceAvailableDTO dto) {
+        return ResponseEntity.ok(bookingService.sendCheckingServiceAvailable(dto));
     }
 
     @PostMapping("/bookings/services/checking-available/all")
