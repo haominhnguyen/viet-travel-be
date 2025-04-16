@@ -756,6 +756,21 @@ public class OperatorServiceImpl implements OperatorService {
                         .tourDay(tourDay)
                         .build();
                 bookingServiceRepository.save(bookingService);
+
+                //Create transaction for new service
+                Transaction transaction = Transaction.builder()
+                        .booking(booking)
+                        .amount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                        .category(TransactionType.RECEIPT)
+                        .paidBy(booking.getUser().getFullName())
+                        .receivedBy("Viet Travel")
+                        .paymentMethod(null)
+                        .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                        + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
+                        .transactionStatus(TransactionStatus.PENDING)
+                        .build();
+
+                transactionRepository.save(transaction);
             }
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Thêm dịch vụ vào booking thành công", requestDTO);
