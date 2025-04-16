@@ -53,6 +53,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransportRepository transportRepository;
     private final TourBookingServiceRepository bookingServiceRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
+    private final TourDayRepository tourDayRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -64,6 +65,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final MealMapper mealMapper;
     private final TransportMapper transportMapper;
     private final TourBookingServiceMapper bookingServiceMapper;
+    private final TourDayMapper tourDayMapper;
     private final EmailConfirmationService emailService;
 
 
@@ -539,7 +541,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .bookingStatus(bookingService.getStatus().toString())
                         .paidForBooking(paidForBooking)
                         .amountToPayForBooking(amountToPayForBooking)
-                        .tourDayId(bookingService.getTourDay().getId())
+                        .tourDayId(Optional.ofNullable(bookingService.getTourDay().getId()).orElseThrow(null))
 //                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }
@@ -735,9 +737,13 @@ public class OperatorServiceImpl implements OperatorService {
             checkAuthor(booking.getTourSchedule().getId());
             TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
 
+            TourDay tourDay = tourDayRepository.findById(requestDTO.getTourDayId()).orElseThrow(
+                    () -> BusinessException.of("Tour Day not found")
+            );
+
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
             if (bookingService != null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Dịch vụ đã tồn tại trong tour", requestDTO);
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Dịch vụ đã tồn tại", requestDTO);
             } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)
@@ -747,6 +753,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .deleted(Boolean.FALSE)
                         .reason(requestDTO.getReason())
                         .status(TourBookingServiceStatus.AVAILABLE)
+                        .tourDay(tourDay)
                         .build();
                 bookingServiceRepository.save(bookingService);
             }
@@ -1067,6 +1074,22 @@ public class OperatorServiceImpl implements OperatorService {
             return buildPagedResponse(tourPage, operatorTourDTOS);
         } catch (Exception ex) {
             throw BusinessException.of("Operator get all tour private fail", ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> getListTourDayOfSchedule(Long tourId) {
+        try {
+            tourRepository.findById(tourId).orElseThrow(
+                    () -> BusinessException.of("Tour not found")
+            );
+
+            List<TourDay> tourDays = tourDayRepository.findListTourDayByTourId(tourId);
+
+            List<PublicTourDayDTO> resultDTO = tourDays.stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of("Fail", ex);
         }
     }
 

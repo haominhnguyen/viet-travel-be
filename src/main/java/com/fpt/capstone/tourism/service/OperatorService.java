@@ -70,5 +70,7 @@ public interface OperatorService {
 
     GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTourPrivate(int page, int size, String keyword, String status, String orderDate);
 
+    GeneralResponse<?> getListTourDayOfSchedule(Long tourId);
+
 //    GeneralResponse<?> getListServiceRequest(int page, int size);
 }
