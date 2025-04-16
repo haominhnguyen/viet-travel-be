@@ -1093,13 +1093,13 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
     @Override
-    public GeneralResponse<?> getListTourDayOfSchedule(Long tourId) {
+    public GeneralResponse<?> getListTourDayOfSchedule(Long scheduleId) {
         try {
-            tourRepository.findById(tourId).orElseThrow(
-                    () -> BusinessException.of("Tour not found")
+            tourScheduleRepository.findById(scheduleId).orElseThrow(
+                    () -> BusinessException.of("Tour schedule not found")
             );
 
-            List<TourDay> tourDays = tourDayRepository.findListTourDayByTourId(tourId);
+            List<TourDay> tourDays = tourDayRepository.findListTourDayByScheduleId(scheduleId);
 
             List<PublicTourDayDTO> resultDTO = tourDays.stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList());
             return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
