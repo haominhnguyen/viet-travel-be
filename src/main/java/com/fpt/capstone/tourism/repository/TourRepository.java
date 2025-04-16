@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -70,10 +71,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
 
     @Query("""
-                SELECT tp.tour.id, MIN(tp.sellingPrice) 
-                FROM TourPax tp
-                WHERE tp.tour.id = :tourId
-                GROUP BY tp.tour.id
+                SELECT ts.tour.id, MIN(ts.tourPax.sellingPrice)
+                FROM TourSchedule ts
+                WHERE ts.tour.id = :tourId
+                GROUP BY ts.tour.id
             """)
     Double findMinSellingPriceForTours(@Param("tourId") Long tourId);
 
@@ -98,14 +99,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
 
     @Query("""
-                SELECT tp.tour.id, MIN(tp.sellingPrice)
-                FROM TourPax tp
-                JOIN Tour t ON tp.tour.id = t.id
-                WHERE tp.tour.id IN :tourIds
-                AND t.tourStatus = 'OPENED'
-                AND t.tourType = 'SIC'
-                AND t.deleted = FALSE 
-                GROUP BY tp.tour.id
+                SELECT ts.tour.id, MIN(ts.tourPax.sellingPrice)
+                FROM TourSchedule ts
+                WHERE ts.tour.id IN :tourIds
+                GROUP BY ts.tour.id
             """)
     List<Object[]> findMinSellingPrices(@Param("tourIds") List<Long> tourIds);
 
@@ -165,5 +162,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
     @Query(value = "SELECT * FROM tour t WHERE t.id = :tourId", nativeQuery = true)
     Tour findTourByTourId(@Param("tourId") Long tourId);
+
+    @Query(value = """
+    SELECT id, name FROM tour WHERE id IN (:ids)
+""", nativeQuery = true)
+    List<Object[]> findToursByIds(@Param("ids") List<Long> ids);
 
 }

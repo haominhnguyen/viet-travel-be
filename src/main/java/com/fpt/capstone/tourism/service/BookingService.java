@@ -54,7 +54,7 @@ public interface BookingService {
 
      GeneralResponse<?> cancelService(Long tourBookingServiceId);
 
-     GeneralResponse<?> sendCheckingServiceAvailable(Long tourBookingServiceId);
+     GeneralResponse<?> sendCheckingServiceAvailable(CheckingServiceAvailableDTO dto);
 
      GeneralResponse<?> getTourPrivateByName(String name) ;
 
@@ -113,4 +113,12 @@ public interface BookingService {
      GeneralResponse<?> sendEmailPrice(SendEmailPriceRequestDTO dto);
 
      void confirmPayment(int paymentStatus, String orderInfo);
+
+     GeneralResponse<?> getAllRefundRequest(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection);
+
+     GeneralResponse<?> getDetailRefundRequest(Long tourBookingId);
+
+    GeneralResponse<?> approveRefundRequest(Long tourBookingId);
+
+    GeneralResponse<?> rejectRefundRequest(Long tourBookingId);
 }

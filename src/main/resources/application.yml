@@ -88,6 +88,6 @@ logging:
       springframework:
         jdbc:
           core:
-            JdbcTemplate: DEBUG
+            JdbcTemplate: INFO
       hibernate:
-        SQL: DEBUG
+        SQL: INFO

@@ -24,4 +24,5 @@ public class OperatorServiceDTO {
     private Double paidForBooking; //Số tiền đã trả cho nhà cung cấp
     private Double amountToPayForBooking; //Số tiền phải trả cho nhà cung cấp
     private String paymentStatus;
+    private Long tourDayId;
 }

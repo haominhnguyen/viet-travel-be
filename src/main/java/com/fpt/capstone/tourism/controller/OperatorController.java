@@ -115,9 +115,10 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.getListServiceProviderByLocationIdAndServiceCategoryId(locationId, serviceCategoryId));
     }
 
-    @GetMapping("/tour-service/{serviceProviderId}/list-service")
-    public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId) {
-        return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId));
+    @GetMapping("/tour-service/{serviceProviderId}/list-service/{serviceCategoryId}")
+    public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId,
+                                                                                             @PathVariable Long serviceCategoryId) {
+        return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId, serviceCategoryId));
     }
 
     @GetMapping("/tour-service/{serviceId}/service-detail")

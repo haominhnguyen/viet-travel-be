@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.common.RecentBookingDTO;
+import com.fpt.capstone.tourism.dto.common.RefundDetailDTO;
 import com.fpt.capstone.tourism.dto.common.TourTypeRatioDTO;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourBooking;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TourBookingRepository extends JpaRepository<TourBooking, Long>, JpaSpecificationExecutor<TourBooking> {
@@ -164,4 +164,23 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
     WHERE b.tourSchedule.id = :id
 """)
     List<TourBooking> findBookingWithoutCustomersByScheduleId(@Param("id") Long id);
+
+    @Query("""
+                SELECT new com.fpt.capstone.tourism.dto.common.RefundDetailDTO(
+                tb.id, 
+                t.name,
+                tb.bookingCode,
+                ts.startDate,
+                ts.endDate,
+                tr.amount,
+                tr.notes
+            )
+            FROM TourBooking tb
+            JOIN tb.tour t
+            JOIN tb.tourSchedule ts
+            JOIN tb.transactions tr
+            WHERE tb.id = :tourBookingId
+            AND tb.status = :requestCancelledWithRefund
+            """)
+    List<RefundDetailDTO> findDetailRefundRequestByBookingId(Long tourBookingId, TourBookingStatus requestCancelledWithRefund);
 }
