@@ -201,13 +201,9 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail to get all service provider", ex);
+            throw BusinessException.of("Tải tất cả nhà cung cấp thất bại", ex);
         }
     }
-
-
-
-
 
 
     @Override
@@ -335,11 +331,11 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
             serviceProviderRepository.save(serviceProvider);
 
             ServiceProviderDTO serviceProviderDTO = serviceProviderMapper.toDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Change status service provider successfully", serviceProviderDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Chuyển đổi trạng thái thành công", serviceProviderDTO);
         }catch (BusinessException be){
             throw be;
         } catch (Exception ex){
-            throw BusinessException.of("Fail to change status service provider", ex);
+            throw BusinessException.of("Chuyển đổi trạng thái thất bại", ex);
         }
     }
 
@@ -394,7 +390,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail to get all hotel", ex);
+            throw BusinessException.of("Tải các Khách sạn thất bại", ex);
         }
     }
 
@@ -413,7 +409,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
 
             return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("not ok", ex);
+            throw BusinessException.of("Tải nhà hàng thất bại", ex);
         }
     }
 
@@ -425,7 +421,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
                 .items(serviceProviders)
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", pagingDTO);
     }
 
 
@@ -522,7 +518,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         } catch (BusinessException be){
             throw be;
         } catch (Exception e) {
-            throw BusinessException.of("Create account service provider fail");
+            throw BusinessException.of("Tạo account nhà cung cấp thành công");
         }
     }
 

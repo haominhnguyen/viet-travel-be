@@ -101,7 +101,7 @@ import org.springframework.stereotype.Service;
 
                 return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
             } catch (Exception ex) {
-                throw BusinessException.of("not ok", ex);
+                throw BusinessException.of("Tải danh sách địa điểm thất bại", ex);
             }
         }
 
@@ -225,7 +225,7 @@ import org.springframework.stereotype.Service;
 
             return buildPagedResponse(locationPage, locationDTOs);
         } catch (Exception ex) {
-            throw BusinessException.of("Error retrieving locations for tour", ex);
+            throw BusinessException.of("Tải địa điểm thất bại", ex);
         }
     }
 
@@ -235,7 +235,7 @@ import org.springframework.stereotype.Service;
             List<PublicLocationSimpleProviderDTO> locationSimpleDTOS = locationRepository.findLocationSimple();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", locationSimpleDTOS);
         }catch (Exception ex){
-            throw BusinessException.of("Error retrieving list location", ex);
+            throw BusinessException.of("Tải danh sách địa điểm thất bại", ex);
         }
     }
 

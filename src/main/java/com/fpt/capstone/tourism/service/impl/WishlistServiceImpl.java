@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -70,9 +73,9 @@ public class WishlistServiceImpl implements WishlistService {
                         .tourImageUrl(tourImageMap.getOrDefault(itemId, List.of()).stream().findFirst().orElse(null)) // hoặc get list luôn nếu muốn
                         .build();
             }).toList();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", resultDTOs);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Lấy wishlist thành công", resultDTOs);
         } catch (Exception ex) {
-            throw BusinessException.of("Faild", ex);
+            throw BusinessException.of("Lấy wishlist thất bại", ex);
         }
     }
 
@@ -99,9 +102,9 @@ public class WishlistServiceImpl implements WishlistService {
                     .tourName(Optional.ofNullable(tour.getName()).orElseThrow(null))
                     .tourImageUrl(Optional.ofNullable(tour.getTourImages().get(0).getImageUrl()).orElseThrow(null))
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", wishlistDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Lấy wishlist thành công", wishlistDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Faild", ex);
+            throw BusinessException.of("Lấy wishlist thất bại", ex);
         }
     }
 
@@ -110,14 +113,14 @@ public class WishlistServiceImpl implements WishlistService {
         try {
             User user = getCurrentUser();
             Wishlist wishlist = wishlistRepository.findById(wishlistId).orElseThrow(
-                    () -> BusinessException.of("Wishlist not found")
+                    () -> BusinessException.of(WISHLIST_NOT_FOUND)
             );
             if(user.getId() != wishlist.getUser().getId()){
-                throw BusinessException.of("Bạn không có quyền xóa dữ liệu này");
+                throw BusinessException.of(NO_PERMISSION_TO_DELETE);
             }
             wishlistRepository.deleteById(wishlistId);
             Tour tour = tourRepository.findById(wishlist.getItemId()).orElseThrow(
-                    () -> BusinessException.of("Tour not found")
+                    () -> BusinessException.of(TOUR_NOT_FOUND)
             );
             WishlistDTO wishlistDTO = WishlistDTO.builder()
                     .id(wishlist.getId())
@@ -126,9 +129,9 @@ public class WishlistServiceImpl implements WishlistService {
                     .tourName(Optional.ofNullable(tour.getName()).orElseThrow(null))
                     .tourImageUrl(Optional.ofNullable(tour.getTourImages().get(0).getImageUrl()).orElseThrow(null))
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", wishlistDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), DELETE_WISHLIST_SUCCESS, wishlistDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Faild", ex);
+            throw BusinessException.of(DELETE_WISHLIST_FAIL, ex);
         }
     }
 
@@ -137,7 +140,7 @@ public class WishlistServiceImpl implements WishlistService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of("Không tìm thấy người dùng"));
         }
         return user;
     }

@@ -9,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.SEND_EMAIL_ACCOUNT_FAIL;
+
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
@@ -24,7 +26,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(content, false);
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new RuntimeException(SEND_EMAIL_ACCOUNT_FAIL, e);
         }
     }
 
@@ -38,7 +40,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(content, true);
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new RuntimeException(SEND_EMAIL_ACCOUNT_FAIL, e);
         }
     }
 }

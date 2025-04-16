@@ -64,7 +64,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .collect(Collectors.toMap(
                             spp -> spp.getTourDayService().getId(),
                             Function.identity(),
-                            (existing, replacement) -> existing  // In case of duplicate keys, keep existing
+                            (existing, replacement) -> existing
                     ));
 
             // Create DTOs for the service associations
@@ -106,7 +106,7 @@ public class TourPaxServiceImpl implements TourPaxService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve pax configuration", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_RETRIEVE_PAX_CONFIGURATION, ex);
         }
     }
 
@@ -115,7 +115,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<TourPaxFullDTO> createTourPaxConfiguration(Long tourId, TourPaxCreateRequestDTO request) {
         try {
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             // Validate pax range
             if (request.getMinPax() > request.getMaxPax()) {
@@ -212,7 +212,7 @@ public class TourPaxServiceImpl implements TourPaxService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create pax configuration", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_CREATE_PAX_CONFIGURATION, ex);
         }
     }
 
@@ -221,10 +221,10 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<TourPaxFullDTO> updateTourPaxConfiguration(Long tourId, Long paxId, TourPaxUpdateRequestDTO request) {
         try {
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             TourPax pax = tourPaxRepository.findById(paxId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " with id: " + paxId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " id: " + paxId));
 
             if (!pax.getTour().getId().equals(tourId)) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
@@ -369,7 +369,7 @@ public class TourPaxServiceImpl implements TourPaxService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update pax configuration", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_UPDATE_PAX_CONFIGURATION, ex);
         }
     }
 
@@ -378,10 +378,10 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<String> deleteTourPaxConfiguration(Long tourId, Long paxId) {
         try {
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             TourPax pax = tourPaxRepository.findById(paxId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " with id: " + paxId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " id: " + paxId));
 
             if (!pax.getTour().getId().equals(tourId)) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
@@ -401,11 +401,11 @@ public class TourPaxServiceImpl implements TourPaxService {
             tourPaxRepository.save(pax);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_DELETE_SUCCESS,
-                    "Pax configuration with id " + paxId + " and all its service associations have been marked as deleted");
+                    "Cấu hình pax với id " + paxId + " và tất cả các liên kết dịch vụ của nó đã được đánh dấu là đã xóa.");
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete pax configuration", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_DELETE_PAX_CONFIGURATION, ex);
         }
     }
 
@@ -413,7 +413,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<List<TourPaxFullDTO>> getTourPaxConfigurations(Long tourId) {
         try {
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             List<TourPax> paxConfigurations = tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId);
 
@@ -497,7 +497,7 @@ public class TourPaxServiceImpl implements TourPaxService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve pax configurations", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_RETRIEVE_PAX_CONFIGURATION, ex);
         }
     }
     /**
@@ -513,21 +513,17 @@ public class TourPaxServiceImpl implements TourPaxService {
         List<TourPax> existingConfigs = paxIdToExclude == null ?
                 tourPaxRepository.findByTourIdAndDeletedFalseOrderByMinPax(tourId) :
                 tourPaxRepository.findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(tourId, paxIdToExclude);
-
         // Check for overlaps in both pax range and date range
         for (TourPax config : existingConfigs) {
             // Check if pax ranges overlap
             boolean paxRangeOverlaps = (minPax <= config.getMaxPax() && maxPax >= config.getMinPax());
-
             // Check if date ranges overlap
             boolean dateRangeOverlaps = (validFrom.before(config.getValidTo()) && validTo.after(config.getValidFrom()));
-
             // If both overlap, then there's a conflict
             if (paxRangeOverlaps && dateRangeOverlaps) {
                 return true;
             }
         }
-
         return false;
     }
 }
