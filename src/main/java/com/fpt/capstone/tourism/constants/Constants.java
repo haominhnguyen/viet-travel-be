@@ -667,6 +667,86 @@ public class Constants {
         public static final String DELETE_WISHLIST_FAIL = "Xóa wishlist thất bại";
 
         //===================================================
+        // Operator Related Messages
+        //===================================================
+        public static final String OPERATOR_GET_ALL_TOUR_FAIL = "Lấy tất cả các tour của điều hành viên thất bại";
+        public static final String OPERATOR_RECEIVED_TOUR_SUCCESS = "Điều hành viên đã nhận tour để vận hành thành công";
+        public static final String OPERATOR_RECEIVE_TOUR_FAIL = "Điều hành viên nhận tour thất bại";
+        public static final String OPERATOR_GET_TOUR_DETAIL_SUCCESS = "Điều hành viên lấy chi tiết tour thành công";
+        public static final String OPERATOR_GET_TOUR_DETAIL_FAIL = "Điều hành viên lấy chi tiết tour thất bại";
+        public static final String OPERATOR_GET_CUSTOMER_LIST_SUCCESS = "Điều hành viên lấy danh sách khách hàng của tour thành công";
+        public static final String OPERATOR_GET_CUSTOMER_LIST_FAIL = "Điều hành viên lấy danh sách khách hàng của tour thất bại";
+        public static final String OPERATOR_GET_BOOKING_LIST_SUCCESS = "Điều hành viên lấy danh sách đặt tour thành công";
+        public static final String OPERATOR_GET_BOOKING_LIST_FAIL = "Điều hành viên lấy danh sách đặt tour thất bại";
+        public static final String GET_TOUR_LOG_LIST_SUCCESS = "Lấy danh sách nhật ký của tour thành công";
+        public static final String GET_TOUR_LOG_LIST_FAIL = "Lấy danh sách nhật ký của tour thất bại";
+        public static final String CREATE_LOG_SUCCESS = "Tạo nhật ký hoạt động thành công";
+        public static final String CREATE_LOG_FAIL = "Tạo nhật ký hoạt động thất bại";
+        public static final String TOUR_LOG_NOT_FOUND = "Không tìm thấy nhật ký tour";
+        public static final String DELETE_LOG_SUCCESS = "Xóa nhật ký hoạt động thành công";
+        public static final String DELETE_LOG_FAIL = "Xóa nhật ký hoạt động thất bại";
+        public static final String TOUR_GUIDE_NOT_FOUND = "Không tìm thấy hướng dẫn viên";
+        public static final String ASSIGN_TOUR_GUIDE_SUCCESS = "Phân công hướng dẫn viên thành công";
+        public static final String ASSIGN_TOUR_GUIDE_FAIL = "Phân công hướng dẫn viên thất bại";
+        public static final String GET_AVAILABLE_TOUR_GUIDE_SUCCESS = "Lấy danh sách hướng dẫn viên khả dụng thành công";
+        public static final String GET_AVAILABLE_TOUR_GUIDE_FAIL = "Lấy danh sách hướng dẫn viên khả dụng thất bại";
+        public static final String GET_TRANSACTION_LIST_SUCCESS = "Lấy danh sách giao dịch thành công";
+        public static final String GET_TRANSACTION_LIST_FAIL = "Lấy danh sách giao dịch thất bại";
+        public static final String GET_SERVICE_LIST_SUCCESS = "Lấy danh sách dịch vụ thành công";
+        public static final String GET_SERVICE_LIST_FAIL = "Lấy danh sách dịch vụ thất bại";
+        public static final String CHOOSE_SERVICE_SUCCESS = "Chọn dịch vụ thành công";
+        public static final String CHOOSE_SERVICE_FAIL = "Chọn dịch vụ thất bại";
+        public static final String BOOKING_NOT_FOUND = "Không tìm thấy đặt tour";
+        public static final String SERVICE_REQUEST_NOT_APPROVED = "Đơn này chưa thể gửi thanh toán";
+        public static final String PAY_SERVICE_SUCCESS = "Thanh toán dịch vụ thành công";
+        public static final String PAY_SERVICE_FAIL = "Thanh toán dịch vụ thất bại";
+        public static final String GET_LOCATIONS_CATEGORIES_SUCCESS = "Lấy danh sách địa điểm và danh mục dịch vụ thành công";
+        public static final String GET_LOCATIONS_CATEGORIES_FAIL = "Lấy danh sách địa điểm và danh mục dịch vụ thất bại";
+        public static final String GET_PROVIDERS_BY_LOCATION_SUCCESS = "Lấy danh sách nhà cung cấp theo địa điểm thành công";
+        public static final String GET_PROVIDERS_BY_LOCATION_FAIL = "Lấy danh sách nhà cung cấp theo địa điểm thất bại";
+        public static final String GET_SERVICES_BY_PROVIDER_SUCCESS = "Lấy danh sách dịch vụ theo nhà cung cấp thành công";
+        public static final String GET_SERVICES_BY_PROVIDER_FAIL = "Lấy danh sách dịch vụ theo nhà cung cấp thất bại";
+        public static final String GET_SERVICE_DETAIL_SUCCESS = "Lấy chi tiết dịch vụ thành công";
+        public static final String ADD_SERVICE_SUCCESS = "Thêm dịch vụ vào booking thành công";
+        public static final String ADD_SERVICE_FAIL = "Thêm dịch vụ thất bại";
+        public static final String TOUR_BOOKING_NOT_FOUND = "Không tìm thấy đặt tour";
+        public static final String SERVICE_ALREADY_EXISTS = "Dịch vụ đã tồn tại";
+        public static final String PREVIEW_MAIL_SUCCESS = "Xem trước email thành công";
+        public static final String PREVIEW_MAIL_FAIL = "Xem trước email thất bại";
+        public static final String BOOKING_SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ đặt tour";
+        public static final String SERVICE_STATUS_CANNOT_SEND_EMAIL = "Trạng thái dịch vụ không thể gửi email";
+        public static final String GET_BOOKING_LIST_SUCCESS = "Lấy danh sách đặt tour thành công";
+        public static final String GET_BOOKING_LIST_FAIL = "Lấy danh sách đặt tour thất bại";
+        public static final String CANCEL_SERVICE_SUCCESS = "Hủy dịch vụ thành công";
+        public static final String CANCEL_SERVICE_FAIL = "Hủy dịch vụ thất bại";
+        public static final String INVALID_SERVICE_QUANTITY = "Số lượng dịch vụ không hợp lệ";
+        public static final String UPDATE_SERVICE_QUANTITY_SUCCESS = "Cập nhật số lượng dịch vụ thành công";
+        public static final String UPDATE_SERVICE_QUANTITY_FAIL = "Cập nhật số lượng dịch vụ thất bại";
+        public static final String NO_TOUR_SCHEDULE_FOUND = "Không tìm thấy lịch trình tour";
+        public static final String TOUR_SCHEDULE_NOT_ONGOING = "Lịch trình tour này không đang diễn ra";
+        public static final String SEND_ACCOUNTANT_SUCCESS = "Gửi kế toán thành công";
+        public static final String SEND_ACCOUNTANT_FAIL = "Gửi kế toán thất bại";
+        public static final String OPERATOR_GET_PRIVATE_TOUR_FAIL = "Điều hành viên lấy danh sách tour riêng tư thất bại";
+        public static final String GET_TOUR_DAY_LIST_SUCCESS = "Lấy danh sách ngày tour thành công";
+        public static final String GET_TOUR_DAY_LIST_FAIL = "Lấy danh sách ngày tour thất bại";
+        public static final String SEND_MAIL_TO_PROVIDER_SUCCESS = "Gửi email cho nhà cung cấp thành công";
+        public static final String SEND_MAIL_TO_PROVIDER_FAIL = "Gửi email cho nhà cung cấp thất bại";
+        public static final String GET_SERVICE_REQUEST_LIST_SUCCESS = "Lấy danh sách yêu cầu dịch vụ thành công";
+        public static final String GET_SERVICE_REQUEST_LIST_FAIL = "Lấy danh sách yêu cầu dịch vụ thất bại";
+        public static final String GET_SERVICE_REQUEST_DETAIL_SUCCESS = "Lấy chi tiết yêu cầu dịch vụ thành công";
+        public static final String GET_SERVICE_REQUEST_DETAIL_FAIL = "Lấy chi tiết yêu cầu dịch vụ thất bại";
+        public static final String REJECT_SERVICE_REQUEST_SUCCESS = "Từ chối yêu cầu dịch vụ thành công";
+        public static final String REJECT_SERVICE_REQUEST_FAIL = "Từ chối yêu cầu dịch vụ thất bại";
+        public static final String APPROVE_SERVICE_REQUEST_SUCCESS = "Phê duyệt yêu cầu dịch vụ thành công";
+        public static final String APPROVE_SERVICE_REQUEST_FAIL = "Phê duyệt yêu cầu dịch vụ thất bại";
+        public static final String GET_TOUR_SUMMARY_SUCCESS = "Lấy tổng quan tour thành công";
+        public static final String GET_TOUR_SUMMARY_FAIL = "Lấy tổng quan tour thất bại";
+        public static final String INVALID_STATUS_VALUE = "Giá trị trạng thái không hợp lệ: ";
+        public static final String USER_INFO_NOT_FOUND = "Không tìm thấy thông tin người dùng";
+        public static final String UNAUTHORIZED = "Không có quyền truy cập";
+        public static final String PAGE_SUCCESS = "Thành công";
+
+        //===================================================
         // Date & Time Related Messages
         //===================================================
         public static final String INVALID_DATE_RANGE = "Khoảng thời gian không hợp lệ";
