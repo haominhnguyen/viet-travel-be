@@ -207,6 +207,18 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
+    public GeneralResponse<?> deletePlanById(Long planId) {
+        try {
+            Plan plan = planRepository.findById(planId).orElseThrow();
+            planRepository.deleteById(planId);
+            PlanDTO dto = planMapper.toPlanDto(plan);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
     public GeneralResponse<?> getPlansByUserId(Long userId) {
         try {
             List<Plan> plans = planRepository.getByUserId(userId);

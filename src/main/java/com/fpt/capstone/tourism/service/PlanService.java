@@ -23,6 +23,8 @@ public interface PlanService {
 
     GeneralResponse<?> getPlanById(Long planId);
 
+    GeneralResponse<?> deletePlanById(Long planId);
+
     GeneralResponse<?> getPlansByUserId(Long userId);
 
     GeneralResponse<PagingDTO<List<PlanDTO>>> getPlans(int page, int size, String sortField, String sortDirection, Long userId);

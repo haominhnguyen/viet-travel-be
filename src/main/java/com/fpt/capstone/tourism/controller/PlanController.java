@@ -3,10 +3,8 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
-import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
-import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
@@ -47,8 +45,14 @@ public class PlanController {
 
 
     @GetMapping("/details/{id}")
-    public ResponseEntity<?> locations(@PathVariable(name = "id") Long planId) {
+    public ResponseEntity<?> details(@PathVariable(name = "id") Long planId) {
         return ResponseEntity.ok(planService.getPlanById(planId));
+    }
+
+
+    @DeleteMapping("/delete/{planId}")
+    public ResponseEntity<?> delete(@PathVariable(name = "planId") Long planId) {
+        return ResponseEntity.ok(planService.deletePlanById(planId));
     }
 
 

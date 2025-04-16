@@ -36,5 +36,5 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     List<TourDay> findAllByTourId(Long tourId);
 
 
-
+    List<TourDay> findListTourDayByTourId(Long tourId);
 }

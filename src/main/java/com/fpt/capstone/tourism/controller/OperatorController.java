@@ -185,4 +185,9 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.getListTourPrivate(page, size, keyword, status, orderDate));
     }
 
+    @GetMapping("/tour-detail/{tourId}/list-tour-day")
+    public ResponseEntity<?> getListTourDayOfSchedule(@PathVariable Long tourId) {
+        return ResponseEntity.ok(operatorService.getListTourDayOfSchedule(tourId));
+    }
+
 }
