@@ -8,6 +8,8 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
+import com.fpt.capstone.tourism.model.enums.TransactionType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -173,7 +175,12 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
                 ts.startDate,
                 ts.endDate,
                 tr.amount,
-                tr.notes
+                tr.notes,
+                tr.category,
+                tr.transactionStatus,
+                tb.user.fullName,
+                tr.receivedBy,
+                tr.paidBy
             )
             FROM TourBooking tb
             JOIN tb.tour t
@@ -184,3 +191,4 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
             """)
     List<RefundDetailDTO> findDetailRefundRequestByBookingId(Long tourBookingId, TourBookingStatus requestCancelledWithRefund);
 }
+
