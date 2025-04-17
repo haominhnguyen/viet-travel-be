@@ -246,6 +246,19 @@ public class PlanServiceImpl implements PlanService {
         }
     }
 
+    @Override
+    public GeneralResponse<?> updatePlan(String planJson, Long planId) {
+        try {
+            Plan plan = planRepository.findById(planId).orElseThrow();
+            plan.setContent(planJson);
+            planRepository.save(plan);
+            PlanDTO dto = planMapper.toPlanDto(plan);
+            return GeneralResponse.of(dto);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
     public static String removeAccents(String text) {
         if (text == null) {
             return null;

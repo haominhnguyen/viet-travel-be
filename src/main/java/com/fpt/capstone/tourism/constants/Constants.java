@@ -384,12 +384,14 @@ public class Constants {
                                                                           imageUrl: "Activities Image URL"
                                                                         }
                                                                       ],
-                                                                      "hotel": {
-                                                                        "id": 1,
-                                                                        "name": "Hotel Name",
-                                                                        "address": "Hotel Address",
-                                                                        "image_url": "Hotel Image URL"
-                                                                      },
+                                                                      "hotels": [
+                                                                          {
+                                                                            "id": 1,
+                                                                            "name": "Hotel Name",
+                                                                            "address": "Hotel Address",
+                                                                            "image_url": "Hotel Image URL"
+                                                                          }
+                                                                      ],
                                                                       "restaurants": [
                                                                         {
                                                                           "id": 1,
@@ -412,12 +414,14 @@ public class Constants {
                                                                           imageUrl: "Activities Image URL"
                                                                         }
                                                                       ],
-                                                                      "hotel": {
-                                                                        "id": 2,
-                                                                        "name": "Hotel Name",
-                                                                        "address": "Hotel Address",
-                                                                        "image_url": "Hotel Image URL"
-                                                                      }
+                                                                      "hotels": [
+                                                                          {
+                                                                            "id": 2,
+                                                                            "name": "Hotel Name",
+                                                                            "address": "Hotel Address",
+                                                                            "image_url": "Hotel Image URL"
+                                                                          }
+                                                                      ]
                                                                     }
                                                             ]
                                                         """;

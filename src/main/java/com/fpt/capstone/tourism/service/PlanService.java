@@ -28,4 +28,6 @@ public interface PlanService {
     GeneralResponse<?> getPlansByUserId(Long userId);
 
     GeneralResponse<PagingDTO<List<PlanDTO>>> getPlans(int page, int size, String sortField, String sortDirection, Long userId);
+
+    GeneralResponse<?> updatePlan(String planJson, Long planId);
 }

@@ -56,6 +56,12 @@ public class PlanController {
     }
 
 
+    @PostMapping("/update/{planId}")
+    public ResponseEntity<?> update(@RequestBody String planJson, @PathVariable(name = "planId") Long planId) {
+        return ResponseEntity.ok(planService.updatePlan(planJson, planId));
+    }
+
+
 
     @GetMapping("/list")
     public ResponseEntity<GeneralResponse<PagingDTO<List<PlanDTO>>>> getPlans(
