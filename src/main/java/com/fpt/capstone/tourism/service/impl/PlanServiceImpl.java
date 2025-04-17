@@ -56,7 +56,7 @@ public class PlanServiceImpl implements PlanService {
             List<LocationWithoutGeoPositionDTO> dto = locations.stream().map(locationMapper::toLocationWithoutGeoPositionDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot Locations for plan", ex);
+            throw BusinessException.of("Không thể lấy địa điểm cho kế hoạch", ex);
         }
     }
 
@@ -67,7 +67,7 @@ public class PlanServiceImpl implements PlanService {
             List<Location> locations = locationRepository.findAll(planHelper.searchLocationByName(normalizedName));
             return GeneralResponse.of(locations.stream().map(locationMapper::toPublicLocationDTO).toList());
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot Get All Locations for plan", ex);
+            throw BusinessException.of("Không thể lấy tất cả địa điểm cho kế hoạch", ex);
         }
     }
 
@@ -242,7 +242,7 @@ public class PlanServiceImpl implements PlanService {
 
             return planHelper.buildPagedResponse(tourBookingPage);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
         }
     }
 

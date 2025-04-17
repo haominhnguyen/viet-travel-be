@@ -58,7 +58,7 @@ public class TourPriceServiceImpl implements TourPriceService {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to retrieve tour price configurations: " + ex.getMessage(), ex);
+                    "Không thể lấy cấu hình giá tour: " + ex.getMessage(), ex);
         }
     }
 
@@ -86,7 +86,7 @@ public class TourPriceServiceImpl implements TourPriceService {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to retrieve tour price configuration: " + ex.getMessage(), ex);
+                    "Không thể lấy cấu hình giá tour: " + ex.getMessage(), ex);
         }
     }
 
@@ -97,13 +97,16 @@ public class TourPriceServiceImpl implements TourPriceService {
             // Validate Tour exists
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+
             // Get the price configuration
             TourPax tourPax = tourPaxRepository.findById(configId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND));
+
             // Verify it belongs to the specified tour
             if (!tourPax.getTour().getId().equals(tourId)) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
             }
+
             // Get all service-pax associations for this pax
             List<ServicePaxPricing> paxServicePricings = servicePaxPricingRepository.findByTourPaxId(configId);
 
@@ -112,18 +115,21 @@ public class TourPriceServiceImpl implements TourPriceService {
                 pricing.setDeleted(true);
                 servicePaxPricingRepository.save(pricing);
             }
+
             // Mark the pax configuration as deleted
             tourPax.setDeleted(true);
             tourPaxRepository.save(tourPax);
+
             return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_DELETED,
-                    "Price configuration with id " + configId + " and all its service associations have been marked as deleted");
+                    "Cấu hình giá với id " + configId + " và tất cả các liên kết dịch vụ của nó đã được đánh dấu là đã xóa");
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to delete price configuration: " + ex.getMessage(), ex);
+                    "Không thể xóa cấu hình giá: " + ex.getMessage(), ex);
         }
     }
+
 
     @Override
     @Transactional
@@ -163,7 +169,7 @@ public class TourPriceServiceImpl implements TourPriceService {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to update tour price: " + ex.getMessage(), ex);
+                    "Không thể cập nhật giá tour: " + ex.getMessage(), ex);
         }
     }
     private TourPriceConfigResponseDTO buildResponseDTO(TourPax tourPax) {

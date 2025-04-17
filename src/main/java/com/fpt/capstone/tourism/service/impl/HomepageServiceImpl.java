@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -82,9 +84,9 @@ public class HomepageServiceImpl implements HomepageService {
                     .recommendedActivities(recommendedActivities)
                     .recommendedLocations(recommendedLocations)
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Homepage loaded successfully", homepageDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), HOMEPAGE_LOAD_SUCCESS, homepageDTO);
         } catch (Exception ex){
-            throw BusinessException.of("Homepage loaded fail", ex);
+            throw BusinessException.of(HOMEPAGE_LOAD_FAIL, ex);
         }
     }
 
@@ -93,30 +95,10 @@ public class HomepageServiceImpl implements HomepageService {
         return providerService.getAllHotel(page, size, keyword, star);
     }
 
-//    @Override
-//    public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword) {
-//        return providerService.getAllRestaurant(page, size, keyword);
-//    }
-
     @Override
     public GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId, String sortByPrice) {
         return tourService.getAllPublicTour(page, size, keyword, budgetFrom, budgetTo, duration, fromDate, departLocationId, sortByPrice);
     }
-
-//    @Override
-//    public GeneralResponse<PublicActivityDetailDTO> viewPublicActivityDetail(Long activityId, int numberActivity) {
-//        ActivityDTO activityDTO = activityMapper.toEntity(activityRepository.findById(activityId).orElseThrow());
-//        List<ActivityDTO> relatedActivities = activityService.findRelatedActivities(activityId, numberActivity);
-//
-//        //Mapping to Dto
-//        PublicActivityDetailDTO publicActivityDetailDTO = PublicActivityDetailDTO.builder()
-//                .detailActivityDTO(activityDTO)
-//                .relatedActivities(relatedActivities)
-//                .build();
-//
-//        return new GeneralResponse<>(HttpStatus.OK.value(), "Activity detail loaded successfully", publicActivityDetailDTO);
-//    }
-
     @Override
     public GeneralResponse<PublicTourDetailDTO> viewTourDetail(Long id) {
         try{
@@ -144,11 +126,10 @@ public class HomepageServiceImpl implements HomepageService {
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
                     .otherTours(otherTour)
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour detail loaded successfully", tourBasicDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DETAIL_LOAD_SUCCESS, tourBasicDTO);
         } catch (Exception ex){
-            throw BusinessException.of("Tour detail loaded fail", ex);
+            throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
-
     }
 
     @Override
@@ -163,7 +144,7 @@ public class HomepageServiceImpl implements HomepageService {
             //Find blog related to the location
             List<BlogResponseDTO> blogs = blogRepository.findBlogRelatedLocations(location.getName())
                     .stream().map(blogMapper::toDTO).collect(Collectors.toList())
-                     ;
+                    ;
 
             //Find activities related to the location
             List<PublicActivityDTO> activities = serviceRepository.findRelatedActivities(id, "Activity", PageRequest.of(0, 6))
@@ -189,9 +170,9 @@ public class HomepageServiceImpl implements HomepageService {
                     .locations(publicLocations)
                     .hotels(hotels)
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Location detail loaded successfully", publicLocationDetailDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), LOCATION_DETAIL_LOAD_SUCCESS, publicLocationDetailDTO);
         } catch (Exception ex){
-            throw BusinessException.of("Location detail loaded fail", ex);
+            throw BusinessException.of(LOCATION_DETAIL_LOAD_FAIL, ex);
         }
     }
 
@@ -200,7 +181,7 @@ public class HomepageServiceImpl implements HomepageService {
         try {
             //Find service provider
             ServiceProvider serviceProvider = serviceProviderRepository.findById(serviceProviderId).orElseThrow(
-                    () -> BusinessException.of("Service provider not found")
+                    () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
             );
 
             //Find list rooms of the service provider
@@ -218,9 +199,9 @@ public class HomepageServiceImpl implements HomepageService {
                     .rooms(rooms)
                     .otherHotels(otherHotelsDTO)
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Hotel detail loaded successfully", publicHotelDetailDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), HOTEL_DETAIL_LOAD_SUCCESS, publicHotelDetailDTO);
         } catch (Exception ex){
-            throw BusinessException.of("Hotel detail loaded fail", ex);
+            throw BusinessException.of(HOTEL_DETAIL_LOAD_FAIL, ex);
         }
     }
 
@@ -233,17 +214,18 @@ public class HomepageServiceImpl implements HomepageService {
 
             List<TourSearchDTO> results = tours.stream().map(tour -> {
                 return TourSearchDTO.builder()
-                       .id(tour.getId())
-                       .name(tour.getName())
+                        .id(tour.getId())
+                        .name(tour.getName())
                         .tourImages(tour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
-                       .build();
+                        .build();
             }).collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Search successfully", results);
+            return new GeneralResponse<>(HttpStatus.OK.value(), SEARCH_SUCCESS, results);
         } catch (Exception ex){
-            throw BusinessException.of("Search fail", ex);
+            throw BusinessException.of(SEARCH_FAIL, ex);
         }
     }
+
 
     @Override
     public GeneralResponse<?> getListLocation() {
@@ -252,9 +234,9 @@ public class HomepageServiceImpl implements HomepageService {
             List<PublicLocationSimpleDTO> publicLocations =
                     locations.stream().map(locationMapper::toPublicLocationSimpleDTO
                     ).collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", publicLocations);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, publicLocations);
         }catch (Exception ex){
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_LOCATIONS_FAIL, ex);
         }
     }
 
