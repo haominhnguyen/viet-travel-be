@@ -764,7 +764,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .category(TransactionType.RECEIPT)
                         .paidBy(booking.getUser().getFullName())
                         .receivedBy("Viet Travel")
-                        .paymentMethod(null)
+                        .paymentMethod(PaymentMethod.BANKING)
                         .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
                         + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
                         .transactionStatus(TransactionStatus.PENDING)
