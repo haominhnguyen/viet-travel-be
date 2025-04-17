@@ -110,9 +110,9 @@ public class BookingServiceImpl implements BookingService {
                     .tourSchedules(tourScheduleBasicDTO)
                     .tourImage(tourImageMapper.toPublicTourImageDTO(tourImages.get(0)))
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Customer Tour Booking detail loaded successfully", tourBasicDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_BOOKING_DETAIL_LOAD_SUCCESS, tourBasicDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Customer Tour Booking detail loaded fail", ex);
+            throw BusinessException.of(TOUR_BOOKING_DETAIL_LOAD_FAIL, ex);
         }
 
     }
@@ -250,7 +250,7 @@ public class BookingServiceImpl implements BookingService {
 
             return bookingHelper.buildPagedResponse(tourBookingPage);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
@@ -267,18 +267,15 @@ public class BookingServiceImpl implements BookingService {
 
             return tourHelper.buildPublicTourPagedResponse(tourPage);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
     @Override
     @Transactional
     public GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO) {
-
-
         try {
             List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
-
 
             String baseUrl = "http://localhost:8080/v1/public/booking";
 
@@ -336,16 +333,13 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(bookingMapper.toBookingDetailSaleResponseDTO(result));
         } catch (Exception ex) {
-            throw BusinessException.of("Create Public Booking failed!", ex);
+            throw BusinessException.of(CREATE_PUBLIC_BOOKING_FAIL, ex);
         }
     }
 
     @Override
     public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
-
         try {
-
-
             Tour tour = tourRepository.findById(tourId).orElseThrow();
             TourSchedule tourSchedule;
             if (scheduleId != null) {
@@ -379,7 +373,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(tourListBookingDTO);
 
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
 
     }
@@ -394,7 +388,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(bookingHelper.setPaymentStatisticForBookingDetail(tourBooking));
 
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
@@ -405,7 +399,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(tourBooking.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
 
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
@@ -424,7 +418,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(bookingMapper.toTourBookingCustomerDTO(updatedTourBookingCustomer));
         } catch (Exception ex) {
-            throw BusinessException.of("Update Customer Status failed", ex);
+            throw BusinessException.of(UPDATE_CUSTOMER_STATUS_FAIL, ex);
         }
     }
 
@@ -452,7 +446,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(updatedTourBookingCustomers.stream().map(bookingMapper::toTourBookingCustomerDTO).toList());
         } catch (Exception ex) {
-            throw BusinessException.of("Update Customer Status failed", ex);
+            throw BusinessException.of(UPDATE_CUSTOMER_STATUS_FAIL, ex);
         }
     }
 
@@ -463,7 +457,7 @@ public class BookingServiceImpl implements BookingService {
             TourDetailSaleResponseDTO tourDetailSaleResponseDTO = bookingMapper.toTourDetailSaleResponseDTO(tour);
             return GeneralResponse.of(tourDetailSaleResponseDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get tour details for sale failed", ex);
+            throw BusinessException.of(GET_TOUR_DETAILS_FOR_SALE_FAIL, ex);
         }
     }
 
@@ -476,7 +470,7 @@ public class BookingServiceImpl implements BookingService {
             tourDetailSaleResponseDTO.setTourSchedule(scheduleDTO);
             return GeneralResponse.of(tourDetailSaleResponseDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get tour details for sale failed", ex);
+            throw BusinessException.of(GET_TOUR_DETAILS_FOR_SALE_FAIL, ex);
         }
     }
 
@@ -490,7 +484,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(customers);
         } catch (Exception ex) {
-            throw BusinessException.of("Get customers for sale failed", ex);
+            throw BusinessException.of(GET_CUSTOMERS_FOR_SALE_FAIL, ex);
         }
     }
 
@@ -617,7 +611,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(Collections.emptyList());
 
         } catch (Exception ex) {
-            throw BusinessException.of("Get tour booking services for sale failed", ex);
+            throw BusinessException.of(GET_TOUR_BOOKING_SERVICES_FOR_SALE_FAIL, ex);
         }
 
     }
@@ -630,7 +624,7 @@ public class BookingServiceImpl implements BookingService {
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
-            throw BusinessException.of("Get tour booking services for sale failed", ex);
+            throw BusinessException.of(GET_TOUR_BOOKING_SERVICES_FOR_SALE_FAIL, ex);
         }
     }
 
@@ -642,7 +636,7 @@ public class BookingServiceImpl implements BookingService {
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
-            throw BusinessException.of("Cancel tour booking services for sale failed", ex);
+            throw BusinessException.of(CANCEL_TOUR_BOOKING_SERVICES_FAIL, ex);
         }
     }
 
@@ -662,7 +656,7 @@ public class BookingServiceImpl implements BookingService {
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
-            throw BusinessException.of("Cancel tour booking services for sale failed", ex);
+            throw BusinessException.of(CANCEL_TOUR_BOOKING_SERVICES_FAIL, ex);
         }
     }
 
@@ -675,7 +669,7 @@ public class BookingServiceImpl implements BookingService {
             List<TourSupportInfoDTO> tourDTOs = tours.stream().map(bookingMapper::toTourSupportInfoDTO).toList();
             return GeneralResponse.of(tourDTOs);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot get tour private list", ex);
+            throw BusinessException.of(GET_TOUR_PRIVATE_LIST_FAIL, ex);
         }
     }
 
@@ -687,7 +681,7 @@ public class BookingServiceImpl implements BookingService {
             tourContentSaleResponseDTO.setCreatedAt(tour.getCreatedAt());
             return GeneralResponse.of(tourContentSaleResponseDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot get tour private list", ex);
+            throw BusinessException.of(GET_TOUR_PRIVATE_LIST_FAIL, ex);
         }
     }
 
@@ -698,7 +692,7 @@ public class BookingServiceImpl implements BookingService {
             List<LocationShortDTO> locationDTOS = locations.stream().map(locationMapper::toLocationShortDTO).toList();
             return GeneralResponse.of(locationDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot get tour private list", ex);
+            throw BusinessException.of(GET_TOUR_PRIVATE_LIST_FAIL, ex);
         }
     }
 
@@ -714,7 +708,7 @@ public class BookingServiceImpl implements BookingService {
 
                 List<Location> locations = tour.getLocations().stream()
                         .map(loc -> locationRepository.findById(loc.getId())
-                                .orElseThrow(() -> new RuntimeException("Location not found")))
+                                .orElseThrow(() -> new RuntimeException("Không timg thấy địa điểm")))
                         .toList();
 
 
@@ -756,7 +750,7 @@ public class BookingServiceImpl implements BookingService {
             }
 
         } catch (Exception ex) {
-            throw BusinessException.of("Create Tour Failed", ex);
+            throw BusinessException.of(TOUR_CREATE_FAIL, ex);
         }
 
     }
@@ -849,7 +843,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(bookingMapper.toTourDetailSaleResponseDTO(savedTour));
 
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot Update tour private", ex);
+            throw BusinessException.of(UPDATE_TOUR_PRIVATE_FAIL, ex);
         }
     }
 
@@ -861,7 +855,7 @@ public class BookingServiceImpl implements BookingService {
             Tour savedTour = tourRepository.save(tourEntity);
             return GeneralResponse.of(bookingMapper.toTourDetailSaleResponseDTO(savedTour));
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot update status tour", ex);
+            throw BusinessException.of(UPDATE_TOUR_STATUS_FAIL, ex);
         }
     }
 
@@ -901,7 +895,7 @@ public class BookingServiceImpl implements BookingService {
 
             return buildPagedResponse(tourPage, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list history booking fail", ex);
+            throw BusinessException.of(GET_BOOKING_HISTORY_LIST_FAIL, ex);
         }
     }
 
@@ -976,7 +970,7 @@ public class BookingServiceImpl implements BookingService {
             }
             return GeneralResponse.of(new ArrayList<>(categoryMap.values()));
         } catch (Exception ex) {
-            throw BusinessException.of("getServiceCategoryWithTourDays", ex);
+            throw BusinessException.of("Lấy danh mục dịch vụ theo ngày tour thất bại", ex);
         }
     }
 
@@ -988,7 +982,7 @@ public class BookingServiceImpl implements BookingService {
             List<LocationShortDTO> dto = locations.stream().map(locationMapper::toLocationShortDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot tour locations", ex);
+            throw BusinessException.of(GET_TOUR_LOCATIONS_FAIL, ex);
         }
     }
 
@@ -1004,7 +998,7 @@ public class BookingServiceImpl implements BookingService {
             List<ServiceProviderSimpleDTO> dto = providers.stream().map(bookingMapper::toServiceProviderSimpleDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot provider by location", ex);
+            throw BusinessException.of(GET_PROVIDER_BY_LOCATION_FAIL , ex);
         }
     }
 
@@ -1015,7 +1009,7 @@ public class BookingServiceImpl implements BookingService {
             List<AvailableServiceDTO> availableServices = buildAvailableServicesDTO(services);
             return GeneralResponse.of(availableServices);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot provider services", ex);
+            throw BusinessException.of(GET_PROVIDER_SERVICES_FAIL, ex);
         }
     }
 
@@ -1042,7 +1036,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot update services", ex);
+            throw BusinessException.of(UPDATE_SERVICES_FAIL, ex);
         }
     }
 
@@ -1057,7 +1051,7 @@ public class BookingServiceImpl implements BookingService {
         for (Long serviceId : serviceIds) {
             if (!existingServiceIds.contains(serviceId)) {
                 com.fpt.capstone.tourism.model.Service service = serviceRepository.findById(serviceId)
-                        .orElseThrow(() -> BusinessException.of("Could not find service"));
+                        .orElseThrow(() -> BusinessException.of(SERVICE_NOT_FOUND ));
 
                 TourDayService newTourDayService = new TourDayService();
                 newTourDayService.setTourDay(tourDay);
@@ -1122,7 +1116,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Cannot tour locations", ex);
+            throw BusinessException.of(GET_TOUR_LOCATIONS_FAIL, ex);
         }
     }
 
@@ -1134,7 +1128,7 @@ public class BookingServiceImpl implements BookingService {
             tourRepository.save(tourEntity);
             return GeneralResponse.of(tourId);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail to Send Pricing", ex);
+            throw BusinessException.of(SEND_PRICING_FAIL, ex);
         }
     }
 
@@ -1146,7 +1140,7 @@ public class BookingServiceImpl implements BookingService {
             tourBookingRepository.save(tourBooking);
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("update Booking Status Failed", ex);
+            throw BusinessException.of(UPDATE_BOOKING_STATUS_FAIL, ex);
         }
     }
 
@@ -1158,7 +1152,7 @@ public class BookingServiceImpl implements BookingService {
             tourScheduleRepository.save(tourSchedule);
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Send Operator Failed", ex);
+            throw BusinessException.of(SEND_OPERATOR_FAIL, ex);
         }
     }
 
@@ -1170,7 +1164,7 @@ public class BookingServiceImpl implements BookingService {
             tourBookingRepository.save(tourBooking);
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Take booking failed", ex);
+            throw BusinessException.of(TAKE_BOOKING_FAIL, ex);
         }
     }
 
@@ -1263,7 +1257,7 @@ public class BookingServiceImpl implements BookingService {
             tourBookingServiceRepository.saveAll(tourBookingServices);
             return GeneralResponse.of(bookingId);
         } catch (Exception ex) {
-            throw BusinessException.of("checking All Service failed", ex);
+            throw BusinessException.of(CHECKING_ALL_SERVICE_FAIL, ex);
         }
     }
 
@@ -1374,7 +1368,7 @@ public class BookingServiceImpl implements BookingService {
 
             return bookingHelper.buildPagedResponse(tourBookingPage);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GET_DATA_FAIL, ex);
         }
     }
 
@@ -1430,7 +1424,7 @@ public class BookingServiceImpl implements BookingService {
             List<RefundDetailDTO> refundDetailDTO = tourBookingRepository.findDetailRefundRequestByBookingId(tourBookingId, TourBookingStatus.REQUEST_CANCELLED_WITH_REFUND);
             return GeneralResponse.of(refundDetailDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GET_DATA_FAIL, ex);
         }
     }
 
@@ -1447,7 +1441,7 @@ public class BookingServiceImpl implements BookingService {
             tourBookingRepository.save(tourBooking);
             return GeneralResponse.of(tourBookingId);
         } catch (Exception ex) {
-            throw BusinessException.of("Approve failed", ex);
+            throw BusinessException.of(APPROVE_FAIL, ex);
         }
     }
 
@@ -1464,7 +1458,7 @@ public class BookingServiceImpl implements BookingService {
             tourBookingRepository.save(tourBooking);
             return GeneralResponse.of(tourBookingId);
         } catch (Exception ex) {
-            throw BusinessException.of("Reject failed", ex);
+            throw BusinessException.of(REJECT_FAIL, ex);
         }
     }
 
@@ -1554,7 +1548,7 @@ public class BookingServiceImpl implements BookingService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND));
             return user.getId();
         }
         throw BusinessException.of("Không tìm thấy thông tin người dùng");

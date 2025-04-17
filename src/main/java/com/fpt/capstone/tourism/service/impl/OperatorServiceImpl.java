@@ -33,6 +33,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @RequiredArgsConstructor
 @org.springframework.stereotype.Service
 public class OperatorServiceImpl implements OperatorService {
@@ -175,7 +177,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             return buildPagedResponse(tourPage, operatorTourDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator get all tour fail", ex);
+            throw BusinessException.of(OPERATOR_GET_ALL_TOUR_FAIL, ex);
         }
     }
 
@@ -196,7 +198,7 @@ public class OperatorServiceImpl implements OperatorService {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             User user = userRepository.findByUsername(username).orElseThrow(() ->
-                    BusinessException.of("User not found"));
+                    BusinessException.of("Không tìm thấy người dùng"));
 
             tourSchedule.setOperator(user);
             tourScheduleRepository.save(tourSchedule);
@@ -220,9 +222,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .maxPax(tourSchedule.getTourPax().getMaxPax())
                     .availableSeats(availableSeatsMap.getOrDefault(tourSchedule.getId(), 0))
                     .build();
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator received tour to operate successfully", operatorTourDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), OPERATOR_RECEIVED_TOUR_SUCCESS, operatorTourDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator receive tour fail", ex);
+            throw BusinessException.of(OPERATOR_RECEIVE_TOUR_FAIL, ex);
         }
     }
 
@@ -231,7 +233,7 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthor(scheduleId);
 
-            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() -> BusinessException.of("Tour schedule not found"));
+            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() -> BusinessException.of("Không tìm thấy lịch trình tour"));
 
             Tour tour = tourRepository.findByScheduleId(scheduleId);
 
@@ -281,9 +283,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .revenueCost(revenueMoney)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get tour detail successfully", operatorTourDetailDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), OPERATOR_GET_TOUR_DETAIL_SUCCESS, operatorTourDetailDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator get tour detail fail", ex);
+            throw BusinessException.of(OPERATOR_GET_TOUR_DETAIL_FAIL, ex);
         }
     }
 
@@ -310,9 +312,9 @@ public class OperatorServiceImpl implements OperatorService {
                 return responseDTO;
             }).collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list customer of tour detail success", responseList);
+            return new GeneralResponse<>(HttpStatus.OK.value(), OPERATOR_GET_CUSTOMER_LIST_SUCCESS, responseList);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator get list customer of tour detail fail", ex);
+            throw BusinessException.of(OPERATOR_GET_CUSTOMER_LIST_FAIL, ex);
         }
     }
 
@@ -351,9 +353,9 @@ public class OperatorServiceImpl implements OperatorService {
                 return responseDTO;
             }).collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Operator get list booking of tour detail success", responseList);
+            return new GeneralResponse<>(HttpStatus.OK.value(), OPERATOR_GET_BOOKING_LIST_SUCCESS, responseList);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator get list booking of tour detail fail", ex);
+            throw BusinessException.of(OPERATOR_GET_BOOKING_LIST_FAIL, ex);
         }
     }
 
@@ -366,9 +368,9 @@ public class OperatorServiceImpl implements OperatorService {
             List<TourOperationLogDTO> responseList = logs.stream()
                     .map(logMapper::toDTO).collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list log of tour detail success", responseList);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_TOUR_LOG_LIST_SUCCESS, responseList);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list log of tour detail fail", ex);
+            throw BusinessException.of(GET_TOUR_LOG_LIST_FAIL, ex);
         }
     }
 
@@ -379,7 +381,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Validate input data
             Validator.validateLog(logRequestDTO);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(() ->
-                    BusinessException.of("Not found tour schedule"));
+                    BusinessException.of(TOUR_SCHEDULE_NOT_FOUND));
 
             //Save date to database
             TourOperationLog log = logMapper.toEntity(logRequestDTO);
@@ -390,11 +392,11 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Create log success", logDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_LOG_SUCCESS, logDTO);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
-            throw BusinessException.of("Create log fail", ex);
+            throw BusinessException.of(CREATE_LOG_FAIL, ex);
         }
     }
 
@@ -402,7 +404,7 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<TourOperationLogDTO> deleteOperationLog(Long logId) {
         try {
             TourOperationLog log = logRepository.findById(logId).orElseThrow(() ->
-                    BusinessException.of("Not found tour log"));
+                    BusinessException.of(TOUR_LOG_NOT_FOUND));
 
             checkAuthor(log.getTourSchedule().getId());
             log.setDeleted(true);
@@ -410,11 +412,11 @@ public class OperatorServiceImpl implements OperatorService {
             logRepository.save(log);
 
             TourOperationLogDTO logDTO = logMapper.toDTO(log);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Delete log success", logDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), DELETE_LOG_SUCCESS, logDTO);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
-            throw BusinessException.of("Delete log fail", ex);
+            throw BusinessException.of(DELETE_LOG_FAIL, ex);
         }
     }
 
@@ -423,11 +425,11 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthor(scheduleId);
             TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
-                    () -> BusinessException.of("Not found tour schedule"));
+                    () -> BusinessException.of(TOUR_SCHEDULE_NOT_FOUND));
 
             //Find tour guide
             User tourGuide = userRepository.findById(requestDTO.getTourGuideId()).orElseThrow(
-                    () -> BusinessException.of("Not found tour guide"));
+                    () -> BusinessException.of(TOUR_GUIDE_NOT_FOUND));
 
             //Update
             tourSchedule.setMeetingLocation(requestDTO.getMeetingLocation());
@@ -437,9 +439,9 @@ public class OperatorServiceImpl implements OperatorService {
             //Save to database
             tourScheduleRepository.save(tourSchedule);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Assign tour guide success", requestDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), ASSIGN_TOUR_GUIDE_SUCCESS, requestDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Assign tour guide fail", ex);
+            throw BusinessException.of(ASSIGN_TOUR_GUIDE_FAIL, ex);
         }
     }
 
@@ -449,9 +451,9 @@ public class OperatorServiceImpl implements OperatorService {
             List<UserResponseDTO> responseList = userRepository.findAvailableTourGuideByScheduleId(scheduleId).stream()
                     .map(userMapper::toResponseDTO).collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list available tour guide success", responseList);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_AVAILABLE_TOUR_GUIDE_SUCCESS, responseList);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list available tour guide fail", ex);
+            throw BusinessException.of(GET_AVAILABLE_TOUR_GUIDE_FAIL, ex);
         }
     }
 
@@ -465,9 +467,9 @@ public class OperatorServiceImpl implements OperatorService {
             List<OperatorTransactionDTO> responseList = transactions.stream().map(transactionMapper::toDTO)
                     .collect(Collectors.toList());
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list transaction success", responseList);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_TRANSACTION_LIST_SUCCESS, responseList);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list transaction fail", ex);
+            throw BusinessException.of(GET_TRANSACTION_LIST_FAIL, ex);
         }
     }
 
@@ -487,20 +489,20 @@ public class OperatorServiceImpl implements OperatorService {
 
             for (TourBookingService bookingService : bookingServices) {
                 // Tìm danh sách Transaction có category = PAYMENT
-//                    List<Transaction> transactions = transactionRepository.findByBooking_Id(bookingService.getBooking().getId())
-//                            .stream()
-//                            .filter(transaction -> transaction.getCategory() == TransactionType.PAYMENT)
-//                            .collect(Collectors.toList());
+//                List<Transaction> transactions = transactionRepository.findByBooking_Id(bookingService.getBooking().getId())
+//                        .stream()
+//                        .filter(transaction -> transaction.getCategory() == TransactionType.PAYMENT)
+//                        .collect(Collectors.toList());
 //
-//                    // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
-//                    double paidForBooking = transactions.stream()
-//                            .flatMap(transaction -> costAccountRepository.findByTransaction_Id(transaction.getId()).stream())
-//                            .filter(costAccount -> costAccount.getStatus() == CostAccountStatus.PAID)
-//                            .mapToDouble(CostAccount::getFinalAmount) // Tính tổng số tiền đã chi
-//                            .sum();
+//                // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
+//                double paidForBooking = transactions.stream()
+//                        .flatMap(transaction -> costAccountRepository.findByTransaction_Id(transaction.getId()).stream())
+//                        .filter(costAccount -> costAccount.getStatus() == CostAccountStatus.PAID)
+//                        .mapToDouble(CostAccount::getFinalAmount) // Tính tổng số tiền đã chi
+//                        .sum();
 //
                 // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
-//                double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
+//            double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
                 double paidForBooking = 0;
                 if (bookingService.getStatus().equals(TourBookingServiceStatus.PAID)) {
                     paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
@@ -513,15 +515,15 @@ public class OperatorServiceImpl implements OperatorService {
                 totalPaid += paidForBooking;
                 totalAmountToPay += amountToPayForBooking;
 
-//                // Xác định trạng thái thanh toán của booking
-//                String paymentStatus;
-//                if (paidForBooking >= amountToPayForBooking) {
-//                    paymentStatus = "PAID"; // Đã thanh toán đủ
-//                } else if (paidForBooking > 0) {
-//                    paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
-//                } else {
-//                    paymentStatus = "UNPAID"; // Chưa thanh toán
-//                }
+//            // Xác định trạng thái thanh toán của booking
+//            String paymentStatus;
+//            if (paidForBooking >= amountToPayForBooking) {
+//                paymentStatus = "PAID"; // Đã thanh toán đủ
+//            } else if (paidForBooking > 0) {
+//                paymentStatus = "PARTIALLY_PAID"; // Thanh toán một phần
+//            } else {
+//                paymentStatus = "UNPAID"; // Chưa thanh toán
+//            }
 
                 // Thêm vào danh sách DTO
                 Service service = bookingService.getService();
@@ -542,7 +544,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .paidForBooking(paidForBooking)
                         .amountToPayForBooking(amountToPayForBooking)
                         .tourDayId(Optional.ofNullable(bookingService.getTourDay().getId()).orElseThrow(null))
-//                        .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
+//                    .paymentStatus(paymentStatus) // Trả về trạng thái của từng booking
                         .build());
             }
             serviceDTOList.sort(Comparator.comparing(
@@ -559,10 +561,10 @@ public class OperatorServiceImpl implements OperatorService {
                     .totalAmount(totalAmountToPay) // Tổng số tiền phải trả
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_SERVICE_LIST_SUCCESS, resultDTO);
 
         } catch (Exception ex) {
-            throw BusinessException.of("Get list service fail", ex);
+            throw BusinessException.of(GET_SERVICE_LIST_FAIL, ex);
         }
     }
 
@@ -570,24 +572,23 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<PublicServiceProviderDTO> chooseServiceToPay(Long serviceId) {
         try {
             Service service = serviceRepository.findById(serviceId).orElseThrow(
-                    () -> BusinessException.of("Service not found"));
+                    () -> BusinessException.of(SERVICE_NOT_FOUND));
             ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                    () -> BusinessException.of("Service provider not found")
+                    () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
             );
             PublicServiceProviderDTO resultDTO = providerMapper.toPublicServiceProviderDTO(serviceProvider);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Choose service success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CHOOSE_SERVICE_SUCCESS, resultDTO);
 
         } catch (Exception ex) {
-            throw BusinessException.of("Choose service fail", ex);
+            throw BusinessException.of(CHOOSE_SERVICE_FAIL, ex);
         }
     }
-
     @Transactional
     @Override
     public GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO) {
         try {
             TourBooking tourBooking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
-                    () -> BusinessException.of("Booking not found")
+                    () -> BusinessException.of(BOOKING_NOT_FOUND)
             );
 
             TourBookingService tourBookingService =
@@ -596,7 +597,7 @@ public class OperatorServiceImpl implements OperatorService {
                     );
 
             if (!tourBookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
-                throw BusinessException.of("Đơn này chưa thể gửi thanh toán");
+                throw BusinessException.of(SERVICE_REQUEST_NOT_APPROVED);
             }
             tourBookingService.setStatus(TourBookingServiceStatus.PAID);
             bookingServiceRepository.save(tourBookingService);
@@ -615,7 +616,7 @@ public class OperatorServiceImpl implements OperatorService {
             Transaction transaction1 = transactionRepository.save(transaction);
 
             Service service = serviceRepository.findById(requestDTO.getServiceId()).orElseThrow(
-                    () -> BusinessException.of("Service not found")
+                    () -> BusinessException.of(SERVICE_NOT_FOUND)
             );
             List<CostAccount> costAccounts = new ArrayList<>();
             costAccounts.add(CostAccount.builder()
@@ -632,10 +633,10 @@ public class OperatorServiceImpl implements OperatorService {
             transaction1.setCostAccount(newList);
 
             OperatorTransactionDTO resultDTO = transactionMapper.toDTO(transaction1);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Pay service success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), PAY_SERVICE_SUCCESS, resultDTO);
 
         } catch (Exception ex) {
-            throw BusinessException.of("Pay service fail", ex);
+            throw BusinessException.of(PAY_SERVICE_FAIL, ex);
         }
     }
 
@@ -657,9 +658,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .collect(Collectors.toMap(ServiceCategory::getId, ServiceCategory::getCategoryName));
 
             resultDTO.put("serviceCategories", mapServiceCategory);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_CATEGORIES_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_LOCATIONS_CATEGORIES_FAIL, ex);
         }
     }
 
@@ -669,9 +670,9 @@ public class OperatorServiceImpl implements OperatorService {
             List<ServiceProvider> providers = providerRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, serviceCategoryId);
             Map<Long, String> resultDTO = providers.stream()
                     .collect(Collectors.toMap(ServiceProvider::getId, ServiceProvider::getName));
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list provider by location success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_PROVIDERS_BY_LOCATION_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list provider by location fail", ex);
+            throw BusinessException.of(GET_PROVIDERS_BY_LOCATION_FAIL, ex);
         }
     }
 
@@ -682,9 +683,9 @@ public class OperatorServiceImpl implements OperatorService {
             List<ServiceSimpleDTO> resultDTO = services.stream()
                     .map(serviceMapper::toSimpleDTO)
                     .collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get list service by provider success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_SERVICES_BY_PROVIDER_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Get list service by provider fail", ex);
+            throw BusinessException.of(GET_SERVICES_BY_PROVIDER_FAIL, ex);
         }
     }
 
@@ -692,7 +693,7 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getServiceDetail(Long serviceId) {
         try {
             Service service = serviceRepository.findById(serviceId).orElseThrow(
-                    () -> BusinessException.of("Service not found")
+                    () -> BusinessException.of(SERVICE_NOT_FOUND)
             );
             RoomSimpleDTO roomDTO = roomRepository.findByServiceId(serviceId)
                     .map(roomMapper::toSimpleDTO).orElse(null);
@@ -717,9 +718,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .transport(transportDTO)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_SERVICE_DETAIL_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_SERVICE_DETAIL_FAIL, ex);
         }
     }
 
@@ -728,22 +729,22 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> addService(AddServiceRequestDTO requestDTO) {
         try {
             Service service = serviceRepository.findById(requestDTO.getServiceId()).orElseThrow(
-                    () -> BusinessException.of("Service not found")
+                    () -> BusinessException.of(SERVICE_NOT_FOUND)
             );
             TourBooking booking = tourBookingRepository.findById(requestDTO.getBookingId()).orElseThrow(
-                    () -> BusinessException.of("Tour booking not found")
+                    () -> BusinessException.of(TOUR_BOOKING_NOT_FOUND)
             );
 
             checkAuthor(booking.getTourSchedule().getId());
             TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
 
             TourDay tourDay = tourDayRepository.findById(requestDTO.getTourDayId()).orElseThrow(
-                    () -> BusinessException.of("Tour Day not found")
+                    () -> BusinessException.of(TOUR_DAY_NOT_FOUND)
             );
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
             if (bookingService != null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Dịch vụ đã tồn tại", requestDTO);
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
             } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)
@@ -766,16 +767,16 @@ public class OperatorServiceImpl implements OperatorService {
                         .receivedBy("Viet Travel")
                         .paymentMethod(PaymentMethod.BANKING)
                         .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                        + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
+                                + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
                         .transactionStatus(TransactionStatus.PENDING)
                         .build();
 
                 transactionRepository.save(transaction);
             }
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Thêm dịch vụ vào booking thành công", requestDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), ADD_SERVICE_SUCCESS, requestDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(ADD_SERVICE_FAIL, ex);
         }
     }
 
@@ -784,20 +785,20 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> previewMail(PreviewMailDTO previewMailDTO) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(previewMailDTO.getBookingServiceId()).orElseThrow(
-                    () -> BusinessException.of("Booking Service not found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
             //Kiểm tra trạng thái của service booking
             if (!(bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
                     || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED))
             ) {
-                throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
+                throw BusinessException.of(SERVICE_STATUS_CANNOT_SEND_EMAIL);
             }
             Service service = serviceRepository.findById(previewMailDTO.getServiceId()).orElseThrow(
-                    () -> BusinessException.of("Service not found")
+                    () -> BusinessException.of(SERVICE_NOT_FOUND)
             );
 
             ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                    () -> BusinessException.of("Service Provider not found")
+                    () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
             );
 
             String emailContent = MessageFormat.format(
@@ -821,9 +822,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .emailContent(emailContent)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), PREVIEW_MAIL_SUCCESS, mailServiceDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(PREVIEW_MAIL_FAIL, ex);
         }
     }
 
@@ -840,9 +841,9 @@ public class OperatorServiceImpl implements OperatorService {
                                     .customerName(booking.getUser().getFullName())
                                     .build()
                     ).collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_BOOKING_LIST_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_BOOKING_LIST_FAIL, ex);
         }
     }
 
@@ -851,7 +852,7 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthorByTourBookingService(tourBookingServiceId);
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("Booking service not found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
             TourBookingServiceStatus currentStatus = bookingService.getStatus();
 
@@ -860,11 +861,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Gửi mail hủy cho nhà cung cấp (chỉ là thông báo)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of("Service not found")
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
                 );
 
                 ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of("Service Provider not found")
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
                 );
                 String content = MessageFormat.format(emailCancelServiceContent,
                         serviceProvider.getName(),
@@ -893,9 +894,9 @@ public class OperatorServiceImpl implements OperatorService {
 
             TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CANCEL_SERVICE_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(CANCEL_SERVICE_FAIL, ex);
         }
     }
 
@@ -905,12 +906,12 @@ public class OperatorServiceImpl implements OperatorService {
             checkAuthorByTourBookingService(requestDTO.getTourBookingServiceId());
 
             TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
-                    () -> BusinessException.of("No booking service found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
             if (requestDTO.getNewQuantity() <= 0 ||
                     requestDTO.getNewQuantity() == bookingService.getCurrentQuantity()) {
-                throw BusinessException.of("Số lượng dịch vụ không hợp lệ");
+                throw BusinessException.of(INVALID_SERVICE_QUANTITY);
             }
 
             //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
@@ -923,11 +924,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of("Service not found")
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
                 );
 
                 ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of("Service Provider not found")
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
                 );
                 String content = MessageFormat.format(emailChangeServiceContent,
                         serviceProvider.getName(),
@@ -959,11 +960,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of("Service not found")
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
                 );
 
                 ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of("Service Provider not found")
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
                 );
                 String content = MessageFormat.format(emailUpdateServiceContent,
                         serviceProvider.getName(),
@@ -1015,11 +1016,9 @@ public class OperatorServiceImpl implements OperatorService {
                             .orElse(null))
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Update service quantity success", resultDTO);
-        } catch (
-                Exception ex) {
-            throw BusinessException.of("Fail", ex);
-
+            return new GeneralResponse<>(HttpStatus.OK.value(), UPDATE_SERVICE_QUANTITY_SUCCESS, resultDTO);
+        } catch (Exception ex) {
+            throw BusinessException.of(UPDATE_SERVICE_QUANTITY_FAIL, ex);
         }
     }
 
@@ -1028,18 +1027,18 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthor(tourScheduleId);
             TourSchedule tourSchedule = tourScheduleRepository.findById(tourScheduleId).orElseThrow(
-                    () -> BusinessException.of("No tour schedule found")
+                    () -> BusinessException.of(NO_TOUR_SCHEDULE_FOUND)
             );
 
             //Check status of tour schedule
             if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
-                throw BusinessException.of("This tour schedule not ongoing");
+                throw BusinessException.of(TOUR_SCHEDULE_NOT_ONGOING);
             }
             tourSchedule.setStatus(TourScheduleStatus.SETTLEMENT);
             tourScheduleRepository.save(tourSchedule);
             return GeneralResponse.of(tourScheduleId);
         } catch (Exception ex) {
-            throw BusinessException.of("Send Accountant Failed", ex);
+            throw BusinessException.of(SEND_ACCOUNTANT_FAIL, ex);
         }
     }
 
@@ -1056,19 +1055,6 @@ public class OperatorServiceImpl implements OperatorService {
 
             Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
 
-
-//            List<Long> scheduleIds = tourPage.getContent().stream()
-//                    .map(TourSchedule::getId)
-//                    .collect(Collectors.toList());
-//
-//            Map<Long, Integer> availableSeatsMap = tourScheduleRepository.findAvailableSeatsByScheduleIds(scheduleIds)
-//                    .stream()
-//                    .collect(Collectors.toMap(
-//                            row -> (Long) row[0],  // scheduleId
-//                            row -> (Integer) row[1] // availableSeats
-//                    ));
-
-
             // Map to DTO
             List<OperatorTourDTO> operatorTourDTOS = tourPage.getContent().stream()
                     .map(tourSchedule ->
@@ -1082,13 +1068,12 @@ public class OperatorServiceImpl implements OperatorService {
                                     .operator(Optional.ofNullable(tourSchedule.getOperator()).map(User::getFullName).orElse(null))
                                     .maxPax(tourSchedule.getTourPax().getMaxPax())
                                     .build()
-
                     )
                     .collect(Collectors.toList());
 
             return buildPagedResponse(tourPage, operatorTourDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Operator get all tour private fail", ex);
+            throw BusinessException.of(OPERATOR_GET_PRIVATE_TOUR_FAIL, ex);
         }
     }
 
@@ -1096,15 +1081,15 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getListTourDayOfSchedule(Long scheduleId) {
         try {
             tourScheduleRepository.findById(scheduleId).orElseThrow(
-                    () -> BusinessException.of("Tour schedule not found")
+                    () -> BusinessException.of(TOUR_SCHEDULE_NOT_FOUND)
             );
 
             List<TourDay> tourDays = tourDayRepository.findListTourDayByScheduleId(scheduleId);
 
             List<PublicTourDayDTO> resultDTO = tourDays.stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_TOUR_DAY_LIST_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_TOUR_DAY_LIST_FAIL, ex);
         }
     }
 
@@ -1112,20 +1097,20 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> sendMailToProvider(MailServiceDTO mailServiceDTO) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(mailServiceDTO.getBookingServiceId()).orElseThrow(
-                    () -> BusinessException.of("Booking service not found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
             //Kiểm tra trạng thái của service booking
             if (!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
-                throw BusinessException.of("Trạng thái dịch vụ không thể gửi email");
+                throw BusinessException.of(SERVICE_STATUS_CANNOT_SEND_EMAIL);
             }
 
             emailService.sendMailServiceProvider(mailServiceDTO);
             bookingService.setStatus(TourBookingServiceStatus.PENDING);
             bookingServiceRepository.save(bookingService);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", mailServiceDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), SEND_MAIL_TO_PROVIDER_SUCCESS, mailServiceDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(SEND_MAIL_TO_PROVIDER_FAIL, ex);
         }
     }
 
@@ -1141,9 +1126,8 @@ public class OperatorServiceImpl implements OperatorService {
                     .collect(Collectors.toList());
 
             return buildPagedResponseServiceRequest(bookingServicePage, resultDTO);
-//            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_SERVICE_REQUEST_LIST_FAIL, ex);
         }
     }
 
@@ -1151,7 +1135,7 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getChangeServiceRequestDetail(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findByIdWithDetails(tourBookingServiceId)
-                    .orElseThrow(() -> BusinessException.of("No booking service found"));
+                    .orElseThrow(() -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND));
 
             TourBooking booking = bookingService.getBooking();
             Service service = bookingService.getService();
@@ -1180,9 +1164,9 @@ public class OperatorServiceImpl implements OperatorService {
                             .orElse(null))
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_SERVICE_REQUEST_DETAIL_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_SERVICE_REQUEST_DETAIL_FAIL, ex);
         }
     }
 
@@ -1190,7 +1174,7 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> rejectServiceRequest(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("No booking service found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
             //Trường hợp kiểm tra khả dụng của dịch vụ
@@ -1254,9 +1238,9 @@ public class OperatorServiceImpl implements OperatorService {
                             .orElse(null))
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service request success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), REJECT_SERVICE_REQUEST_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(REJECT_SERVICE_REQUEST_FAIL, ex);
         }
     }
 
@@ -1264,7 +1248,7 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> approveServiceRequest(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("No booking service found")
+                    () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
             //Trường hợp kiểm tra khả dụng của dịch vụ
@@ -1285,11 +1269,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of("Service not found")
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
                 );
 
                 ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of("Service Provider not found")
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
                 );
                 String content = MessageFormat.format(emailChangeServiceContent,
                         serviceProvider.getName(),
@@ -1318,11 +1302,11 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of("Service not found")
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
                 );
 
                 ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of("Service Provider not found")
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
                 );
                 String content = MessageFormat.format(emailUpdateServiceContent,
                         serviceProvider.getName(),
@@ -1373,9 +1357,9 @@ public class OperatorServiceImpl implements OperatorService {
                             .orElse(null))
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), APPROVE_SERVICE_REQUEST_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(APPROVE_SERVICE_REQUEST_FAIL, ex);
         }
     }
 
@@ -1462,9 +1446,9 @@ public class OperatorServiceImpl implements OperatorService {
                     .actualProfitAmount(actualProfitAmount)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_TOUR_SUMMARY_SUCCESS, resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GET_TOUR_SUMMARY_FAIL, ex);
         }
     }
 
@@ -1498,7 +1482,7 @@ public class OperatorServiceImpl implements OperatorService {
                     TourScheduleStatus enumStatus = TourScheduleStatus.valueOf(status);
                     predicates.add(cb.equal(root.get("status"), enumStatus));
                 } catch (IllegalArgumentException e) {
-                    throw BusinessException.of("Invalid status value: " + status, e);
+                    throw BusinessException.of(INVALID_STATUS_VALUE + status, e);
                 }
             }
 
@@ -1514,7 +1498,7 @@ public class OperatorServiceImpl implements OperatorService {
                 .items(tours)
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), PAGE_SUCCESS, pagingDTO);
     }
 
     private <T> GeneralResponse<PagingDTO<List<T>>> buildPagedResponseServiceRequest(Page<TourBookingService> tourPage, List<T> tours) {
@@ -1525,27 +1509,27 @@ public class OperatorServiceImpl implements OperatorService {
                 .items(tours)
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), PAGE_SUCCESS, pagingDTO);
     }
 
     private Long getCurrentUserOperatorId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND));
             return user.getId();
         }
-        throw BusinessException.of("Không tìm thấy thông tin người dùng");
+        throw BusinessException.of(USER_INFO_NOT_FOUND);
     }
 
     private boolean checkAuthor(Long scheduleId) {
         //Kiểm tra đơn tour có phải của nhà điều hành không
         Long currentOperatorId = getCurrentUserOperatorId();
         TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
-                () -> BusinessException.of("No tour schedule found")
+                () -> BusinessException.of(NO_TOUR_SCHEDULE_FOUND)
         );
         if (tourSchedule.getOperator() != null && (!tourSchedule.getOperator().getId().equals(currentOperatorId))) {
-            throw BusinessException.of("Unauthorized");
+            throw BusinessException.of(UNAUTHORIZED);
         }
         return true;
     }
@@ -1555,7 +1539,7 @@ public class OperatorServiceImpl implements OperatorService {
         Long currentOperatorId = getCurrentUserOperatorId();
         TourSchedule tourSchedule = tourScheduleRepository.findByTourBookingServiceId(tourBookingServiceId);
         if (!tourSchedule.getOperator().getId().equals(currentOperatorId)) {
-            throw BusinessException.of("Unauthorized");
+            throw BusinessException.of(UNAUTHORIZED);
         }
         return true;
     }

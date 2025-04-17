@@ -88,7 +88,7 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryService {
 
             return GeneralResponse.of(pagingDTO, CATEGORY_LOADED);
         } catch (Exception e) {
-            throw BusinessException.of("Failed to fetch service categories", e);
+            throw BusinessException.of("Tải danh mục thất bại", e);
         }
     }
 

@@ -166,7 +166,7 @@ public class BlogServiceImpl implements BlogService {
             List<Blog> blogList = blogRepository.findTopBlogs(pageable);
             return blogList.stream().map(blogMapper::toDTO).collect(Collectors.toList());
         }catch (Exception ex) {
-            throw BusinessException.of("Error retrieving newest blogs", ex);
+            throw BusinessException.of(BLOG_RETRIEVED_FAIL_MESSAGE, ex);
         }
     }
 
@@ -202,7 +202,7 @@ public class BlogServiceImpl implements BlogService {
                 .total(blogPage.getTotalElements())
                 .items(blogDTOs)
                 .build();
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, pagingDTO);
     }
 
     @Override
@@ -225,24 +225,20 @@ public class BlogServiceImpl implements BlogService {
                     .items(blogDTOs)
                     .build();
 
-            return GeneralResponse.of(pagingDTO, "Fetched newest blogs successfully.");
+            return GeneralResponse.of(pagingDTO, GENERAL_SUCCESS_MESSAGE);
         } catch (Exception ex) {
-            throw BusinessException.of("Error retrieving newest blogs", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
     @Override
     public GeneralResponse<List<PublicBlogResponseDTO>> getRandomBlogs(int count) {
         try {
-            List<Blog> allBlogs = blogRepository.findAll(); // Fetch all blogs
+            List<Blog> allBlogs = blogRepository.findAll();
             if (allBlogs.isEmpty()) {
-                return GeneralResponse.of(Collections.emptyList(), "No blogs available.");
+                return GeneralResponse.of(Collections.emptyList(), NO_BLOG);
             }
-
-            // Ensure count is not more than available blogs
             int limit = Math.min(count, allBlogs.size());
-
-            // Shuffle and pick 'limit' blogs
             Collections.shuffle(allBlogs);
             List<Blog> randomBlogs = allBlogs.stream().limit(limit).collect(Collectors.toList());
 
@@ -251,9 +247,9 @@ public class BlogServiceImpl implements BlogService {
                     .map(publicBlogMapper::blogToPublicBlogResponseDTO)
                     .collect(Collectors.toList());
 
-            return GeneralResponse.of(blogDTOs, "Fetched " + limit + " random blogs successfully.");
+            return GeneralResponse.of(blogDTOs, GENERAL_SUCCESS_MESSAGE);
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving random blogs", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, GENERAL_FAIL_MESSAGE, ex);
         }
     }
 

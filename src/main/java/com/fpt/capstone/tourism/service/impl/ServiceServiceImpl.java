@@ -80,7 +80,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             return buildPagedResponse(servicePage, serviceDTOs);
         } catch (Exception ex) {
-            throw BusinessException.of("Failed to retrieve services", ex);
+            throw BusinessException.of("Tải danh sách dịch vụ thất bại", ex);
         }
     }
 
@@ -273,7 +273,7 @@ public class ServiceServiceImpl implements ServiceService {
             } else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
             }else if(TICKET.equalsIgnoreCase(categoryName)){}
             else {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Danh mục không được cung cấp");
             }
             ServiceResponseDTO responseDTO = createFullResponseDTO(savedService, categoryName);
             return GeneralResponse.of(responseDTO, SERVICE_CREATED);
@@ -372,7 +372,7 @@ public class ServiceServiceImpl implements ServiceService {
             } else if (ACTIVITY.equalsIgnoreCase(categoryName)) {
             }else if(TICKET.equalsIgnoreCase(categoryName)){}
             else {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Unsupported service category");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Danh mục không được cung cấp");
             }
             // Create a response DTO that includes all details
             ServiceResponseDTO responseDTO = createFullResponseDTO(updatedService, categoryName);
@@ -500,23 +500,23 @@ public class ServiceServiceImpl implements ServiceService {
     public GeneralResponse<?> approveService(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("No booking service found")
+                    () -> BusinessException.of("Không tìm thấy dịch vụ đặt tour")
             );
 
             //Kiểm tra đơn hàng có phải của nhà cung cấp không
             Long currentUserId = getCurrentUserProviderId();
             Service service = bookingService.getService();
             ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
-                    () -> BusinessException.of("No provider found")
+                    () -> BusinessException.of("Không tìm thấy nhà cung cấp")
             );
             if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
-                throw BusinessException.of("Unauthorized");
+                throw BusinessException.of("Không được phép thực hiện");
             }
 
 //            //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
 //            LocalDateTime currentDateTime = LocalDateTime.now();
 //            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
-//                throw BusinessException.of("Booking service has expired");
+//                throw BusinessException.of("Đơn hàng đã hết hạn");
 //            }
 
             //Chỉ có thể approve khi đơn hàng là pending
@@ -533,12 +533,12 @@ public class ServiceServiceImpl implements ServiceService {
 
                 //Map to DTO
                 ServiceProviderBookingServiceDTO resultDTO = bookingServiceMapper.toProviderBookingServiceDTO(bookingService);
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Approve service success", resultDTO);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Phê duyệt dịch vụ thành công", resultDTO);
             }
 
-            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Forbidden", tourBookingServiceId);
+            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Không được phép", tourBookingServiceId);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 
@@ -546,23 +546,23 @@ public class ServiceServiceImpl implements ServiceService {
     public GeneralResponse<?> rejectService(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
-                    () -> BusinessException.of("No booking service found")
+                    () -> BusinessException.of("Không tìm thấy dịch vụ đặt tour")
             );
 
             //Kiểm tra đơn hàng có phải của nhà cung cấp không
             Long currentUserId = getCurrentUserProviderId();
             Service service = bookingService.getService();
             ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
-                    () -> BusinessException.of("No provider found")
+                    () -> BusinessException.of("Không tìm thấy nhà cung cấp")
             );
             if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
-                throw BusinessException.of("Unauthorized");
+                throw BusinessException.of("Không được phép thực hiện");
             }
 
             //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
             LocalDateTime currentDateTime = LocalDateTime.now();
             if (currentDateTime.isAfter(bookingService.getRequestDate())) {
-                throw BusinessException.of("Booking service has expired");
+                throw BusinessException.of("Đơn hàng đã hết hạn");
             }
 
             //Chỉ có thể reject khi đơn hàng là pending
@@ -573,12 +573,12 @@ public class ServiceServiceImpl implements ServiceService {
 
                 //Map to DTO
                 ServiceProviderBookingServiceDTO resultDTO = bookingServiceMapper.toProviderBookingServiceDTO(bookingService);
-                return new GeneralResponse<>(HttpStatus.OK.value(), "Reject service success", resultDTO);
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Từ chối dịch vụ thành công", resultDTO);
             }
 
-            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Forbidden", tourBookingServiceId);
+            return new GeneralResponse<>(HttpStatus.FORBIDDEN.value(), "Không được phép", tourBookingServiceId);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 
@@ -586,16 +586,16 @@ public class ServiceServiceImpl implements ServiceService {
     public GeneralResponse<?> getServiceRequestDetail(Long tourBookingServiceId) {
         try {
             TourBookingService bookingService = bookingServiceRepository.findByIdWithDetails(tourBookingServiceId)
-                    .orElseThrow(() -> BusinessException.of("No booking service found"));
+                    .orElseThrow(() -> BusinessException.of("Không tìm thấy dịch vụ đặt tour"));
 
             //Kiểm tra đơn hàng có phải của nhà cung cấp không
             Long currentUserId = getCurrentUserProviderId();
             Service service = bookingService.getService();
             ServiceProvider currentProvider = serviceProviderRepository.findByUserId(currentUserId).orElseThrow(
-                    () -> BusinessException.of("No provider found")
+                    () -> BusinessException.of("Không tìm thấy nhà cung cấp")
             );
             if (!service.getServiceProvider().getId().equals(currentProvider.getId())) {
-                throw BusinessException.of("Unauthorized");
+                throw BusinessException.of("Không được phép thực hiện");
             }
 
             //Kiểm tra trạng thái đơn hàng
@@ -606,7 +606,7 @@ public class ServiceServiceImpl implements ServiceService {
             );
 
             if (!allowedStatuses.contains(bookingService.getStatus())) {
-                throw BusinessException.of("You are not allowed to view this order.");
+                throw BusinessException.of("Bạn không được phép xem đơn hàng này.");
             }
 
             TourBooking booking = bookingService.getBooking();
@@ -635,7 +635,7 @@ public class ServiceServiceImpl implements ServiceService {
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "Xem chi tiết thành công", resultDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 
@@ -649,7 +649,7 @@ public class ServiceServiceImpl implements ServiceService {
                     .map(serviceMapper::toPublicActivityDTO)
                     .collect(Collectors.toList());
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 
@@ -689,7 +689,7 @@ public class ServiceServiceImpl implements ServiceService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> BusinessException.of("User not found"));
+                    .orElseThrow(() -> BusinessException.of("Không tìm thấy người dùng"));
             return user.getId();
         }
         throw BusinessException.of("Không tìm thấy thông tin người dùng");

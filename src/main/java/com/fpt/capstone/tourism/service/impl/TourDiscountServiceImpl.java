@@ -53,7 +53,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // Get all tour days for this tour
             List<TourDay> tourDays = tourDayRepository.findByTourIdAndDeletedFalseOrderByDayNumber(tourId);
             if (tourDays.isEmpty()) {
-                throw BusinessException.of(HttpStatus.NOT_FOUND, NO_TOUR_DAYS_FOUND + " for tour with id: " + tourId);
+                throw BusinessException.of(HttpStatus.NOT_FOUND, NO_TOUR_DAYS_FOUND + " của tour id: " + tourId);
             }
 
             // Calculate total number of days
@@ -236,11 +236,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " với id: " + tourId));
 
             // 2. Get service
             Service service = serviceRepository.findById(serviceId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " với id: " + serviceId));
 
             // 3. Find all TourDayService entries related to this service and tour
             List<TourDayService> allTourDayServices = entityManager.createQuery(
@@ -389,11 +389,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             // 1. Validate service provider exists
             ServiceProvider provider = serviceProviderRepository.findById(providerId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_PROVIDER_NOT_FOUND + " id: " + providerId));
 
             // 2. Validate location exists
             Location location = locationRepository.findById(locationId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " id: " + locationId));
 
             // 3. Get services provided by this provider at this location
             List<Service> services = serviceRepository.findByServiceProviderIdAndLocationId(providerId, locationId);
@@ -477,11 +477,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             // 1. Validate location exists
             Location location = locationRepository.findById(locationId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " with id: " + locationId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND + " id: " + locationId));
 
             // 2. Validate category exists
             ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Danh mục dịch vụ không tìm thấy: " + categoryName));
 
             // 3. Get service providers for this location and category
             List<ServiceProvider> providers = serviceProviderRepository.findByLocationIdAndServiceCategoryId(locationId, category.getId());
@@ -506,13 +506,13 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .locationName(location.getName())
                     .categoryName(categoryName)
                     .build();
-
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Service providers retrieved successfully", response);
+            return new GeneralResponse<>(HttpStatus.OK.value(), SERVICE_PROVIDER_RETRIEVED_SUCCESS, response);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve service providers", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, SERVICE_PROVIDER_RETRIEVED_FAILED, ex);
         }
+
     }
 
 
@@ -522,7 +522,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             // 2. Validate service exists
             if (request.getServiceId() == null) {
@@ -532,7 +532,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             final Long requestServiceId = request.getServiceId();
 
             Service service = serviceRepository.findById(requestServiceId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + requestServiceId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " id: " + requestServiceId));
 
             // 3. Validate day number is provided
             if (request.getDayNumber() == null) {
@@ -595,7 +595,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 final Long locationIdToUse = request.getLocationId();
 
                 Location location = locationRepository.findById(locationIdToUse)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found with id: " + locationIdToUse));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                String.format(LOCATION_NOT_FOUND_BY_ID, locationIdToUse)));
 
                 tourDay.setLocation(location);
                 tourDayRepository.save(tourDay);
@@ -606,7 +607,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             if (HOTEL.equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
                 Room room = roomRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                String.format(ROOM_NOT_FOUND_BY_SERVICE_ID, serviceId)));
 
                 if (request.getRoomDetail().getCapacity() != null) {
                     room.setCapacity(request.getRoomDetail().getCapacity());
@@ -623,7 +625,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 roomRepository.save(room);
             } else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                String.format(MEAL_NOT_FOUND_BY_SERVICE_ID, serviceId)));
 
                 if (request.getMealDetail().getType() != null) {
                     meal.setType(MealType.valueOf(request.getMealDetail().getType()));
@@ -636,7 +639,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 mealRepository.save(meal);
             } else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                String.format(TRANSPORT_NOT_FOUND_BY_SERVICE_ID, serviceId)));
+
 
                 if (request.getTransportDetail().getSeatCapacity() != null) {
                     transport.setSeatCapacity(request.getTransportDetail().getSeatCapacity());
@@ -672,18 +677,19 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     try {
                         paxId = Long.parseLong(entry.getKey());
                     } catch (NumberFormatException e) {
-                        throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid pax ID format: " + entry.getKey());
+                        throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                                String.format(INVALID_PAX_ID_FORMAT, entry.getKey()));
                     }
 
-                    // Find the tourPax entity by ID
                     TourPax tourPax = tourPaxRepository.findById(paxId)
-                            .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
+                            .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                    String.format(TOUR_PAX_NOT_FOUND_BY_ID, paxId)));
 
-                    // Verify this tourPax belongs to the current tour
                     if (!tourPax.getTour().getId().equals(tourId)) {
                         throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                                "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                                String.format(TOUR_PAX_NOT_BELONG_TO_TOUR, paxId, tourId));
                     }
+
 
                     // Create association in service_pax_pricing table with specific selling price
                     ServicePaxPricing paxPricing = ServicePaxPricing.builder()
@@ -797,13 +803,15 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                         // Find the tourPax entity
                         TourPax tourPax = tourPaxRepository.findById(paxId)
-                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
+                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                        String.format(TOUR_PAX_NOT_FOUND_BY_ID, paxId)));
 
                         // Verify this tourPax belongs to the current tour
                         if (!tourPax.getTour().getId().equals(tourId)) {
                             throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                                    "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                                    String.format(TOUR_PAX_NOT_BELONG_TO_TOUR, paxId, tourId));
                         }
+
 
                         // Check if we already have pricing for this pax
                         if (pricingMap.containsKey(paxId)) {
@@ -831,10 +839,10 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 service = serviceRepository.findById(request.getServiceId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + request.getServiceId()));
 
-                // Find the tour day
                 if (request.getDayNumber() == null) {
-                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Day number is required when creating a new service");
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, DAY_NUMBER_REQUIRED_WHEN_CREATING_SERVICE);
                 }
+
 
                 tourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, request.getDayNumber())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + ": " + request.getDayNumber()));
@@ -843,7 +851,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 tourDayService = new TourDayService();
                 tourDayService.setTourDay(tourDay);
                 tourDayService.setService(service);
-                tourDayService.setQuantity(1); // Default quantity
+                tourDayService.setQuantity(1);
 
                 // Set selling price if provided
                 Double mainSellingPrice = request.getSellingPrice() != null ?
@@ -864,13 +872,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
                         // Find the tourPax entity
                         TourPax tourPax = tourPaxRepository.findById(paxId)
-                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour pax not found with id: " + paxId));
+                                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                        String.format(TOUR_PAX_NOT_FOUND_BY_ID, paxId)));
 
-                        // Verify this tourPax belongs to the current tour
                         if (!tourPax.getTour().getId().equals(tourId)) {
                             throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                                    "Tour pax with id " + paxId + " does not belong to tour id " + tourId);
+                                    String.format(TOUR_PAX_NOT_BELONG_TO_TOUR, paxId, tourId));
                         }
+
 
                         // Create association in service_pax_pricing
                         ServicePaxPricing paxPricing = ServicePaxPricing.builder()
@@ -888,7 +897,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                         ServicePaxPricing paxPricing = ServicePaxPricing.builder()
                                 .tourDayService(tourDayService)
                                 .tourPax(pax)
-                                .sellingPrice(mainSellingPrice) // Use the default selling price
+                                .sellingPrice(mainSellingPrice)
                                 .deleted(false)
                                 .build();
 
@@ -896,7 +905,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     }
                 }
             } else {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Either serviceId parameter or serviceId in request body is required");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
             }
 
             // 4. If service provider or location changed, updating an existing service
@@ -928,9 +937,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
 
             if (HOTEL.equalsIgnoreCase(categoryName) && request.getRoomDetail() != null) {
-                final Service hotelService = service; // Create a final copy
+                final Service hotelService = service;
                 Room room = roomRepository.findByServiceId(hotelService.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + hotelService.getId()));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, ROOM_NOT_FOUND));
 
                 if (request.getRoomDetail().getCapacity() != null) {
                     room.setCapacity(request.getRoomDetail().getCapacity());
@@ -945,11 +954,10 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 }
 
                 roomRepository.save(room);
-            }
-            else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
+            } else if (RESTAURANT.equalsIgnoreCase(categoryName) && request.getMealDetail() != null) {
                 final Service restaurantService = service;
                 Meal meal = mealRepository.findByServiceId(restaurantService.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + restaurantService.getId()));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, MEAL_NOT_FOUND));
 
                 if (request.getMealDetail().getType() != null) {
                     meal.setType(MealType.valueOf(request.getMealDetail().getType()));
@@ -960,17 +968,17 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 }
 
                 mealRepository.save(meal);
-            }
-            else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
+            } else if (TRANSPORT.equalsIgnoreCase(categoryName) && request.getTransportDetail() != null) {
                 final Service transportService = service;
                 Transport transport = transportRepository.findByServiceId(transportService.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + transportService.getId()));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TRANSPORT_NOT_FOUND));
 
                 if (request.getTransportDetail().getSeatCapacity() != null) {
                     transport.setSeatCapacity(request.getTransportDetail().getSeatCapacity());
                 }
                 transportRepository.save(transport);
             }
+
 
             // 6. Save the tour day service entry
             tourDayService = tourDayServiceRepository.save(tourDayService);
@@ -991,25 +999,21 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     @Transactional
     public GeneralResponse<Void> changeServiceStatus(Long tourId, Long serviceId, Boolean delete) {
         try {
-            // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " với id: " + tourId));
 
-            // 2. Verify the service exists
             Service service = serviceRepository.findById(serviceId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " với id: " + serviceId));
 
-            // 3. Find the TourDayService entry to verify association
             TourDayService tourDayService = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_ASSOCIATED));
 
-            // 4. Update status based on service category
             String categoryName = service.getServiceCategory() != null ? service.getServiceCategory().getCategoryName() : null;
             boolean statusUpdated = false;
 
             if (HOTEL.equalsIgnoreCase(categoryName)) {
                 Room room = roomRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Room not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Không tìm thấy phòng cho dịch vụ có id: " + serviceId));
 
                 room.setDeleted(delete);
                 roomRepository.save(room);
@@ -1017,7 +1021,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             }
             else if (RESTAURANT.equalsIgnoreCase(categoryName)) {
                 Meal meal = mealRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Meal not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Không tìm thấy bữa ăn cho dịch vụ có id: " + serviceId));
 
                 meal.setDeleted(delete);
                 mealRepository.save(meal);
@@ -1025,7 +1029,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             }
             else if (TRANSPORT.equalsIgnoreCase(categoryName)) {
                 Transport transport = transportRepository.findByServiceId(serviceId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Transport not found for service id: " + serviceId));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Không tìm thấy phương tiện vận chuyển cho dịch vụ có id: " + serviceId));
 
                 transport.setDeleted(delete);
                 transportRepository.save(transport);
@@ -1033,14 +1037,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             }
 
             if (!statusUpdated) {
-                // If no specific service detail was found, update the service itself
                 service.setDeleted(delete);
                 serviceRepository.save(service);
             }
 
-            // 5. Return success response
-            String serviceType = categoryName != null ? categoryName : "Service";
-            String message = delete ? serviceType + " marked as deleted successfully" : serviceType + " restored successfully";
+            String serviceType = categoryName != null ? categoryName : "Dịch vụ";
+            String message = delete ? serviceType + " đã được đánh dấu là đã xóa thành công" : serviceType + " đã được khôi phục thành công";
 
             return GeneralResponse.<Void>builder()
                     .code(HttpStatus.OK.value())
@@ -1049,28 +1051,29 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            String errorMessage = delete ? SERVICE_DELETE_FAIL : "Failed to change service status";
+            String errorMessage = delete ? SERVICE_DELETE_FAIL : "Không thể thay đổi trạng thái dịch vụ";
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage, ex);
         }
     }
+
 
     @Override
     public GeneralResponse<List<Integer>> getDayNumbersByServiceAndTour(Long tourId, Long serviceId) {
         try {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " với id: " + tourId));
 
             // 2. Validate service exists
             Service service = serviceRepository.findById(serviceId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " với id: " + serviceId));
 
             // 3. Get all TourDayService entries for this service and tour
             Optional<TourDayService> tourDayServices = tourDayServiceRepository.findByServiceIdAndTourDayTourId(serviceId, tourId);
 
             // 4. If no services found, return empty result
             if (tourDayServices.isEmpty()) {
-                return new GeneralResponse<>(HttpStatus.OK.value(), "No day numbers found for this service in the tour", List.of());
+                return new GeneralResponse<>(HttpStatus.OK.value(), "Không tìm thấy số ngày cho dịch vụ này trong tour", List.of());
             }
 
             // 5. Extract day numbers and sort them
@@ -1080,13 +1083,14 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .collect(Collectors.toList());
 
             // 6. Build response
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Day numbers retrieved successfully", dayNumbers);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Lấy số ngày thành công", dayNumbers);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve day numbers", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể lấy số ngày", ex);
         }
     }
+
 
     @Override
     public GeneralResponse<ServiceProviderServicesDTO> getServicesByProviderAndCategory(Long providerId, String categoryName, Long locationId) {
@@ -1094,15 +1098,15 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 1. Validate service provider exists
             ServiceProvider provider = serviceProviderRepository.findById(providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
+                            SERVICE_PROVIDER_NOT_FOUND + "  id: " + providerId));
             // 2. Validate service category exists
             ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + categoryName));
+                            SERVICE_CATEGORY_NOT_FOUND + "  name: " + categoryName));
             // 3. Validate location exists
             Location location = locationRepository.findById(locationId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            LOCATION_NOT_FOUND + " with id: " + locationId));
+                            LOCATION_NOT_FOUND + "  id: " + locationId));
             // 4. Get services by provider, category, and location
             List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderIdAndLocationId(
                     categoryName, providerId, locationId);
@@ -1153,7 +1157,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
 
             if (tourDayServices.isEmpty()) {
                 throw BusinessException.of(HttpStatus.NOT_FOUND,
-                        "Service with id " + serviceId + " is not associated with tour day " + dayNumber);
+                        "Dịch vụ với id " + serviceId + " không được liên kết với ngày tour " + dayNumber);
             }
 
             // 5. For each TourDayService, find and delete associated ServicePaxPricing records
@@ -1174,7 +1178,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             entityManager.flush();
 
             return new GeneralResponse<>(HttpStatus.OK.value(),
-                    "Service successfully removed from tour day " + dayNumber, null);
+                    "Dịch vụ đã được xóa thành công khỏi ngày tour " + dayNumber, null);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -1187,20 +1191,20 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + "  id: " + tourId));
 
             // 2. Find the tour day
             TourDay tourDay = tourDayRepository.findByTourIdAndDayNumber(tourId, dayNumber)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + " with day number: " + dayNumber));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND + "  ngày: " + dayNumber));
 
             // 3. Get service
             Service service = serviceRepository.findById(serviceId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + "  id: " + serviceId));
 
             // 4. Find the specific TourDayService for this service on this day
             TourDayService tourDayService = tourDayServiceRepository.findByTourDayIdAndServiceId(tourDay.getId(), serviceId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            "Service with id " + serviceId + " is not associated with day " + dayNumber + " of tour " + tourId));
+                            "Dịch vụ với id " + serviceId + " không được liên kết với ngày " + dayNumber + " của tour " + tourId));
 
             // 5. Get all non-deleted pax associations for this service
             List<ServicePaxPricing> paxAssociations =
@@ -1244,8 +1248,8 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                             .minPax(pax.getMinPax())
                             .maxPax(pax.getMaxPax())
                             .price(pax.getNettPricePerPax())
-                            .serviceNettPrice(service.getNettPrice()) // Include service nett price
-                            .sellingPrice(sellingPrice) // Use service-specific selling price
+                            .serviceNettPrice(service.getNettPrice())
+                            .sellingPrice(sellingPrice)
                             .fixedCost(pax.getFixedCost())
                             .extraHotelCost(pax.getExtraHotelCost())
                             .paxRange(pax.getMinPax() + "-" + pax.getMaxPax())
@@ -1329,7 +1333,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 1. Get ticket category
             ServiceCategory ticketCategory = serviceCategoryRepository.findByCategoryName(TICKET)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + TICKET));
+                            SERVICE_CATEGORY_NOT_FOUND + " tên: " + TICKET));
 
             // 2. Get service providers for ticket category
             List<ServiceProvider> providers = serviceProviderRepository.findByServiceCategoryId(ticketCategory.getId());
@@ -1355,12 +1359,13 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .categoryName(TICKET)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Ticket providers retrieved successfully", response);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Nhà cung cấp vé đã được lấy thành công", response);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve ticket providers", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Lấy danh sách nhà cung cấp vé thất bại", ex);
         }
+
     }
 
     @Override
@@ -1369,12 +1374,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 1. Validate service provider exists
             ServiceProvider provider = serviceProviderRepository.findById(providerId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            SERVICE_PROVIDER_NOT_FOUND + " with id: " + providerId));
+                            SERVICE_PROVIDER_NOT_FOUND + "  id: " + providerId));
 
             // 2. Get ticket category
             ServiceCategory ticketCategory = serviceCategoryRepository.findByCategoryName(TICKET)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
-                            SERVICE_CATEGORY_NOT_FOUND + " with name: " + TICKET));
+                            SERVICE_CATEGORY_NOT_FOUND + " tên: " + TICKET));
 
             List<Service> services = serviceRepository.findByServiceCategoryNameAndProviderId(
                     TICKET, providerId);
@@ -1391,11 +1396,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     .availableServices(availableServices)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Ticket services loaded successfully", response);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Dịch vụ vé đã được tải thành công", response);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to load ticket services", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Tải dịch vụ vé thất bại", ex);
         }
     }
 
