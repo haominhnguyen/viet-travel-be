@@ -56,13 +56,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, List<TransactionType> transactionTypes) {
+    public GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, List<TransactionType> transactionTypes, String transactionStatus) {
         try {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<Transaction> spec = transactionHelper.buildTransactionPublicSearchSpecification(keyword, transactionTypes);
+            Specification<Transaction> spec = transactionHelper.buildTransactionPublicSearchSpecification(keyword, transactionTypes, transactionStatus);
 
             Page<Transaction> transactionPage = transactionRepository.findAll(spec, pageable);
 

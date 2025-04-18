@@ -820,6 +820,8 @@ public class Constants {
                                                                 plan_category: Du lịch Cá Nhân,
                                                                 thumbnail_image_url: "",
                                                                 location: Hà Nội,
+                                                                locationId: 1,
+                                                                preferences: "Đồ ăn ngon, Nghệ thuật, Văn  Hóa",
                                                                 description: "Đắm mình trong bức tranh nghệ thuật và văn hóa phong phú tại một số bảo tàng hấp dẫn nhất của Paris. Khám phá những viên ngọc ẩn như Petit Palais, với những bộ sưu tập tuyệt đẹp trải dài từ nghệ thuật cổ đại đến nghệ thuật hiện đại, và Musée Marmottan Monet ấm cúng, trưng bày những kiệt tác của trường phái Ấn tượng. Đừng bỏ lỡ những màn trình diễn lộng lẫy tại Musée d'Art Moderne de Paris, những sáng tạo kỳ quặc tại Bảo tàng Dalí và các tác phẩm mang tính biểu tượng của Picasso được lưu giữ tại Hôtel Salé thanh lịch, bên cạnh Trung tâm Pompidou tiên tiến định nghĩa lại nghệ thuật hiện đại. Mỗi địa điểm đều mang đến một trải nghiệm độc đáo, mời gọi những người yêu nghệ thuật và du khách bình thường khám phá, tìm hiểu và đánh giá cao di sản nghệ thuật của thành phố xinh đẹp này.",
                                                                 days: [
                                                                     {
@@ -846,7 +848,7 @@ public class Constants {
                                                                             "id": 1,
                                                                             "name": "Hotel Name",
                                                                             "address": "Hotel Address",
-                                                                            "image_url": "Hotel Image URL"
+                                                                            "imageUrl": "Hotel Image URL"
                                                                           }
                                                                       ],
                                                                       "restaurants": [
@@ -854,7 +856,7 @@ public class Constants {
                                                                           "id": 1,
                                                                           "name": "Restaurant Name",
                                                                           "address": "Restaurant Address",
-                                                                          "image_url": "Restaurant Image URL"
+                                                                          "imageUrl": "Restaurant Image URL"
                                                                         }
                                                                       ]
                                                                     },
@@ -876,10 +878,23 @@ public class Constants {
                                                                             "id": 2,
                                                                             "name": "Hotel Name",
                                                                             "address": "Hotel Address",
-                                                                            "image_url": "Hotel Image URL"
+                                                                            "imageUrl": "Hotel Image URL"
                                                                           }
                                                                       ]
                                                                     }
+                                                            ]
+                                                        """;
+
+        public static final String ACTIVITIES_RESPONSE_JSON = """
+                                                            "activities": [
+                                                                {
+                                                                  "id": 1,
+                                                                  "title": "Activity 1 Title",
+                                                                  "content": "Description of activity 1.",
+                                                                  "category": "Category of activity",
+                                                                  duration: "2-3 giờ",
+                                                                  imageUrl: "Activities Image URL"
+                                                                }
                                                             ]
                                                         """;
 
@@ -901,6 +916,7 @@ public class Constants {
                     - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
                     - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động miễn phí
+                    - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
 
                     Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
                     Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
@@ -909,6 +925,21 @@ public class Constants {
                     ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
                     
                     """ + PLAN_RESPONSE_JSON;
+
+
+
+        public static final String ACTIVITIES_PROMPT_END = """ 
+                    
+                    Các lưu ý quan trọng:
+                    - Hoạt động cần phải phù hợp với sở thích mà khách hàng đã cung cấp
+                    - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
+.
+                    Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
+
+                    
+                    ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
+                    
+                    """ + ACTIVITIES_RESPONSE_JSON;
 
     }
 }
