@@ -13,6 +13,7 @@ import com.fpt.capstone.tourism.service.UserService;
 import com.fpt.capstone.tourism.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -27,6 +28,8 @@ import java.util.Map;
 @RequestMapping("/public/booking")
 public class BookingController {
 
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
 
     private final BookingService bookingService;
     private final UserService userService;
@@ -36,6 +39,8 @@ public class BookingController {
     public ResponseEntity<GeneralResponse<TourBookingDataResponseDTO>> viewTourDetail(@PathVariable("tourId") Long tourId, @PathVariable("scheduleId") Long scheduleId){
         return ResponseEntity.ok(bookingService.viewTourBookingDetail(tourId, scheduleId));
     }
+
+
 
 
 
@@ -72,7 +77,7 @@ public class BookingController {
 
 
         String redirectUrl = String.format(
-                "http://localhost:4200/tour-booking-detail/%s?status=%s",
+                frontendBaseUrl + "/tour-booking-detail/%s?status=%s",
                 URLEncoder.encode(orderInfo, StandardCharsets.UTF_8),
                 paymentStatus == 1 ? "success" : "fail"
         );

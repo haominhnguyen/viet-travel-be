@@ -22,6 +22,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -90,6 +91,10 @@ public class BookingServiceImpl implements BookingService {
     private final UserServiceImpl userService;
     private final EmailService emailService;
 
+
+    @Value("${backend.base-url}")
+    private String backendBaseUrl;
+
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
         try {
@@ -130,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
 
-            String baseUrl = "http://localhost:8080/v1/public/booking";
+            String baseUrl = backendBaseUrl + "/public/booking";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
