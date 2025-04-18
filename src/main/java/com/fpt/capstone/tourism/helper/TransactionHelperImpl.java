@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
 import com.fpt.capstone.tourism.model.Transaction;
+import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionType;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
@@ -24,7 +25,7 @@ public class TransactionHelperImpl implements TransactionHelper {
     private final TransactionMapper transactionMapper;
 
     @Override
-    public Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes) {
+    public Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes, String transactionStatus) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -42,6 +43,11 @@ public class TransactionHelperImpl implements TransactionHelper {
                 Predicate receivedByPredicate = cb.like(normalizedTourName, cb.concat("%", cb.concat(normalizedKeyword, "%")));
 
                 predicates.add(receivedByPredicate);
+            }
+
+            if(transactionStatus != null && !transactionStatus.isEmpty()) {
+                TransactionStatus status = TransactionStatus.valueOf(transactionStatus.trim());
+                predicates.add(root.get("transactionStatus").in(status));
             }
 
             predicates.add(root.get("category").in(transactionTypes));

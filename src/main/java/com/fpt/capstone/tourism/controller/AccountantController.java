@@ -27,11 +27,12 @@ public class AccountantController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String transactionStatus,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection,
             @RequestParam List<TransactionType> transactionTypes
     ) {
-        return ResponseEntity.ok(transactionService.getTransactions(page, size, keyword, sortField, sortDirection, transactionTypes));
+        return ResponseEntity.ok(transactionService.getTransactions(page, size, keyword, sortField, sortDirection, transactionTypes, transactionStatus));
     }
 
     @GetMapping("/transactions/{id}")

@@ -9,6 +9,6 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 public interface TransactionHelper {
-    Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes);
+    Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes, String transactionStatus);
     GeneralResponse<?> buildPublicTransactionPagedResponse(Page<Transaction> transactionPage);
 }

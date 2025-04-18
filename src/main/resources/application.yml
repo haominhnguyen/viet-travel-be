@@ -91,3 +91,7 @@ logging:
             JdbcTemplate: INFO
       hibernate:
         SQL: INFO
+frontend:
+  base-url: http://localhost:4200
+backend:
+  base-url: http://localhost:8080/v1

@@ -3,8 +3,10 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
+import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ public class PlanController {
     private static final Logger LOG = LoggerFactory.getLogger(PlanController.class);
 
     private final PlanService planService;
+    private final BookingService bookingService;
 
 
     @PostMapping("/generate")
@@ -49,10 +52,39 @@ public class PlanController {
         return ResponseEntity.ok(planService.getPlanById(planId));
     }
 
+    @GetMapping("/service-providers/list")
+    public ResponseEntity<?> getServiceProviders(@RequestParam Long locationId, @RequestParam String categoryName, @RequestParam List<Long> ids) {
+        return ResponseEntity.ok(planService.getServiceProviders(locationId, categoryName, ids));
+    }
+
+    @PostMapping("/activity/list")
+    public ResponseEntity<?> getActivities(@RequestBody ActivityGenerateDTO dto) {
+        return ResponseEntity.ok(planService.getActivities(dto));
+    }
+
+
+    @PostMapping("/request-tour-create")
+    public ResponseEntity<?> requestTourCreate(@RequestBody Long planId) {
+        return ResponseEntity.ok(planService.requestTourCreate(planId));
+    }
+
 
     @DeleteMapping("/delete/{planId}")
     public ResponseEntity<?> delete(@PathVariable(name = "planId") Long planId) {
         return ResponseEntity.ok(planService.deletePlanById(planId));
+    }
+
+
+    @PostMapping("/update/{planId}")
+    public ResponseEntity<?> update(@RequestBody String planJson, @PathVariable(name = "planId") Long planId) {
+        return ResponseEntity.ok(planService.updatePlan(planJson, planId));
+    }
+
+
+
+    @PostMapping("/update-status/{planId}")
+    public ResponseEntity<?> updateStatus(@PathVariable(name = "planId") Long planId) {
+        return ResponseEntity.ok(planService.updateStatus(planId));
     }
 
 

@@ -21,7 +21,7 @@ public interface BookingHelper {
 
     String generateBookingCode(Long tourId, Long scheduleId, Long customerId);
     GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> buildPagedResponse(Page<TourBooking> tourBookingPage);
-    Specification<TourBooking> buildSearchSpecification(String keyword, Boolean isDeleted);
+    Specification<TourBooking> buildSearchSpecification(String keyword, String status);
     Double getPaidAmount(List<Transaction> tourBookingReceipts);
     Double getTotal(List<Transaction> tourBookingReceipts);
     List<TourBookingSaleResponseDTO>  setPaymentStatistics(List<TourBooking> tourBookings);

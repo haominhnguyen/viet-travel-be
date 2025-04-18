@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.model;
 
+import com.fpt.capstone.tourism.model.enums.PlanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,4 +26,8 @@ public class Plan extends BaseEntity{
 
     @Column(name = "is_deleted")
     private boolean deleted;
+
+    @Column(name = "plan_status")
+    @Enumerated(EnumType.STRING)
+    private PlanStatus planStatus;
 }

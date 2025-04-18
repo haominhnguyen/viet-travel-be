@@ -22,6 +22,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -90,6 +91,10 @@ public class BookingServiceImpl implements BookingService {
     private final UserServiceImpl userService;
     private final EmailService emailService;
 
+
+    @Value("${backend.base-url}")
+    private String backendBaseUrl;
+
     @Override
     public GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId) {
         try {
@@ -130,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
             allCustomers.addAll(adults);
             allCustomers.addAll(children);
 
-            String baseUrl = "http://localhost:8080/v1/public/booking";
+            String baseUrl = backendBaseUrl + "/public/booking";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
@@ -238,13 +243,13 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection) {
+    public GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, String status, String sortField, String sortDirection) {
         try {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<TourBooking> spec = bookingHelper.buildSearchSpecification(keyword, isDeleted);
+            Specification<TourBooking> spec = bookingHelper.buildSearchSpecification(keyword, status);
 
             Page<TourBooking> tourBookingPage = tourBookingRepository.findAll(spec, pageable);
 
@@ -255,13 +260,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection, TourType tourType) {
+    public GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, TourStatus status, String sortField, String sortDirection, TourType tourType) {
         try {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<Tour> spec = tourHelper.buildTourPublicSearchSpecification(keyword, isDeleted, tourType);
+            Specification<Tour> spec = tourHelper.buildTourPublicSearchSpecification(keyword, status, tourType);
 
             Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
 
@@ -727,6 +732,20 @@ public class BookingServiceImpl implements BookingService {
                         .build();
 
                 Tour savedTour = tourRepository.save(newTour);
+
+
+
+                List<TourImage> tourImages = new ArrayList<>();
+                for(String imageUrl : tour.getTourImages()) {
+                    TourImage tourImage = TourImage.builder()
+                            .imageUrl(imageUrl)
+                            .tour(savedTour)
+                            .deleted(false)
+                            .build();
+                    tourImages.add(tourImage);
+                }
+
+                tourImageRepository.saveAll(tourImages);
 
 
                 TourPax tourPax = TourPax.builder()

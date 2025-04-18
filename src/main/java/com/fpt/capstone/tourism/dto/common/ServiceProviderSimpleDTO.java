@@ -12,4 +12,5 @@ public class ServiceProviderSimpleDTO {
     private String name;
     private String abbreviation;
     private String imageUrl;
+    private String address;
 }
