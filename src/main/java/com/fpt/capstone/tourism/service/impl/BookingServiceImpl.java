@@ -346,11 +346,19 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow();
-            TourSchedule tourSchedule;
+            TourSchedule tourSchedule = new TourSchedule();
             if (scheduleId != null) {
                 tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
             } else {
-                tourSchedule = tour.getTourSchedules().get(0);
+                for(TourSchedule schedule : tour.getTourSchedules()) {
+                    if(!schedule.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.DRAFT.toString())
+                    && !schedule.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.CANCELLED.toString()
+                    )) {
+                        tourSchedule = schedule;
+                        break;
+                    }
+                }
+
             }
 
             List<TourBooking> tourBookings = tourBookingRepository.findAllByTourAndTourSchedule(tour, tourSchedule);
