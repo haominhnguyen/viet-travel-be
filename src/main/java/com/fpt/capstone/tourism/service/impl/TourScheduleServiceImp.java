@@ -61,7 +61,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
         LocalDateTime basicEndDate = startDate.plusDays(tour.getNumberDays());
         endDateOptions.add(new EndDateOption(
                 basicEndDate,
-                String.format("Standard option: %d days, %d nights",
+                String.format(DESC_STANDARD_OPTION,
                         tour.getNumberDays(), tour.getNumberNights()),
                 true
         ));
@@ -71,7 +71,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
             LocalDateTime nextWeekdayEnd = getNextWeekday(basicEndDate);
             endDateOptions.add(new EndDateOption(
                     nextWeekdayEnd,
-                    String.format("Extended weekend option: %d days, %d nights",
+                    String.format(DESC_EXTENDED_WEEKEND_OPTION,
                             ChronoUnit.DAYS.between(startDate, nextWeekdayEnd),
                             ChronoUnit.DAYS.between(startDate, nextWeekdayEnd) - 1),
                     false
@@ -82,13 +82,14 @@ public class TourScheduleServiceImp implements TourScheduleService {
         LocalDateTime extendedEndDate = basicEndDate.plusDays(1);
         endDateOptions.add(new EndDateOption(
                 extendedEndDate,
-                String.format("Extended option: %d days, %d nights",
+                String.format(DESC_EXTENDED_OPTION,
                         tour.getNumberDays() + 1, tour.getNumberNights() + 1),
                 false
         ));
 
         return GeneralResponse.of(endDateOptions);
     }
+
 
     public GeneralResponse<List<OperatorAvailabilityDTO>> findAvailableOperators(
             Long tourId, LocalDateTime startDate, LocalDateTime endDate) {
@@ -130,7 +131,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         // Check if the tour status is APPROVED or OPENED
         if (tour.getTourStatus() != TourStatus.APPROVED && tour.getTourStatus() != TourStatus.OPENED) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour must be in APPROVED or OPEN status to set a schedule");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, TOUR_STATUS_NOT_APPROVED_OR_OPENED);
         }
 
         // Get the selected operator
@@ -151,7 +152,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
                 tour.getId(), operator.getId(), requestDTO.getStartDate(), requestDTO.getEndDate());
 
         if (isOperatorAlreadyAssigned) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Operator is already assigned to this tour during the requested period");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_ALREADY_ASSIGNED);
         }
 
         // Check operator availability (total active tours)
@@ -245,17 +246,14 @@ public class TourScheduleServiceImp implements TourScheduleService {
     public GeneralResponse<TourScheduleBasicResponseDTO> updateTourSchedule(TourScheduleRequestDTO requestDTO, User user) {
         // Validate that scheduleId is provided
         if (requestDTO.getScheduleId() == null) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedule ID is required for updates");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, SCHEDULE_ID_REQUIRED);
         }
 
-        // Find the existing tour schedule
         TourSchedule existingSchedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_SCHEDULE_NOT_FOUND));
 
-
-        // Check if the schedule is in ONGOING status - cannot update ongoing schedules
         if (existingSchedule.getStatus() == TourScheduleStatus.ONGOING) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedules with ONGOING status cannot be updated");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, SCHEDULE_CANNOT_BE_UPDATED);
         }
 
         // Find the tour (using existing tour if tourId is not provided)
@@ -295,7 +293,7 @@ public class TourScheduleServiceImp implements TourScheduleService {
                     tour.getId(), operator.getId(), startDate, endDate, existingSchedule.getId());
 
             if (isOperatorAlreadyAssigned) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Operator is already assigned to this tour during the requested period");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, OPERATOR_ALREADY_ASSIGNED);
             }
 
             // Check operator availability (total active tours, excluding this one)
@@ -393,22 +391,22 @@ public class TourScheduleServiceImp implements TourScheduleService {
         }
         tourRepository.save(tour);
 
-        return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Tour schedule updated successfully");
+        return GeneralResponse.of(mapToResponseDTO(updatedSchedule), "Lịch trình tour đã được cập nhật thành công");
     }
 
     @Override
     public GeneralResponse<Object> cancelTourSchedule(Long scheduleId, User user) {
         // Find the existing tour schedule
         TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour schedule not found"));
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Lịch trình tour không tìm thấy"));
 
         // Check if the schedule is already cancelled or deleted
         if (schedule.getStatus() == TourScheduleStatus.CANCELLED) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already cancelled");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Lịch trình tour đã bị hủy");
         }
 
         if (Boolean.TRUE.equals(schedule.getDeleted())) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour schedule is already deleted");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Lịch trình tour đã bị xóa");
         }
 
         // Cancel and mark as deleted
@@ -418,8 +416,9 @@ public class TourScheduleServiceImp implements TourScheduleService {
 
         tourScheduleRepository.save(schedule);
 
-        return GeneralResponse.of(HttpStatus.OK, "Tour schedule cancelled successfully");
+        return GeneralResponse.of(HttpStatus.OK, "Lịch trình tour đã được hủy thành công");
     }
+
 
     @Override
     public GeneralResponse<?> getTourScheduleSettlement(int page, int size, String keyword, String sortField, String sortDirection) {

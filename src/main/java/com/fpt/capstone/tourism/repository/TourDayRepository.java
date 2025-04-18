@@ -36,5 +36,13 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     List<TourDay> findAllByTourId(Long tourId);
 
 
+    List<TourDay> findListTourDayByTourId(Long tourId);
 
+
+    @Query("""
+    SELECT td FROM TourDay td
+    JOIN TourSchedule ts ON td.tour.id = ts.tour.id
+    WHERE ts.id = :scheduleId
+""")
+    List<TourDay> findListTourDayByScheduleId(Long scheduleId);
 }

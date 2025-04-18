@@ -127,5 +127,7 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
             ORDER BY RANDOM()
             """)
     List<Service> findRandomActivities(String categoryName, PageRequest of);
+
+    List<Service> findByServiceProviderIdAndServiceCategoryIdAndDeletedFalse(Long serviceProviderId, Long serviceCategoryId);
 }
 

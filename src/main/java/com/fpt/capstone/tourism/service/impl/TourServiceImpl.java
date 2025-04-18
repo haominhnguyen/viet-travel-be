@@ -82,9 +82,8 @@ public class TourServiceImpl implements TourService {
                     .priceFrom(tourRepository.findMinSellingPriceForTours(topTour.getId()))
                     .build();
         } catch (Exception ex) {
-            throw BusinessException.of("Error retrieving top tour of year", ex);
+            throw BusinessException.of("Lỗi khi lấy tour hàng đầu trong năm", ex);
         }
-
     }
 
     @Override
@@ -120,7 +119,7 @@ public class TourServiceImpl implements TourService {
                     ))
                     .collect(Collectors.toList());
         } catch (Exception ex) {
-            throw BusinessException.of("Error retrieving trending tours", ex);
+            throw BusinessException.of(ERROR_RETRIEVING_TRENDING_TOURS, ex);
         }
 
     }
@@ -166,7 +165,7 @@ public class TourServiceImpl implements TourService {
 
             return buildPagedResponse(tourPage, publicTourDTOS);
         } catch (Exception ex) {
-            throw BusinessException.of("Get all public tour fail", ex);
+            throw BusinessException.of(GET_ALL_PUBLIC_TOUR_FAIL, ex);
         }
     }
 
@@ -213,7 +212,7 @@ public class TourServiceImpl implements TourService {
             }
             return publicTourDTOS;
         } catch (Exception ex) {
-            throw BusinessException.of("Error retrieving same location public tours", ex);
+            throw BusinessException.of(ERROR_RETRIEVING_SAME_LOCATION_PUBLIC_TOURS, ex);
         }
     }
 
@@ -365,7 +364,7 @@ public class TourServiceImpl implements TourService {
 
             // Check if tour status is DRAFT or REJECTED, otherwise do not allow update
             if (existingTour.getTourStatus() != TourStatus.DRAFT && existingTour.getTourStatus() != TourStatus.REJECTED) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only tours in DRAFT or REJECTED status can be updated");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, ONLY_DRAFT_OR_REJECTED_CAN_BE_UPDATED);
             }
 
             // Update tour entity
@@ -458,7 +457,7 @@ public class TourServiceImpl implements TourService {
             }
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
             // 2. Update markup percentage only, without calculating any prices
             tour.setMarkUpPercent(markUpPercent);
@@ -585,7 +584,7 @@ public class TourServiceImpl implements TourService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
         }
     }
 
@@ -593,7 +592,7 @@ public class TourServiceImpl implements TourService {
     public GeneralResponse<?> getDetailTourNeedToProcess(Long tourId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow(
-                    () -> BusinessException.of("Tour not found")
+                    () -> BusinessException.of(TOUR_NOT_FOUND)
             );
             //Check tour id
             TourStatus status = tour.getTourStatus();
@@ -602,15 +601,15 @@ public class TourServiceImpl implements TourService {
             statuses.add(TourStatus.APPROVED);
             statuses.add(TourStatus.REJECTED);
             if (!statuses.contains(status)) {
-                throw BusinessException.of("Tour status is not pending, approved or rejected");
+                throw BusinessException.of(TOUR_STATUS_NOT_VALID);
             }
             TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get detail tour need to process success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_DETAIL_TOUR_SUCCESS, resultDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GENERAL_FAIL, ex);
         }
     }
 
@@ -618,20 +617,20 @@ public class TourServiceImpl implements TourService {
     public GeneralResponse<?> getDetailTourDay(Long tourId, Long tourDayId) {
         try {
             TourDay tourDay = tourDayRepository.findById(tourDayId).orElseThrow(
-                    () -> BusinessException.of("Tour day not found")
+                    () -> BusinessException.of(TOUR_DAY_NOT_FOUND)
             );
 
             //Check tourDay belong to tour or not
             if (!tourDay.getTour().getId().equals(tourId)) {
-                throw BusinessException.of("Tour day does not belong to this tour");
+                throw BusinessException.of(TOUR_DAY_NOT_BELONG);
             }
             TourDayProcessDetailDTO resultDTO = tourDayMapper.toTourDayProcessDetailDTO(tourDay);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Get detail tour day success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_DETAIL_TOUR_DAY_SUCCESS, resultDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GENERAL_FAIL, ex);
         }
     }
 
@@ -639,23 +638,23 @@ public class TourServiceImpl implements TourService {
     public GeneralResponse<?> approveTourProcess(Long tourId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow(
-                    () -> BusinessException.of("Tour not found")
+                    () -> BusinessException.of(TOUR_NOT_FOUND)
             );
 
             //check status of tour before approval
             if (!tour.getTourStatus().equals(TourStatus.PENDING)) {
-                throw BusinessException.of("Tour status is not pending");
+                throw BusinessException.of(TOUR_STATUS_NOT_PENDING);
             }
 
             tour.setTourStatus(TourStatus.APPROVED);
             tourRepository.save(tour);
             TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Approve success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), APPROVE_SUCCESS, resultDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GENERAL_FAIL, ex);
         }
     }
 
@@ -663,23 +662,23 @@ public class TourServiceImpl implements TourService {
     public GeneralResponse<?> rejectTourProcess(Long tourId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow(
-                    () -> BusinessException.of("Tour not found")
+                    () -> BusinessException.of(TOUR_NOT_FOUND)
             );
 
             //check status of tour before reject
             if (!tour.getTourStatus().equals(TourStatus.PENDING)) {
-                throw BusinessException.of("Tour status is not pending");
+                throw BusinessException.of(TOUR_STATUS_NOT_PENDING);
             }
 
             tour.setTourStatus(TourStatus.REJECTED);
             tourRepository.save(tour);
             TourProcessDetailDTO resultDTO = tourMapper.toTourProcessDetailDTO(tour);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Reject success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), REJECT_SUCCESS, resultDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of(GENERAL_FAIL, ex);
         }
     }
 
@@ -774,11 +773,11 @@ public class TourServiceImpl implements TourService {
                     .returnCustomerNumber(returnCustomerNumber)
                     .build();
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), "View dashboard success", resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Dashboard tải lên thành công", resultDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of("Fail", ex);
+            throw BusinessException.of("Dashboard tải lên thất bại", ex);
         }
     }
 
@@ -792,14 +791,14 @@ public class TourServiceImpl implements TourService {
             // Check if the tour is in DRAFT status
             if (tour.getTourStatus() != TourStatus.DRAFT) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                        "Only tours in DRAFT status can be sent for approval. Current status: " + tour.getTourStatus());
+                        ONLY_DRAFT_CAN_BE_SENT + tour.getTourStatus());
             }
             // Check if the current user is the creator of the tour or has admin privileges
             boolean isCreator = tour.getCreatedBy() != null &&
                     tour.getCreatedBy().getId().equals(currentUser.getId());
             if (!isCreator) {
                 throw BusinessException.of(HttpStatus.FORBIDDEN,
-                        "Only the tour creator or administrators can send a tour for approval");
+                        ONLY_CREATOR_CAN_SEND);
             }
             // Validate tour data before sending for approval
             validateTourForApproval(tour);
@@ -809,12 +808,12 @@ public class TourServiceImpl implements TourService {
             Tour updatedTour = tourRepository.save(tour);
             // Map to response DTO
             TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour successfully sent for approval", tourResponseDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_SENT_FOR_APPROVAL_SUCCESS, tourResponseDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to send tour for approval: " + ex.getMessage(), ex);
+                    FAILED_TO_SEND_TOUR + ex.getMessage(), ex);
         }
     }
 
@@ -832,12 +831,12 @@ public class TourServiceImpl implements TourService {
             Tour updatedTour = tourRepository.save(tour);
             // Map to response DTO
             TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
-            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour successfully opened", tourResponseDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Tour đã mở bán thành công", tourResponseDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to send tour for approval: " + ex.getMessage(), ex);
+                    "Mở bán tour thất bại: " + ex.getMessage(), ex);
         }
     }
 
@@ -873,7 +872,7 @@ public class TourServiceImpl implements TourService {
 
         if (!missingFields.isEmpty()) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                    "Tour is missing required information: " + String.join(", ", missingFields));
+                    TOUR_MISSING_REQUIRED_INFO + String.join(", ", missingFields));
         }
     }
 
@@ -1008,7 +1007,7 @@ public class TourServiceImpl implements TourService {
                 .items(tours)
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", pagingDTO);
     }
 
     private Specification<Tour> buildSearchSpecification(String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId) {
@@ -1104,7 +1103,7 @@ public class TourServiceImpl implements TourService {
                 .total(tourPage.getTotalElements())
                 .items(tourDTOs)
                 .build();
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Thành công", pagingDTO);
     }
 
     private TourMarkupResponseDTO mapTourToMarkupResponseDTO(Tour tour) {

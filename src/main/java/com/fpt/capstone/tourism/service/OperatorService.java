@@ -40,7 +40,7 @@ public interface OperatorService {
 
     GeneralResponse<Map<Long, String>> getListServiceProviderByLocationIdAndServiceCategoryId(Long locationId, Long serviceCategoryId);
 
-    GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId);
+    GeneralResponse<List<ServiceSimpleDTO>> getListServiceByServiceProviderId(Long serviceProviderId, Long serviceCategoryId);
 
     GeneralResponse<?> getServiceDetail(Long serviceId);
 
@@ -69,6 +69,8 @@ public interface OperatorService {
     GeneralResponse<?> sendAccountant(Long tourScheduleId);
 
     GeneralResponse<PagingDTO<List<OperatorTourDTO>>> getListTourPrivate(int page, int size, String keyword, String status, String orderDate);
+
+    GeneralResponse<?> getListTourDayOfSchedule(Long scheduleId);
 
 //    GeneralResponse<?> getListServiceRequest(int page, int size);
 }

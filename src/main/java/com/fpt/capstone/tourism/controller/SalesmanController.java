@@ -4,8 +4,12 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PlanSaleResponseDTO;
+import com.fpt.capstone.tourism.model.enums.PlanStatus;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.BookingService;
+import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +27,17 @@ public class  SalesmanController {
     private static final Logger logger = Logger.getLogger(SalesmanController.class.getName());
 
     private final BookingService bookingService;
+    private final PlanService planService;
 
     @GetMapping("/bookings/list")
     public ResponseEntity<GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>>> getBookings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-        return ResponseEntity.ok(bookingService.getTourBookings(page, size, keyword, isDeleted, sortField, sortDirection));
+        return ResponseEntity.ok(bookingService.getTourBookings(page, size, keyword, status, sortField, sortDirection));
     }
 
 
@@ -42,10 +47,11 @@ public class  SalesmanController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "SIC") TourType tourType,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean isDeleted,
+            @RequestParam(required = false) String tourStatus,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-        return ResponseEntity.ok(bookingService.getTours(page, size, keyword, isDeleted, sortField, sortDirection, tourType));
+        TourStatus status = tourStatus != null && !tourStatus.isEmpty() ? TourStatus.valueOf(tourStatus.trim()) : null;
+        return ResponseEntity.ok(bookingService.getTours(page, size, keyword, status, sortField, sortDirection, tourType));
     }
 
 
@@ -251,4 +257,26 @@ public class  SalesmanController {
     public ResponseEntity<?> sendPrice(@RequestBody SendEmailPriceRequestDTO dto){
         return ResponseEntity.ok(bookingService.sendEmailPrice(dto));
     }
+
+    @GetMapping("/plans/list")
+    public ResponseEntity<GeneralResponse<PagingDTO<List<PlanSaleResponseDTO>>>> getPlans(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) PlanStatus planStatus,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+        return ResponseEntity.ok(planService.getPlans(page, size, sortField, sortDirection, planStatus, keyword));
+    }
+
+
+
+    @PostMapping("/plans/update-status/{planId}")
+    public ResponseEntity<?> updateStatus(@PathVariable(name = "planId") Long planId, @RequestBody String planStatus) {
+        PlanStatus status = PlanStatus.valueOf(planStatus.trim());
+        return ResponseEntity.ok(planService.updateStatus(planId, status));
+    }
+
+
+
 }

@@ -5,10 +5,12 @@ import com.fpt.capstone.tourism.dto.request.CreateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateTransactionRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.CostAccountStatus;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionType;
 import com.fpt.capstone.tourism.repository.CostAccountRepository;
@@ -16,6 +18,7 @@ import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import com.fpt.capstone.tourism.repository.TransactionRepository;
 import com.fpt.capstone.tourism.service.TransactionService;
+import jakarta.persistence.criteria.Join;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +34,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
 @Service
 @RequiredArgsConstructor
@@ -51,19 +56,19 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, List<TransactionType> transactionTypes) {
+    public GeneralResponse<?> getTransactions(int page, int size, String keyword, String sortField, String sortDirection, List<TransactionType> transactionTypes, String transactionStatus) {
         try {
             Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
             // Build search specification
-            Specification<Transaction> spec = transactionHelper.buildTransactionPublicSearchSpecification(keyword, transactionTypes);
+            Specification<Transaction> spec = transactionHelper.buildTransactionPublicSearchSpecification(keyword, transactionTypes, transactionStatus);
 
             Page<Transaction> transactionPage = transactionRepository.findAll(spec, pageable);
 
             return transactionHelper.buildPublicTransactionPagedResponse(transactionPage);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Data failed", ex);
+            throw BusinessException.of(GET_DATA_FAILED, ex);
         }
     }
 
@@ -74,7 +79,7 @@ public class TransactionServiceImpl implements TransactionService {
             TransactionAccountantResponseDTO dto = transactionMapper.toTransactionAccountantResponseDTO(transaction);
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Transaction Details for accountant failed", ex);
+            throw BusinessException.of(GET_TRANSACTION_DETAILS_FAILED, ex);
         }
     }
 
@@ -149,7 +154,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             costAccountRepository.saveAll(updatedCostAccounts);
 
-                // Set updated cost accounts list
+            // Set updated cost accounts list
             transaction.setCostAccount(updatedCostAccounts);
 
             // Save transaction
@@ -158,7 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             return GeneralResponse.of(transactionMapper.toTransactionAccountantResponseDTO(savedEntity));
         } catch (Exception ex) {
-            throw BusinessException.of("Update Transaction Failed", ex);
+            throw BusinessException.of(UPDATE_TRANSACTION_FAILED, ex);
         }
     }
 
@@ -179,7 +184,7 @@ public class TransactionServiceImpl implements TransactionService {
                     .build()).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Booking Failed", ex);
+            throw BusinessException.of(GET_BOOKING_FAILED, ex);
         }
     }
 
@@ -194,15 +199,15 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Create new transaction
             Transaction transaction = Transaction.builder()
-                   .booking(tourBooking)
-                   .category(dto.getCategory())
-                   .transactionStatus(TransactionStatus.PENDING)
-                   .amount(dto.getTotalAmount())
+                    .booking(tourBooking)
+                    .category(dto.getCategory())
+                    .transactionStatus(TransactionStatus.PENDING)
+                    .amount(dto.getTotalAmount())
                     .paidBy(dto.getPaidBy())
                     .receivedBy(dto.getReceivedBy())
                     .notes(dto.getNotes())
                     .paymentMethod(dto.getPaymentMethod())
-                   .build();
+                    .build();
 
             if (allPaid) {
                 transaction.setTransactionStatus(TransactionStatus.PAID); // Update to desired status
@@ -218,14 +223,14 @@ public class TransactionServiceImpl implements TransactionService {
             // Create cost accounts
             for (CostAccountDTO costAccountDTO : dto.getCostAccounts()) {
                 CostAccount costAccount = CostAccount.builder()
-                       .content(costAccountDTO.getContent())
-                       .amount(costAccountDTO.getAmount())
-                       .discount(costAccountDTO.getDiscount())
-                       .quantity(costAccountDTO.getQuantity())
-                       .finalAmount(costAccountDTO.getFinalAmount())
-                       .status(costAccountDTO.getStatus())
-                       .transaction(transaction) // Link to the transaction
-                       .build();
+                        .content(costAccountDTO.getContent())
+                        .amount(costAccountDTO.getAmount())
+                        .discount(costAccountDTO.getDiscount())
+                        .quantity(costAccountDTO.getQuantity())
+                        .finalAmount(costAccountDTO.getFinalAmount())
+                        .status(costAccountDTO.getStatus())
+                        .transaction(transaction) // Link to the transaction
+                        .build();
                 costAccounts.add(costAccount);
             }
 
@@ -233,7 +238,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Create booking failed", ex);
+            throw BusinessException.of(CREATE_BOOKING_FAILED, ex);
         }
     }
 
@@ -244,9 +249,8 @@ public class TransactionServiceImpl implements TransactionService {
             List<ServiceProviderSimpleDTO> dto = providers.stream().map(transactionMapper::toServiceProviderSimpleDTO).toList();
             return GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Get Transaction Details for accountant failed", ex);
+            throw BusinessException.of(GET_TRANSACTION_DETAILS_FAILED, ex);
         }
     }
-
 
 }

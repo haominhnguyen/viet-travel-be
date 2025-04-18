@@ -94,7 +94,7 @@ public class BookingHelperImpl implements BookingHelper {
     }
 
     @Override
-    public Specification<TourBooking> buildSearchSpecification(String keyword, Boolean isDeleted) {
+    public Specification<TourBooking> buildSearchSpecification(String keyword, String status) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -126,19 +126,13 @@ public class BookingHelperImpl implements BookingHelper {
             predicates.add(cb.isNull(root.get("sale")));
 
             // Filter by status
-            if (keyword != null) {
-                try {
-                    TourBookingStatus status = TourBookingStatus.valueOf(keyword.toUpperCase());
-                    predicates.add(cb.equal(root.get("status"), status));
-                } catch (IllegalArgumentException e) {
-                    // Ignore invalid status values
-                }
+            if (status != null && !status.isEmpty()) {
+                TourBookingStatus tourBookingStatus = TourBookingStatus.valueOf(status);
+                predicates.add(cb.equal(root.get("status"), tourBookingStatus));
             }
 
             // Filter by deletion status
-            if (isDeleted != null) {
-                predicates.add(cb.equal(root.get("deleted"), isDeleted));
-            }
+                predicates.add(cb.equal(root.get("deleted"), false));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

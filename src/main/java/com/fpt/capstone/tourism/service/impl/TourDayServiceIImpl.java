@@ -85,7 +85,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             Location location = null;
             if (request.getLocationId() != null) {
                 location = locationRepository.findById(request.getLocationId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
 
                 verifyServiceCategoriesAvailableInLocation(request.getServiceCategories(), location.getId());
             }
@@ -98,7 +98,7 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             if (dayNumber > maxDays) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                        "Cannot create more days than the maximum defined in the tour (" + maxDays + " days/nights)");
+                        TOUR_DAY_EXCEEDS_MAX_LIMIT + maxDays + " ngày/đêm");
             }
 
             TourDay tourDay = TourDay.builder()
@@ -117,13 +117,13 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
             for (String categoryName : request.getServiceCategories()) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                SERVICE_CATEGORY_NOT_FOUND + categoryName));
                 serviceCategories.add(category);
 
                 saveTourDayServiceCategory(tourDay, category);
             }
 
-            // Extract category names for response
             List<String> categoryNames = serviceCategories.stream()
                     .map(ServiceCategory::getCategoryName)
                     .collect(Collectors.toList());
@@ -145,15 +145,15 @@ public class TourDayServiceIImpl implements TourDayServiceI {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create tour day", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, TOUR_DAY_CREATE_FAILED, ex);
         }
     }
+
 
     @Override
     @Transactional
     public GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request) {
         try {
-            // Validate service categories
             validateServiceCategories(request.getServiceCategories());
 
             Tour tour = tourRepository.findById(tourId)
@@ -163,58 +163,47 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
 
             Location location = null;
-
             if (request.getLocationId() != null) {
                 location = locationRepository.findById(request.getLocationId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
-
-                // Only verify that categories are available in this location
-                // but don't create any TourDayService entries yet
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
                 verifyServiceCategoriesAvailableInLocation(request.getServiceCategories(), location.getId());
             }
 
-            // Check if the day number already exists for another tour day in the same tour
             if (request.getDayNumber() != null && !request.getDayNumber().equals(tourDay.getDayNumber())) {
-                // Check if the day number already exists for another tour day in the same tour
                 boolean dayNumberExists = tourDayRepository.existsByTourIdAndDayNumberAndIdNot(
                         tourId, request.getDayNumber(), id);
                 if (dayNumberExists) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                            "Day number " + request.getDayNumber() + " already exists for this tour");
+                            TOUR_DAY_NUMBER_ALREADY_EXISTS + request.getDayNumber());
                 }
 
-                // Validate against max days/nights
                 Integer maxDays = Math.max(tour.getNumberDays(), tour.getNumberNights());
                 if (request.getDayNumber() > maxDays) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                            "Day number cannot exceed the maximum defined in the tour (" + maxDays + " days/nights)");
+                            TOUR_DAY_EXCEEDS_MAX_LIMIT + maxDays + " ngày/đêm");
                 }
             }
 
-            // Update tour day
             tourDay.setDayNumber(request.getDayNumber());
             tourDay.setTitle(request.getTitle());
             tourDay.setContent(request.getContent());
             tourDay.setMealPlan(request.getMealPlan());
             tourDay.setLocation(location);
-
             tourDay = tourDayRepository.save(tourDay);
-            // Get requested service categories
+
             Set<String> requestedCategories = new HashSet<>(request.getServiceCategories());
             List<ServiceCategory> serviceCategories = new ArrayList<>();
-            // Delete all existing tour day service category associations first
+
             deleteTourDayServiceCategories(tourDay);
 
-            // Then add the new ones
             for (String categoryName : requestedCategories) {
                 ServiceCategory category = serviceCategoryRepository.findByCategoryName(categoryName)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Service category not found: " + categoryName));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND,
+                                SERVICE_CATEGORY_NOT_FOUND + categoryName));
                 serviceCategories.add(category);
-
                 saveTourDayServiceCategory(tourDay, category);
             }
 
-            // Extract category names for response
             List<String> categoryNames = serviceCategories.stream()
                     .map(ServiceCategory::getCategoryName)
                     .collect(Collectors.toList());
@@ -232,13 +221,15 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
                     .build();
+
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_UPDATED_SUCCESS, tourDayDTO);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update tour day", ex);
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, TOUR_DAY_UPDATE_FAILED, ex);
         }
     }
+
 
     @Override
     @Transactional
@@ -250,29 +241,30 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             TourDay tourDay = tourDayRepository.findByIdAndTourId(id, tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_DAY_NOT_FOUND));
 
-            // Set the deleted status based on the parameter
             tourDay.setDeleted(isDeleted);
             tourDayRepository.save(tourDay);
 
-            String statusMessage = isDeleted ? "deleted" : "restored";
-            String responseMessage = "Tour day with ID " + id + " has been " + statusMessage + " successfully";
+            String responseMessage = isDeleted
+                    ? "Ngày tour có ID " + id + " đã được xoá thành công."
+                    : "Ngày tour có ID " + id + " đã được khôi phục thành công.";
 
             return new GeneralResponse<>(HttpStatus.OK.value(),
-                    isDeleted ? TOUR_DAY_DELETED_SUCCESS : "Tour day restored successfully",
+                    isDeleted ? TOUR_DAY_DELETED_SUCCESS : TOUR_DAY_RESTORED_SUCCESS,
                     responseMessage);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            String action = isDeleted ? "delete" : "restore";
-            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to " + action + " tour day", ex);
+            String action = isDeleted ? "xoá" : "khôi phục";
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể " + action + " ngày tour", ex);
         }
     }
+
 
     private void validateServiceCategories(List<String> serviceCategories) {
         List<String> validCategories = Arrays.asList("Hotel", "Restaurant", "Transport", "Activity", "Flight Ticket");
 
         if (serviceCategories == null || serviceCategories.isEmpty()) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, "At least one service category is required");
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_CATEGORY_REQUIRED);
         }
 
         for (String category : serviceCategories) {
@@ -287,10 +279,11 @@ public class TourDayServiceIImpl implements TourDayServiceI {
             boolean isAvailable = serviceProviderRepository.existsByLocationIdAndCategoryName(locationId, category);
             if (!isAvailable) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                        String.format("No service provider available for category %s in the selected location", category));
+                        String.format(NO_PROVIDER_FOR_CATEGORY_IN_LOCATION, category));
             }
         }
     }
+
 
     private void saveTourDayServiceCategory(TourDay tourDay, ServiceCategory serviceCategory) {
         TourDayServiceCategory association = new TourDayServiceCategory();

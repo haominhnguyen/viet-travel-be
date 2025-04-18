@@ -112,13 +112,13 @@ public class TourGuideServiceImpl implements TourGuideService {
             // Convert saved entity to response DTO
             TourGuideResponseDTO responseDTO = tourGuideMapper.toDTO(savedUser);
             responseDTO.setRoles(Collections.singletonList("Tour_Guide"));
-
-            return GeneralResponse.of(responseDTO, "Tour guide created successfully.");
+            return GeneralResponse.of(responseDTO, TOUR_GUIDE_CREATED_SUCCESSFULLY);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw BusinessException.of("Failed to create tour guide.", e);
+            throw BusinessException.of(FAILED_TO_CREATE_TOUR_GUIDE, e);
         }
+
     }
 
     @Override
@@ -162,12 +162,13 @@ public class TourGuideServiceImpl implements TourGuideService {
             TourGuideResponseDTO responseDTO = tourGuideMapper.toDTO(updatedUser);
             responseDTO.setRoles(Collections.singletonList("Tour_Guide"));
 
-            return GeneralResponse.of(responseDTO, "Tour guide updated successfully.");
+            return GeneralResponse.of(responseDTO, TOUR_GUIDE_UPDATED_SUCCESSFULLY);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw BusinessException.of("Failed to update tour guide.", e);
+            throw BusinessException.of(FAILED_TO_UPDATE_TOUR_GUIDE, e);
         }
+
     }
 
     @Override
@@ -180,11 +181,11 @@ public class TourGuideServiceImpl implements TourGuideService {
 
             User savedUser = userRepository.save(user);
             TourGuideResponseDTO responseDTO = tourGuideMapper.toDTO(savedUser);
-            return GeneralResponse.of(responseDTO, "Tour guide deleted successfully.");
+            return GeneralResponse.of(responseDTO, TOUR_GUIDE_DELETED_SUCCESSFULLY);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw BusinessException.of("Failed to delete tour guide.", e);
+            throw BusinessException.of(FAILED_TO_DELETE_TOUR_GUIDE, e);
         }
     }
 

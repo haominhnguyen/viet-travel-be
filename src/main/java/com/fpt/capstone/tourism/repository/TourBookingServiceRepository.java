@@ -58,4 +58,6 @@ public interface TourBookingServiceRepository extends JpaRepository<TourBookingS
             WHERE b.id = :bookingId""")
     List<TourBookingService> findByTourBookingId(@Param("bookingId") Long bookingId);
 
+    TourBookingService findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(Long bookingId, Long serviceId, Long tourDayId);
+
 }

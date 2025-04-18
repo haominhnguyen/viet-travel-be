@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.TourDTO;
 import com.fpt.capstone.tourism.dto.common.TourWithNumberBookingDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
@@ -15,6 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface TourHelper {
-    Specification<Tour> buildTourPublicSearchSpecification(String keyword, Boolean isDeleted, TourType tourType);
+    Specification<Tour> buildTourPublicSearchSpecification(String keyword, TourStatus status, TourType tourType);
     GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> buildPublicTourPagedResponse(Page<Tour> tourPage);
 }

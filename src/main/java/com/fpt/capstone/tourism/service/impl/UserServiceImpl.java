@@ -272,7 +272,7 @@ public class UserServiceImpl implements UserService {
                     .items(users)
                     .build();
 
-            return GeneralResponse.of(pagingDTO, "Get all users with role " + roleName + " successfully");
+            return GeneralResponse.of(pagingDTO, GET_USERS_WITH_ROLE_SUCCESS + roleName + " thành công");
         } catch (Exception e) {
             throw BusinessException.of(GET_ALL_USER_FAIL_MESSAGE, e);
         }
@@ -314,8 +314,8 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             String message = specificRole != null
-                    ? "Get all users with role " + specificRole + " successfully"
-                    : "Get all staff users successfully";
+                    ? GET_USERS_WITH_ROLE_SUCCESS + specificRole + SUCCESSFULLY
+                    : GET_ALL_STAFF_USERS_SUCCESS;
 
             return GeneralResponse.of(pagingDTO, message);
         } catch (Exception e) {

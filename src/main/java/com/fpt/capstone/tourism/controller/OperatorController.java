@@ -115,9 +115,10 @@ public class OperatorController {
         return ResponseEntity.ok(operatorService.getListServiceProviderByLocationIdAndServiceCategoryId(locationId, serviceCategoryId));
     }
 
-    @GetMapping("/tour-service/{serviceProviderId}/list-service")
-    public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId) {
-        return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId));
+    @GetMapping("/tour-service/{serviceProviderId}/list-service/{serviceCategoryId}")
+    public ResponseEntity<GeneralResponse<List<ServiceSimpleDTO>>> getListServiceOfAProvider(@PathVariable Long serviceProviderId,
+                                                                                             @PathVariable Long serviceCategoryId) {
+        return ResponseEntity.ok(operatorService.getListServiceByServiceProviderId(serviceProviderId, serviceCategoryId));
     }
 
     @GetMapping("/tour-service/{serviceId}/service-detail")
@@ -182,6 +183,11 @@ public class OperatorController {
                                                                                          @RequestParam(value = "status", required = false) String status,
                                                                                          @RequestParam(defaultValue = "desc") String orderDate) {
         return ResponseEntity.ok(operatorService.getListTourPrivate(page, size, keyword, status, orderDate));
+    }
+
+    @GetMapping("/tour-detail/{scheduleId}/list-tour-day")
+    public ResponseEntity<?> getListTourDayOfSchedule(@PathVariable Long scheduleId) {
+        return ResponseEntity.ok(operatorService.getListTourDayOfSchedule(scheduleId));
     }
 
 }

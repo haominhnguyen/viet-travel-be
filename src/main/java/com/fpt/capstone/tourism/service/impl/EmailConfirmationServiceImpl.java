@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.fpt.capstone.tourism.constants.Constants.Message.INVALID_CONFIRMATION_TOKEN_MESSAGE;
-import static com.fpt.capstone.tourism.constants.Constants.Message.TOKEN_USED_MESSAGE;
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,43 +40,38 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
             //String encryptedToken = TokenEncryptorImpl.encrypt(token.getToken());
 
             String link = "http://localhost:8080/api/auth/confirm-email?token=" + token.getToken();
-            String subject = "Viet Travel Email Confirmation";
-            String content = "Dear " + user.getFullName() + ",\n\n"
-                    + "Welcome to Viet Travel! We are thrilled to have you join our community."
-                    + "\nWe hope you have fun and enjoy exploring Viet Nam with us.\n\n"
-                    + "To confirm your email address, please click the link below:\n" + link;
+            String subject = "Xác Nhận Email Viet Travel";
+            String content = "Kính gửi " + user.getFullName() + ",\n\n"
+                    + "Chào mừng bạn đến với Viet Travel! Chúng tôi rất vui mừng khi bạn tham gia cộng đồng của chúng tôi."
+                    + "\nChúng tôi hy vọng bạn sẽ có nhiều trải nghiệm thú vị khi khám phá Việt Nam cùng chúng tôi.\n\n"
+                    + "Để xác nhận địa chỉ email của bạn, vui lòng nhấp vào liên kết dưới đây:\n" + link;
 
             emailService.sendEmail(user.getEmail(), subject, content);
         } catch (Exception e) {
             throw BusinessException.of(Constants.Message.TOKEN_ENCRYPTION_FAILED_MESSAGE, e);
         }
     }
+
     public String generateTemporaryToken() {
         return UUID.randomUUID().toString();
     }
 
-
     @Override
     public void sendForgotPasswordEmail(User user, Token token) {
         try {
-
-
             String link = "http://localhost:8080/api/reset-password?token=" + token.getToken();
-            String subject = "Reset Password";
-            String content = "Dear " + user.getFullName() + ",\n\n"
-                    + "Hello,"
-                    + "\nYou have requested to reset your password.\n\n"
-                    + "Click the link below to change your password:\n" + link
-                    +"\nIgnore this email if you do remember your password, or you have not made the request.";
+            String subject = "Đặt Lại Mật Khẩu";
+            String content = "Kính gửi " + user.getFullName() + ",\n\n"
+                    + "Xin chào,"
+                    + "\nBạn đã yêu cầu đặt lại mật khẩu của mình.\n\n"
+                    + "Vui lòng nhấp vào liên kết dưới đây để thay đổi mật khẩu của bạn:\n" + link
+                    + "\nVui lòng bỏ qua email này nếu bạn vẫn nhớ mật khẩu của mình hoặc bạn không thực hiện yêu cầu này.";
 
             emailService.sendEmail(user.getEmail(), subject, content);
-
         } catch (Exception e) {
             throw BusinessException.of(Constants.Message.TOKEN_ENCRYPTION_FAILED_MESSAGE, e);
         }
     }
-
-
 
     @Override
     public Token validateConfirmationToken(String token) {
@@ -101,19 +95,18 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
     @Override
     public void sendAccountServiceProvider(User user, String randomPassword) {
         try {
-            String subject = "Register to be Service Provide with Viet Travel";
-            String content = "Dear " + user.getFullName() + ",\n\n"
-                    + "Hello,"
-                    + "\nYou have been become a service provider for Viet Travel.\n\n"
-                    + "This is your account to access to web:\n"
-                    + "Account: " + user.getUsername()
-                    + "Password: " + randomPassword
-                    +"\nPlease log in web to change password. If you have any problem please contact to Viet Travel via this email address.";
+            String subject = "Đăng Ký Làm Nhà Cung Cấp Dịch Vụ Với Viet Travel";
+            String content = "Kính gửi " + user.getFullName() + ",\n\n"
+                    + "Xin chào,"
+                    + "\nBạn đã trở thành nhà cung cấp dịch vụ cho Viet Travel.\n\n"
+                    + "Đây là tài khoản của bạn để truy cập vào hệ thống:\n"
+                    + "Tài khoản: " + user.getUsername() + "\n"
+                    + "Mật khẩu: " + randomPassword + "\n"
+                    + "\nVui lòng đăng nhập vào hệ thống để thay đổi mật khẩu. Nếu bạn gặp bất kỳ vấn đề nào, vui lòng liên hệ với Viet Travel qua địa chỉ email này.";
 
             emailService.sendEmail(user.getEmail(), subject, content);
-
         } catch (Exception e) {
-            throw BusinessException.of("Send email account fail", e);
+            throw BusinessException.of(SEND_EMAIL_ACCOUNT_FAIL, e);
         }
     }
 
@@ -121,10 +114,8 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
     public void sendMailServiceProvider(MailServiceDTO mailServiceDTO) {
         try {
             emailService.sendEmail(mailServiceDTO.getProviderEmail(), mailServiceDTO.getEmailSubject(), mailServiceDTO.getEmailContent());
-
         } catch (Exception e) {
-            throw BusinessException.of("Send email order service fail", e);
+            throw BusinessException.of(SEND_EMAIL_ORDER_SERVICE_FAIL, e);
         }
     }
-
 }

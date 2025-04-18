@@ -76,7 +76,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
             Map result = cloudinary.uploader().upload(file.getBytes(), uploadParams);
             return result.get("url").toString();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload files", e);
+            throw new RuntimeException("Tải lên file thất bại", e);
         }
     }
 }

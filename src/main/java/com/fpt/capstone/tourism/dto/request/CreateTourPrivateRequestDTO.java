@@ -19,4 +19,5 @@ public class CreateTourPrivateRequestDTO {
     private String note;
     private Long createdBy;
     private int pax;
+    private List<String> tourImages;
 }

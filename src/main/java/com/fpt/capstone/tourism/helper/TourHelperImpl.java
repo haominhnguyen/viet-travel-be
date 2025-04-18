@@ -32,7 +32,7 @@ public class TourHelperImpl implements TourHelper {
 
 
     @Override
-    public Specification<Tour> buildTourPublicSearchSpecification(String keyword, Boolean isDeleted,  TourType tourType) {
+    public Specification<Tour> buildTourPublicSearchSpecification(String keyword, TourStatus status,  TourType tourType) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -47,10 +47,12 @@ public class TourHelperImpl implements TourHelper {
                 predicates.add(tourNamePredicate);
             }
 
-            // Filter by deletion status
-            if (isDeleted != null) {
-                predicates.add(cb.equal(root.get("deleted"), isDeleted));
+            predicates.add(cb.equal(root.get("deleted"), false));
+
+            if(status != null) {
+                predicates.add(cb.equal(root.get("tourStatus"), status));
             }
+
 
             predicates.add(cb.equal(root.get("tourType"), tourType));
 

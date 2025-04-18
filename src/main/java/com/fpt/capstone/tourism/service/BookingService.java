@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourDay;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 
 import java.util.List;
@@ -16,9 +17,9 @@ public interface BookingService {
      GeneralResponse<TourBookingDataResponseDTO> viewTourBookingDetail(Long tourId, Long scheduleId);
      GeneralResponse<?> createBooking(BookingRequestDTO bookingRequestDTO);
      GeneralResponse<?> getTourBookingDetails(String bookingCode);
-     GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection);
+     GeneralResponse<PagingDTO<List<TourBookingWithDetailDTO>>> getTourBookings(int page, int size, String keyword, String status, String sortField, String sortDirection);
 
-     GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection, TourType tourType);
+     GeneralResponse<PagingDTO<List<TourWithNumberBookingDTO>>> getTours(int page, int size, String keyword, TourStatus status, String sortField, String sortDirection, TourType tourType);
 
      GeneralResponse<?> createBooking(CreatePublicBookingRequestDTO bookingRequestDTO);
 
@@ -113,4 +114,12 @@ public interface BookingService {
      GeneralResponse<?> sendEmailPrice(SendEmailPriceRequestDTO dto);
 
      void confirmPayment(int paymentStatus, String orderInfo);
+
+     GeneralResponse<?> getAllRefundRequest(int page, int size, String keyword, Boolean isDeleted, String sortField, String sortDirection);
+
+     GeneralResponse<?> getDetailRefundRequest(Long tourBookingId);
+
+    GeneralResponse<?> approveRefundRequest(Long tourBookingId);
+
+    GeneralResponse<?> rejectRefundRequest(Long tourBookingId);
 }

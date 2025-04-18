@@ -10,7 +10,7 @@ spring:
 #    url: jdbc:postgresql://104.214.172.68/postgres
 
     # For old ENV
-    username: ${DB_USERNAME:postgres.rajhtsimmhavwpftclqv}
+    username: ${DB_USERNAME:postgres.sttkcthqauvzhlyipqvh}
     password: ${DB_PASSWORD:Huyen25092003@}
     url: ${DB_URL:jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?prepareThreshold=0}
     hikari:
@@ -91,3 +91,7 @@ logging:
             JdbcTemplate: INFO
       hibernate:
         SQL: INFO
+frontend:
+  base-url: http://localhost:4200
+backend:
+  base-url: http://localhost:8080/v1
