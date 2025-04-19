@@ -193,7 +193,7 @@ public class BookingServiceImpl implements BookingService {
             return GeneralResponse.of(result.getBookingCode());
 
         } catch (Exception ex) {
-            throw BusinessException.of(ex.getMessage(), ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 
@@ -237,7 +237,7 @@ public class BookingServiceImpl implements BookingService {
 
             return GeneralResponse.of(bookingConfirmResponse);
         } catch (Exception ex) {
-            throw BusinessException.of(ex.getMessage(), ex);
+            throw BusinessException.of("Thất bại", ex);
         }
     }
 

@@ -115,7 +115,7 @@ public class AuthServiceImplTest {
 
         // Act & Assert
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
-        assertEquals("User name cannot be empty", exception.getMessage());
+        assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
     }
 
     @Test
@@ -258,7 +258,7 @@ public class AuthServiceImplTest {
 
         // Act & Assert
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(registerRequestDTO));
-        assertEquals("User name cannot be empty", exception.getMessage());
+        assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
     }
 
     @Test
@@ -396,5 +396,220 @@ public class AuthServiceImplTest {
         assertEquals(CONFIRM_EMAIL_FAILED, exception.getMessage());
         verify(emailConfirmationService, times(1)).validateConfirmationToken(invalidToken);
         verify(userService, never()).saveUser(any(User.class));
+    }
+
+    @Test
+    @Order(15)
+    public void testRegister_UsernameNull() {
+        // Arrange
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername(null); // Username is null
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // Test Case UTC102C: Password is null
+    @Test
+    @Order(16)
+    public void testRegister_PasswordNull() {
+        // Arrange
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword(null); // Password is null
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Mật khẩu không được để trống", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // Test Case UTC103C: RePassword is null
+    @Test
+    @Order(17)
+    public void testRegister_RePasswordNull() {
+        // Arrange
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword(null); // RePassword is null
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Xác nhận mật khẩu không được để trống", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+    @Test
+    @Order(18)
+    public void testRegister_UsernameExists() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        when(userService.existsByUsername("LanAnh123")).thenReturn(true);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals( "Tên đăng nhập đã tồn tại", exception.getMessage());
+        verify(userService, times(1)).existsByUsername("LanAnh123");
+        verify(userService, never()).exitsByEmail(anyString());
+    }
+
+    // Test Case UTC106C: Email already exists
+    @Test
+    @Order(19)
+    public void testRegister_EmailExists() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("lananh1999@gmail.com");
+
+        when(userService.existsByUsername("LanAnh123")).thenReturn(false);
+        when(userService.exitsByEmail("lananh1999@gmail.com")).thenReturn(true);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals( "Email đã được sử dụng", exception.getMessage());
+        verify(userService, times(1)).existsByUsername("LanAnh123");
+        verify(userService, times(1)).exitsByEmail("lananh1999@gmail.com");
+        verify(userService, never()).existsByPhoneNumber(anyString());
+    }
+
+    // Test Case UTC107C: Phone number already exists
+    @Test
+    @Order(20)
+    public void testRegister_PhoneExists() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("lananh1999@gmail.com");
+
+        when(userService.existsByUsername("LanAnh123")).thenReturn(false);
+        when(userService.exitsByEmail("lananh1999@gmail.com")).thenReturn(false);
+        when(userService.existsByPhoneNumber("0987654321")).thenReturn(true);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Số điện thoại đã được sử dụng", exception.getMessage());
+        verify(userService, times(1)).existsByUsername("LanAnh123");
+        verify(userService, times(1)).exitsByEmail("lananh1999@gmail.com");
+        verify(userService, times(1)).existsByPhoneNumber("0987654321");
+    }
+
+    // New Test Case: Invalid Username Format
+    @Test
+    @Order(21)
+    public void testRegister_InvalidUsernameFormat() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("user#name"); // Invalid: contains special character (#)
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // New Test Case: Invalid Password Format
+    @Test
+    @Order(22)
+    public void testRegister_InvalidPasswordFormat() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("pass"); // Invalid: too short, no special character
+        requestDTO.setRePassword("pass");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals( "Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // New Test Case: Invalid FullName Format
+    @Test
+    @Order(23)
+    public void testRegister_InvalidFullNameFormat() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan 123"); // Invalid: contains numbers
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals( "Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // New Test Case: Invalid Phone Format
+    @Test
+    @Order(24)
+    public void testRegister_InvalidPhoneFormat() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("12345"); // Invalid: too short, doesn't start with 0
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("LanAnh1999@gmail.com");
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Số điện thoại phải gồm đúng 10-15 chữ số", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
+    }
+
+    // New Test Case: Invalid Email Format
+    @Test
+    @Order(25)
+    public void testRegister_InvalidEmailFormat() {
+        RegisterRequestDTO requestDTO = new RegisterRequestDTO();
+        requestDTO.setUsername("LanAnh123");
+        requestDTO.setPassword("LanAnh1999@");
+        requestDTO.setRePassword("LanAnh1999@");
+        requestDTO.setFullName("Lan Anh Lan");
+        requestDTO.setPhone("0987654321");
+        requestDTO.setAddress("Hà Nội");
+        requestDTO.setEmail("invalid-email"); // Invalid: no @ or domain
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(requestDTO));
+        assertEquals("Email không hợp lệ", exception.getMessage());
+        verify(userService, never()).existsByUsername(anyString());
     }
 }

@@ -5,14 +5,14 @@ import com.fpt.capstone.tourism.model.TourBooking;
 import com.fpt.capstone.tourism.model.TourDay;
 import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TourBookingServiceDTO {
     private Long id;
     private ServiceSaleResponseDTO service;

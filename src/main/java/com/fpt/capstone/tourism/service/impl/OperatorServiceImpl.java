@@ -1480,7 +1480,7 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
 
-    private Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
+    public Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -1539,7 +1539,7 @@ public class OperatorServiceImpl implements OperatorService {
         return new GeneralResponse<>(HttpStatus.OK.value(), PAGE_SUCCESS, pagingDTO);
     }
 
-    private Long getCurrentUserOperatorId() {
+    public Long getCurrentUserOperatorId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             User user = userRepository.findByUsername(authentication.getName())
@@ -1549,7 +1549,7 @@ public class OperatorServiceImpl implements OperatorService {
         throw BusinessException.of(USER_INFO_NOT_FOUND);
     }
 
-    private boolean checkAuthor(Long scheduleId) {
+    public boolean checkAuthor(Long scheduleId) {
         //Kiểm tra đơn tour có phải của nhà điều hành không
         Long currentOperatorId = getCurrentUserOperatorId();
         TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(

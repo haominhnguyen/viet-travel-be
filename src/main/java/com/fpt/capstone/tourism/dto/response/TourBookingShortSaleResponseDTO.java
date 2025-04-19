@@ -7,11 +7,15 @@ import com.fpt.capstone.tourism.dto.common.TourSupportInfoDTO;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.enums.TourBookingCategory;
 import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TourBookingShortSaleResponseDTO {
     private Long id;
     private int seats;
