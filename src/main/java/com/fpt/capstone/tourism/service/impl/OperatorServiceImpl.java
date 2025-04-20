@@ -1119,7 +1119,10 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             Long currentOperatorId = getCurrentUserOperatorId();
             Pageable pageable = PageRequest.of(page, size);
-            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByRequestedQuantityGreaterThanOrStatus(currentOperatorId, TourBookingServiceStatus.CHECKING, pageable);
+            List<TourBookingServiceStatus> bookingServiceStatuses = new ArrayList<>();
+            bookingServiceStatuses.add(TourBookingServiceStatus.CHECKING);
+            bookingServiceStatuses.add(TourBookingServiceStatus.CANCEL_REQUEST);
+            Page<TourBookingService> bookingServicePage = bookingServiceRepository.findByRequestedQuantityGreaterThanOrStatus(currentOperatorId, bookingServiceStatuses, pageable);
             List<ChangeServiceDTO> resultDTO = bookingServicePage.getContent().stream()
                     .map(bookingServiceMapper::toChangeServiceDTO
                     )
