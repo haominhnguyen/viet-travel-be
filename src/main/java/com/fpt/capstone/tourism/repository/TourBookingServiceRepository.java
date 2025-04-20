@@ -34,7 +34,7 @@ public interface TourBookingServiceRepository extends JpaRepository<TourBookingS
                 SELECT tb FROM TourBookingService tb
                 JOIN FETCH tb.booking b
                 JOIN FETCH b.tour t
-                JOIN FETCH b.user u
+                JOIN FETCH b.tourSchedule.operator u
                 LEFT JOIN FETCH tb.service s
                 LEFT JOIN FETCH tb.tourDay td
                 WHERE tb.requestedQuantity > 0 OR tb.status in :statuses
