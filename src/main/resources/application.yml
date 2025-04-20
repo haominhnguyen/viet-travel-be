@@ -92,6 +92,6 @@ logging:
       hibernate:
         SQL: INFO
 frontend:
-  base-url: http://localhost:4200
+  base-url: https://traveltoday.cloud
 backend:
-  base-url: http://localhost:8080/v1
+  base-url: https://traveltoday.cloud/v1
