@@ -155,7 +155,7 @@ public class BookingServiceImpl implements BookingService {
                     .tourBookingCategory(TourBookingCategory.ONLINE)
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .paymentUrl(paymentUrl)
-                    .expiredAt(LocalDateTime.now().plusHours(2))
+                    .expiredAt(LocalDateTime.now().plusHours(9))
                     .totalAmount(bookingRequestDTO.getTotal())
                     .build();
 
@@ -282,7 +282,7 @@ public class BookingServiceImpl implements BookingService {
         try {
             List<TourBookingCustomer> customers = bookingRequestDTO.getCustomers().stream().map(bookingMapper::toTourBookingCustomer).toList();
 
-            String baseUrl = "http://localhost:8080/v1/public/booking";
+            String baseUrl = backendBaseUrl + "/public/booking";
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
