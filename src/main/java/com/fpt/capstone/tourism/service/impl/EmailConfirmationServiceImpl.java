@@ -59,7 +59,7 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
     @Override
     public void sendForgotPasswordEmail(User user, Token token) {
         try {
-            String link = "http://localhost:8080/api/reset-password?token=" + token.getToken();
+            String link = "https://traveltoday.cloud/api/v1/reset-password?token=" + token.getToken();
             String subject = "Đặt Lại Mật Khẩu";
             String content = "Kính gửi " + user.getFullName() + ",\n\n"
                     + "Xin chào,"
