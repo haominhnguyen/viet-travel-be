@@ -296,7 +296,7 @@ public class BookingServiceImpl implements BookingService {
                     .deleted(false)
                     .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
                     .user(User.builder().id(bookingRequestDTO.getUserId()).build())
-                    .status(TourBookingStatus.SUCCESS)
+                    .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
                     .tourBookingCategory(TourBookingCategory.SALE)
@@ -346,11 +346,19 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> getTourListBookings(Long tourId, Long scheduleId) {
         try {
             Tour tour = tourRepository.findById(tourId).orElseThrow();
-            TourSchedule tourSchedule;
+            TourSchedule tourSchedule = new TourSchedule();
             if (scheduleId != null) {
                 tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
             } else {
-                tourSchedule = tour.getTourSchedules().get(0);
+                for(TourSchedule schedule : tour.getTourSchedules()) {
+                    if(!schedule.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.DRAFT.toString())
+                    && !schedule.getStatus().toString().equalsIgnoreCase(TourScheduleStatus.CANCELLED.toString()
+                    )) {
+                        tourSchedule = schedule;
+                        break;
+                    }
+                }
+
             }
 
             List<TourBooking> tourBookings = tourBookingRepository.findAllByTourAndTourSchedule(tour, tourSchedule);
@@ -637,7 +645,7 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
         try {
             TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
-            tourBookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            tourBookingService.setStatus(TourBookingServiceStatus.CANCEL_REQUEST);
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
