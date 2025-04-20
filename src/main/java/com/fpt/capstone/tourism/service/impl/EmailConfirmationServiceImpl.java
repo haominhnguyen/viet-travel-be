@@ -39,7 +39,7 @@ public class EmailConfirmationServiceImpl implements EmailConfirmationService {
             //Token encryptor when need
             //String encryptedToken = TokenEncryptorImpl.encrypt(token.getToken());
 
-            String link = "http://localhost:8080/api/auth/confirm-email?token=" + token.getToken();
+            String link = "https://traveltoday.cloud/api/v1/auth/confirm-email?token=" + token.getToken();
             String subject = "Xác Nhận Email Viet Travel";
             String content = "Kính gửi " + user.getFullName() + ",\n\n"
                     + "Chào mừng bạn đến với Viet Travel! Chúng tôi rất vui mừng khi bạn tham gia cộng đồng của chúng tôi."

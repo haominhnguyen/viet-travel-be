@@ -94,4 +94,4 @@ logging:
 frontend:
   base-url: https://traveltoday.cloud
 backend:
-  base-url: https://traveltoday.cloud/v1
+  base-url: https://traveltoday.cloud/api/v1

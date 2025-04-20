@@ -296,7 +296,7 @@ public class BookingServiceImpl implements BookingService {
                     .deleted(false)
                     .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
                     .user(User.builder().id(bookingRequestDTO.getUserId()).build())
-                    .status(TourBookingStatus.SUCCESS)
+                    .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
                     .tourBookingCategory(TourBookingCategory.SALE)
@@ -645,7 +645,7 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
         try {
             TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
-            tourBookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            tourBookingService.setStatus(TourBookingServiceStatus.CANCEL_REQUEST);
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
