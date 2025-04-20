@@ -1180,6 +1180,11 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
+            //Trường hợp yêu cầu hủy dịch vụ
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+            }
+
             //Trường hợp kiểm tra khả dụng của dịch vụ
             if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
                 bookingService.setStatus(TourBookingServiceStatus.NOT_AVAILABLE);
@@ -1253,6 +1258,11 @@ public class OperatorServiceImpl implements OperatorService {
             TourBookingService bookingService = bookingServiceRepository.findById(tourBookingServiceId).orElseThrow(
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
+
+            //Trường hợp yêu cầu hủy dịch vụ
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+                bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            }
 
             //Trường hợp kiểm tra khả dụng của dịch vụ
             if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
