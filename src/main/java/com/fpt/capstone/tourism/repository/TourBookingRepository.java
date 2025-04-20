@@ -18,6 +18,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -190,5 +191,8 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
             AND tb.status = :requestCancelledWithRefund
             """)
     List<RefundDetailDTO> findDetailRefundRequestByBookingId(Long tourBookingId, TourBookingStatus requestCancelledWithRefund);
+
+
+    List<TourBooking> findByStatusAndExpiredAtBeforeAndDeletedFalse(TourBookingStatus status, LocalDateTime now);
 }
 
