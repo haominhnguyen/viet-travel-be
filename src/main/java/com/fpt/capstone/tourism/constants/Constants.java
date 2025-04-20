@@ -13,7 +13,7 @@ public class Constants {
         public static final String USERNAME_INVALID = "Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự";
         public static final String PASSWORD_INVALID = "Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt";
         public static final String FULL_NAME_INVALID = "Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng";
-        public static final String PHONE_INVALID = "Số điện thoại phải gồm đúng 10 chữ số";
+        public static final String PHONE_INVALID = "Số điện thoại phải gồm đúng 10-15 chữ số";
         public static final String EMAIL_INVALID = "Email không hợp lệ";
         public static final String ROLES_NAME_INVALID = "Tên vai trò không hợp lệ";
         public static final String USER_NOT_FOUND = "Không tìm thấy người dùng, vui lòng đăng nhập bằng tài khoản hợp lệ để xem thông tin cá nhân";

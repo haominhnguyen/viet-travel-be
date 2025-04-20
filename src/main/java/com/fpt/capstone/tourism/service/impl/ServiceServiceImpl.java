@@ -528,7 +528,7 @@ public class ServiceServiceImpl implements ServiceService {
                     bookingService.setCurrentQuantity(updateQuantity);
                     bookingService.setRequestedQuantity(0);
                 }
-                bookingService.setStatus(TourBookingServiceStatus.APPROVED);
+                bookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
                 bookingServiceRepository.save(bookingService);
 
                 //Map to DTO
