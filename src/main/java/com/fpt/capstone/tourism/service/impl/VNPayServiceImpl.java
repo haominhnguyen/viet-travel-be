@@ -43,7 +43,7 @@ public class VNPayServiceImpl implements VNPayService {
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
 
-        TimeZone timeZone = TimeZone.getTimeZone("Etc/GMT+7");
+        TimeZone timeZone = TimeZone.getTimeZone("Etc/GMT-7");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         formatter.setTimeZone(timeZone);
 
