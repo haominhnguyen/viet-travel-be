@@ -42,13 +42,18 @@ public class VNPayServiceImpl implements VNPayService {
         vnp_Params.put("vnp_ReturnUrl", urlReturn);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+
+        TimeZone timeZone = TimeZone.getTimeZone("Etc/GMT+7");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnp_CreateDate = formatter.format(cld.getTime());
+        formatter.setTimeZone(timeZone);
+
+        Calendar createCal = Calendar.getInstance(timeZone);
+        String vnp_CreateDate = formatter.format(createCal.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 120);
-        String vnp_ExpireDate = formatter.format(cld.getTime());
+        Calendar expireCal = Calendar.getInstance(timeZone);
+        expireCal.add(Calendar.MINUTE, 120);
+        String vnp_ExpireDate = formatter.format(expireCal.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
