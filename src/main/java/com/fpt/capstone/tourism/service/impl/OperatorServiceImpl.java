@@ -1192,7 +1192,8 @@ public class OperatorServiceImpl implements OperatorService {
 
             //Trường hợp thay đổi số lượng
             if (bookingService.getRequestedQuantity() > 0) {
-                bookingService.setRequestedQuantity(0);
+//                bookingService.setRequestedQuantity(0);
+                bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
 
                 //Send email to sale
                 User sale = bookingService.getBooking().getSale();
