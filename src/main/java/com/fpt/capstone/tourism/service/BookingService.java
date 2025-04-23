@@ -122,4 +122,6 @@ public interface BookingService {
     GeneralResponse<?> approveRefundRequest(Long tourBookingId);
 
     GeneralResponse<?> rejectRefundRequest(Long tourBookingId);
+
+    GeneralResponse<?> successService(Long tourBookingServiceId);
 }
