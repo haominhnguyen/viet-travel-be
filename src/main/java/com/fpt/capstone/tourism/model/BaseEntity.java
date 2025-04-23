@@ -7,6 +7,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Data
 @Getter
@@ -27,12 +28,14 @@ public class BaseEntity {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        createdAt = LocalDateTime.now(vietnamZone);
+        updatedAt = LocalDateTime.now(vietnamZone);
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        updatedAt = LocalDateTime.now(vietnamZone);
     }
 }
