@@ -788,7 +788,7 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
             //Kiểm tra trạng thái của service booking
-            if (!(bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+            if (!(bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)
                     || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED))
             ) {
                 throw BusinessException.of(SERVICE_STATUS_CANNOT_SEND_EMAIL);
@@ -1101,7 +1101,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Kiểm tra trạng thái của service booking
-            if (!bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+            if (!bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
                 throw BusinessException.of(SERVICE_STATUS_CANNOT_SEND_EMAIL);
             }
 
@@ -1267,33 +1267,33 @@ public class OperatorServiceImpl implements OperatorService {
             //Trường hợp kiểm tra khả dụng của dịch vụ
             if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
 
-                //Gửi mail đặt hàng với nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
-                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_NOT_FOUND)
-                );
-
-                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
-                );
-                String content = MessageFormat.format(emailOrderServiceContent,
-                        serviceProvider.getName(),
-                        service.getName(),
-                        bookingService.getCurrentQuantity(),
-                        bookingService.getRequestDate(),
-                        bookingService.getCurrentQuantity() * service.getNettPrice());
-
-                String subject = MessageFormat.format(emailOrderServiceSubject, serviceProvider.getId());
-
-                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .bookingServiceId(tourBookingServiceId)
-                        .providerId(serviceProvider.getId())
-                        .providerName(serviceProvider.getName())
-                        .providerEmail(serviceProvider.getEmail())
-                        .emailSubject(subject)
-                        .emailContent(content)
-                        .build();
-                emailService.sendMailServiceProvider(mailServiceDTO);
-                bookingService.setStatus(TourBookingServiceStatus.PENDING);
+//                //Gửi mail đặt hàng với nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+//                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+//                        () -> BusinessException.of(SERVICE_NOT_FOUND)
+//                );
+//
+//                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+//                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+//                );
+//                String content = MessageFormat.format(emailOrderServiceContent,
+//                        serviceProvider.getName(),
+//                        service.getName(),
+//                        bookingService.getCurrentQuantity(),
+//                        bookingService.getRequestDate(),
+//                        bookingService.getCurrentQuantity() * service.getNettPrice());
+//
+//                String subject = MessageFormat.format(emailOrderServiceSubject, serviceProvider.getId());
+//
+//                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+//                        .bookingServiceId(tourBookingServiceId)
+//                        .providerId(serviceProvider.getId())
+//                        .providerName(serviceProvider.getName())
+//                        .providerEmail(serviceProvider.getEmail())
+//                        .emailSubject(subject)
+//                        .emailContent(content)
+//                        .build();
+//                emailService.sendMailServiceProvider(mailServiceDTO);
+//                bookingService.setStatus(TourBookingServiceStatus.PENDING);
             }
 
 //            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
@@ -1525,6 +1525,8 @@ public class OperatorServiceImpl implements OperatorService {
                     throw BusinessException.of(INVALID_STATUS_VALUE + status, e);
                 }
             }
+            Join<Object, Object> tourJoin = root.join("tour", JoinType.LEFT);
+            predicates.add(cb.equal(tourJoin.get("tourType"), TourType.SIC));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
