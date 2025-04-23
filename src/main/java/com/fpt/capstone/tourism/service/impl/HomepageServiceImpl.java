@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -109,6 +110,10 @@ public class HomepageServiceImpl implements HomepageService {
             List<PublicTourDTO> otherTour = tourService.findSameLocationPublicTour(locationIds);
             List<PublicTourScheduleDTO> tourScheduleBasicDTO = tourScheduleRepository.findTourScheduleBasicByTourId(id);
 
+            List<PublicTourScheduleDTO> filteredSchedules = tourScheduleBasicDTO.stream()
+                    .filter(schedule -> schedule.getStartDate().isAfter(LocalDateTime.now()))
+                    .toList();
+
             //Mapping to DTO
             PublicTourDetailDTO tourBasicDTO = PublicTourDetailDTO.builder()
                     .id(currentTour.getId())
@@ -121,7 +126,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .locations(currentTour.getLocations().stream().map(locationMapper::toPublicLocationDTO).collect(Collectors.toList()))
                     .tags(currentTour.getTags().stream().map(tagMapper::toDTO).collect(Collectors.toList()))
                     .departLocation(locationMapper.toPublicLocationDTO(currentTour.getDepartLocation()))
-                    .tourSchedules(tourScheduleBasicDTO)
+                    .tourSchedules(filteredSchedules)
                     .tourImages(currentTour.getTourImages().stream().map(tourImageMapper::toPublicTourImageDTO).collect(Collectors.toList()))
                     .tourDays(currentTour.getTourDays().stream().map(tourDayMapper::toPublicTourDayDTO).collect(Collectors.toList()))
                     .otherTours(otherTour)
