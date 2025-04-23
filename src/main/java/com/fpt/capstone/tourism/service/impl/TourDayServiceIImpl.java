@@ -276,6 +276,9 @@ public class TourDayServiceIImpl implements TourDayServiceI {
 
     private void verifyServiceCategoriesAvailableInLocation(List<String> categories, Long locationId) {
         for (String category : categories) {
+            if (TICKET.equals(category)) {
+                continue;
+            }
             boolean isAvailable = serviceProviderRepository.existsByLocationIdAndCategoryName(locationId, category);
             if (!isAvailable) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,

@@ -394,7 +394,7 @@ public class Constants {
         public static final String PROVIDER_CATEGORY_SERVICES_LOAD_SUCCESS = "Tải dịch vụ theo loại của nhà cung cấp thành công";
         public static final String PROVIDER_CATEGORY_SERVICES_LOAD_FAIL = "Tải dịch vụ theo loại của nhà cung cấp thất bại";
         public static final String GET_PROVIDER_SERVICES_FAIL = "Không thể lấy dịch vụ của nhà cung cấp";
-        public static final String NO_PROVIDER_FOR_CATEGORY_IN_LOCATION = "Không có nhà cung cấp dịch vụ cho danh mục %s tại địa điểm đã chọn.";
+        public static final String NO_PROVIDER_FOR_CATEGORY_IN_LOCATION = "Không có nhà cung cấp dịch vụ cho danh mục tại địa điểm đã chọn.";
 
         //===================================================
         // Service Related Messages
