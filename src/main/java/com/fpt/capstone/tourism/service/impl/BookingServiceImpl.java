@@ -1489,6 +1489,19 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Override
+    public GeneralResponse<?> successService(Long tourBookingServiceId) {
+        try {
+            TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
+            tourBookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
+            tourBookingService.setRequestedQuantity(0);
+            TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
+            return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
+        } catch (Exception ex) {
+            throw BusinessException.of(CANCEL_TOUR_BOOKING_SERVICES_FAIL, ex);
+        }
+    }
+
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
 

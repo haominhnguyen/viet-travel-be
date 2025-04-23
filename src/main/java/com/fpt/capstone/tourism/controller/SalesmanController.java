@@ -98,6 +98,12 @@ public class  SalesmanController {
     }
 
 
+    @PostMapping("/bookings/services/success-service")
+    public ResponseEntity<?> successService(@RequestBody Long tourBookingServiceId) {
+        return ResponseEntity.ok(bookingService.successService(tourBookingServiceId));
+    }
+
+
     @GetMapping("/bookings/customers/list/{tourBookingId}")
     public ResponseEntity<?> getBookingCustomers(@PathVariable Long tourBookingId) {
         return ResponseEntity.ok(bookingService.getTourBookingCustomers(tourBookingId));
