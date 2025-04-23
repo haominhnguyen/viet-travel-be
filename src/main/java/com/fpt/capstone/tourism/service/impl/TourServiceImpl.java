@@ -789,7 +789,8 @@ public class TourServiceImpl implements TourService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
             // Check if the tour is in DRAFT status
-            if (tour.getTourStatus() != TourStatus.DRAFT) {
+            if (tour.getTourStatus() != TourStatus.DRAFT &&
+            tour.getTourStatus() != TourStatus.REJECTED) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
                         ONLY_DRAFT_CAN_BE_SENT + tour.getTourStatus());
             }
