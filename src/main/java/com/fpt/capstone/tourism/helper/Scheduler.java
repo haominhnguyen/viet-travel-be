@@ -24,7 +24,7 @@ public class Scheduler {
         );
 
         for (TourBooking booking : expiredBookings) {
-            booking.setStatus(TourBookingStatus.CANCELLED); // or mark as deleted
+            booking.setStatus(TourBookingStatus.CANCELLED_WITHOUT_REFUND); // or mark as deleted
             booking.setDeleted(true);
         }
 
