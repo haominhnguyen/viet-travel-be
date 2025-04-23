@@ -191,9 +191,9 @@ public class OperatorServiceImpl implements OperatorService {
                 throw BusinessException.of("Đã có người điều hành lịch tour này");
             }
 
-            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
-                throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
-            }
+//            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
+//                throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
+//            }
 
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
