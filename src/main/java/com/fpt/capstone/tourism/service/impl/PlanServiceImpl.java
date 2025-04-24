@@ -225,7 +225,7 @@ public class PlanServiceImpl implements PlanService {
             String response = groqService.callGroqAPI(messages, model);
 
 
-            response = response.replace("json", "").replace("```", "");
+            //response = response.replace("json", "").replace("```", "");
 
 
             Plan plan = Plan.builder()
@@ -392,7 +392,7 @@ public class PlanServiceImpl implements PlanService {
             String response = groqService.callGroqAPI(messages, model);
 
 
-            response = response.replace("json", "").replace("```", "");
+            //response = response.replace("json", "").replace("```", "");
             return GeneralResponse.of(response);
         } catch (Exception ex) {
             throw BusinessException.of("Lấy dữ liệu thất bại" , ex);
