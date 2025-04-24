@@ -383,18 +383,18 @@ public class PlanServiceImpl implements PlanService {
             String prompt = Constants.AI.PROMPT_START
                     + buildActivityPreferences(dto)
                     + Constants.AI.ACTIVITIES_PROMPT_END;
-            List<Map<String, String>> messages = new ArrayList<>();
+//            List<Map<String, String>> messages = new ArrayList<>();
+//
+//            Map<String, String> message1 = new HashMap<>();
+//            message1.put("role", "user");
+//            message1.put("content", prompt);
+//            messages.add(message1);
+//            String model = "deepseek-r1-distill-llama-70b";
+//            String response = groqService.callGroqAPI(prompt, model);
 
-            Map<String, String> message1 = new HashMap<>();
-            message1.put("role", "user");
-            message1.put("content", prompt);
-            messages.add(message1);
-            String model = "deepseek-r1-distill-llama-70b";
-            String response = groqService.callGroqAPI(prompt, model);
 
-
-            response = response.replace("json", "").replace("```", "");
-            return GeneralResponse.of(response);
+//            response = response.replace("json", "").replace("```", "");
+            return GeneralResponse.of(prompt);
         } catch (Exception ex) {
             throw BusinessException.of("Lấy dữ liệu thất bại" , ex);
         }
