@@ -22,7 +22,6 @@ import com.fpt.capstone.tourism.repository.PlanRepository;
 import com.fpt.capstone.tourism.repository.ServiceProviderRepository;
 import com.fpt.capstone.tourism.repository.ServiceRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
-import com.fpt.capstone.tourism.service.GroqService;
 import com.fpt.capstone.tourism.service.PlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,10 +34,7 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.fpt.capstone.tourism.constants.Constants.Message.GET_PROVIDER_BY_LOCATION_FAIL;
@@ -59,7 +55,6 @@ public class PlanServiceImpl implements PlanService {
     private final PlanHelper planHelper;
 
     private final GeminiApiService geminiApiService;
-    private final GroqService groqService;
 
 
 

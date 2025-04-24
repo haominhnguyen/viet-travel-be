@@ -96,6 +96,6 @@ frontend:
 backend:
   base-url: https://traveltoday.cloud/api/v1
 
-groq:
+serpapi:
   api:
-    key: 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
+    key: e8ec042e9f61f50bb94e5a67b378b7ad326d286200be7ef702c68b3481a1dadf
