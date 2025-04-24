@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.common.TourBookingWithDetailDTO;
 import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
+import com.fpt.capstone.tourism.dto.request.SavePlanRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PlanSaleResponseDTO;
 import com.fpt.capstone.tourism.model.enums.PlanStatus;
@@ -49,4 +50,5 @@ public interface PlanService {
     GeneralResponse<?> getActivities(ActivityGenerateDTO dto);
 
 
+    GeneralResponse<?> savePlan(SavePlanRequestDTO planDTO);
 }

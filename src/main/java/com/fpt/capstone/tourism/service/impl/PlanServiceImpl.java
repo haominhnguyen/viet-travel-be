@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceProviderSimpleDTO;
 import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
+import com.fpt.capstone.tourism.dto.request.SavePlanRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.PlanSaleResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -213,34 +214,34 @@ public class PlanServiceImpl implements PlanService {
                     + buildServiceProviderContext(dto.getLocationId())
                     + Constants.AI.PROMPT_END;
 
-            List<Map<String, String>> messages = new ArrayList<>();
+//            List<Map<String, String>> messages = new ArrayList<>();
+//
+//            Map<String, String> message1 = new HashMap<>();
+//            message1.put("role", "user");
+//            message1.put("content", prompt);
+//            messages.add(message1);
 
-            Map<String, String> message1 = new HashMap<>();
-            message1.put("role", "user");
-            message1.put("content", prompt);
-            messages.add(message1);
+            //String model = "deepseek-r1-distill-llama-70b";
 
-            String model = "deepseek-r1-distill-llama-70b";
-
-            String response = groqService.callGroqAPI(messages, model);
+            //String response = groqService.callGroqAPI(prompt, model);
 
 
             //response = response.replace("json", "").replace("```", "");
 
 
-            Plan plan = Plan.builder()
-                    .user(User.builder().id(dto.getUserId()).build())
-                    .content(response)
-                    .deleted(true)
-                    .planStatus(PlanStatus.CREATED)
-                    .build();
+//            Plan plan = Plan.builder()
+//                    .user(User.builder().id(dto.getUserId()).build())
+//                    .content(response)
+//                    .deleted(true)
+//                    .planStatus(PlanStatus.CREATED)
+//                    .build();
 
-            Plan savedPlan = planRepository.save(plan);
+            //Plan savedPlan = planRepository.save(plan);
 
 
-            return GeneralResponse.of(response);
+            return GeneralResponse.of(prompt);
         } catch (Exception ex) {
-            throw BusinessException.of("Tạo plan không thành công", ex);
+            throw BusinessException.of("Tạo prompt không thành công", ex);
         }
     }
 
@@ -389,13 +390,30 @@ public class PlanServiceImpl implements PlanService {
             message1.put("content", prompt);
             messages.add(message1);
             String model = "deepseek-r1-distill-llama-70b";
-            String response = groqService.callGroqAPI(messages, model);
+            String response = groqService.callGroqAPI(prompt, model);
 
 
-            //response = response.replace("json", "").replace("```", "");
+            response = response.replace("json", "").replace("```", "");
             return GeneralResponse.of(response);
         } catch (Exception ex) {
             throw BusinessException.of("Lấy dữ liệu thất bại" , ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<?> savePlan(SavePlanRequestDTO planDTO) {
+        try {
+            Plan plan = Plan.builder()
+                    .user(User.builder().id(planDTO.getUserId()).build())
+                    .content(planDTO.getPlan())
+                    .deleted(true)
+                    .planStatus(PlanStatus.CREATED)
+                    .build();
+
+            Plan savedPlan = planRepository.save(plan);
+            return GeneralResponse.of(savedPlan.getId());
+        } catch (Exception ex) {
+            throw BusinessException.of(GET_PROVIDER_BY_LOCATION_FAIL , ex);
         }
     }
 

@@ -21,21 +21,21 @@ public class GroqServiceImpl implements GroqService {
     private final WebClient webClient;
 
     public GroqServiceImpl(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("https://api.groq.com/openai/v1").build();
+        this.webClient = webClientBuilder.baseUrl("https://eng-today.vercel.app/api/hnam?q=tralalero%20tralala%20la%20gi&sk=tralalerotralala").build();
     }
 
     @Override
-    public String callGroqAPI(List<Map<String, String>> messages, String model) {
+    public String callGroqAPI(String prompt, String model) {
         try {
             Map<String, Object> requestBody = Map.of(
-                    "model", model,
-                    "messages", messages
+                    //"model", model,
+                    "prompt", prompt
             );
 
             Map response = webClient.post()
-                    .uri("/chat/completions")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + "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")
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    //.uri("/chat/completions")
+                    //.header(HttpHeaders.AUTHORIZATION, "Bearer " + "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")
+                    //.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)

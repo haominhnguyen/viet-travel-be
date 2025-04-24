@@ -14,5 +14,5 @@ import java.util.regex.Pattern;
 
 @Service
 public interface GroqService {
-    String callGroqAPI(List<Map<String, String>> messages, String model);
+    String callGroqAPI(String prompt, String model);
 }

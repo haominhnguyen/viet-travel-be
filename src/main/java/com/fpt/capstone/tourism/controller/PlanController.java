@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.GeneratePlanRequestDTO;
+import com.fpt.capstone.tourism.dto.request.SavePlanRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.service.BookingService;
 import com.fpt.capstone.tourism.service.PlanService;
@@ -31,6 +32,12 @@ public class PlanController {
     @PostMapping("/generate")
     public GeneralResponse<?> generate(@RequestBody GeneratePlanRequestDTO dto) {
         return planService.generatePlan(dto);
+    }
+
+
+    @PostMapping("/save")
+    public GeneralResponse<?> generate(@RequestBody SavePlanRequestDTO planDTO) {
+        return planService.savePlan(planDTO);
     }
 
 
