@@ -33,7 +33,7 @@ public class GroqServiceImpl implements GroqService {
 
             Map response = webClient.post()
                     .uri("/chat/completions")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + groqApiKey)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + "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")
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .bodyValue(requestBody)
                     .retrieve()
