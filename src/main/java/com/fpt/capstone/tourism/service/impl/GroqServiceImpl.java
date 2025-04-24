@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.service.GroqService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -58,8 +59,7 @@ public class GroqServiceImpl implements GroqService {
             return content;
 
         } catch (Exception ex) {
-            System.err.println("Error calling Groq API: " + ex.getMessage());
-            return null;
+            throw BusinessException.of(ex.getMessage(), ex);
         }
     }
 }
