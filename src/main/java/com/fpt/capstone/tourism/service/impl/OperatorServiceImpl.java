@@ -139,7 +139,7 @@ public class OperatorServiceImpl implements OperatorService {
             Long currentOperatorId = getCurrentUserOperatorId();
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, null)
                     .and((root, query, criteriaBuilder) -> {
                         Join<TourSchedule, User> userJoin = root.join("operator");
                         return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
@@ -583,6 +583,7 @@ public class OperatorServiceImpl implements OperatorService {
             throw BusinessException.of(CHOOSE_SERVICE_FAIL, ex);
         }
     }
+
     @Transactional
     @Override
     public GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO) {
@@ -1047,11 +1048,11 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
-                    .and((root, query, criteriaBuilder) -> {
-                        Join<TourSchedule, Tour> tourJoin = root.join("tour");
-                        return criteriaBuilder.equal(tourJoin.get("tourType"), TourType.PRIVATE);
-                    });
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, TourType.PRIVATE);
+//                    .and((root, query, criteriaBuilder) -> {
+//                        Join<TourSchedule, Tour> tourJoin = root.join("tour");
+//                        return criteriaBuilder.equal(tourJoin.get("tourType"), TourType.PRIVATE);
+//                    });
 
             Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
 
@@ -1181,7 +1182,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Trường hợp yêu cầu hủy dịch vụ
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
             }
 
@@ -1261,7 +1262,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Trường hợp yêu cầu hủy dịch vụ
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
             }
 
@@ -1294,7 +1295,7 @@ public class OperatorServiceImpl implements OperatorService {
 //                        .emailContent(content)
 //                        .build();
 //                emailService.sendMailServiceProvider(mailServiceDTO);
-//                bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                bookingService.setStatus(TourBookingServiceStatus.PENDING);
             }
 
 //            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
@@ -1494,7 +1495,7 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
 
-    public Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
+    public Specification<TourSchedule> buildSearchSpecification(String keyword, String status, TourType tourType) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -1526,9 +1527,10 @@ public class OperatorServiceImpl implements OperatorService {
                     throw BusinessException.of(INVALID_STATUS_VALUE + status, e);
                 }
             }
-            Join<Object, Object> tourJoin = root.join("tour", JoinType.LEFT);
-            predicates.add(cb.equal(tourJoin.get("tourType"), TourType.SIC));
-
+            if (tourType != null) {
+                Join<TourSchedule, Tour> tourJoin = root.join("tour", JoinType.LEFT);
+                predicates.add(cb.equal(tourJoin.get("tourType"), tourType));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
