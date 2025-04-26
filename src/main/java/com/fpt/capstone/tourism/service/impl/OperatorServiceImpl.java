@@ -1261,9 +1261,46 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
+            TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(tourBookingServiceId);
+
             //Trường hợp yêu cầu hủy dịch vụ
             if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            }
+
+            //Kiểm tra loại tour phải tour SIC hay không
+            if(tourType.equals(TourType.SIC)){
+                bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
+                bookingService.setRequestedQuantity(0);
+                bookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                );
+                String content = MessageFormat.format(emailChangeServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestedQuantity(),
+                        bookingService.getRequestDate(),
+                        bookingService.getRequestedQuantity() * service.getNettPrice());
+
+                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(tourBookingServiceId)
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
             }
 
             //Trường hợp kiểm tra khả dụng của dịch vụ
