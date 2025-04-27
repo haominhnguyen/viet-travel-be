@@ -1003,6 +1003,34 @@ public class OperatorServiceImpl implements OperatorService {
             } else {
                 //đổi số lượng đối với tour SIC
                 bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+
+                //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                        () -> BusinessException.of(SERVICE_NOT_FOUND)
+                );
+
+                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                );
+                String content = MessageFormat.format(emailChangeServiceContent,
+                        serviceProvider.getName(),
+                        service.getName(),
+                        bookingService.getCurrentQuantity(),
+                        bookingService.getRequestedQuantity(),
+                        bookingService.getRequestDate(),
+                        bookingService.getRequestedQuantity() * service.getNettPrice());
+
+                String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                        .bookingServiceId(bookingService.getId())
+                        .providerId(serviceProvider.getId())
+                        .providerName(serviceProvider.getName())
+                        .providerEmail(serviceProvider.getEmail())
+                        .emailSubject(subject)
+                        .emailContent(content)
+                        .build();
+                emailService.sendMailServiceProvider(mailServiceDTO);
             }
             bookingServiceRepository.save(bookingService);
 
