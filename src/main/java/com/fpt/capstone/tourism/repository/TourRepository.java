@@ -172,7 +172,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             SELECT tour_type FROM tour t 
             JOIN tour_booking tb on t.id = tb.tour_id
             JOIN tour_booking_service tbs on tbs.tour_booking_id = tb.id
-            WHERE tbs.id =: tourBookingServiceId
+            WHERE tbs.id = :tourBookingServiceId
             """, nativeQuery = true)
     TourType findTourTypeByTourBookingServiceId(Long tourBookingServiceId);
 }
