@@ -71,7 +71,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
 
     @Query("""
-                SELECT ts.tour.id, MIN(ts.tourPax.sellingPrice)
+                SELECT MIN(ts.tourPax.sellingPrice)
                 FROM TourSchedule ts
                 WHERE ts.tour.id = :tourId
                 GROUP BY ts.tour.id
