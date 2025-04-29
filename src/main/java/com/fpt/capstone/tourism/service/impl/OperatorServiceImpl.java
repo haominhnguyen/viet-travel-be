@@ -259,6 +259,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
                     .scheduleId(scheduleId)
+                    .scheduleStatus(tourSchedule.getStatus())
                     .tourName(tour.getName())
                     .tourType(tour.getTourType())
                     .tags(tagMapper.toDtoList(tour.getTags()))
