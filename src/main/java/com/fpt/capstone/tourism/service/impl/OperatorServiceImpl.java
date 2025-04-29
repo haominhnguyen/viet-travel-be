@@ -1505,6 +1505,13 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getTourSummary(Long scheduleId) {
         try {
             checkAuthor(scheduleId);
+            List<TransactionType> transactionReceiptTypes = new ArrayList<>();
+            transactionReceiptTypes.add(TransactionType.RECEIPT);
+            transactionReceiptTypes.add(TransactionType.COLLECTION);
+
+            List<TransactionType> transactionPaymentTypes = new ArrayList<>();
+            transactionPaymentTypes.add(TransactionType.PAYMENT);
+            transactionPaymentTypes.add(TransactionType.ADVANCED);
             //Tìm tất cả các booking thuộc schedule
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
@@ -1524,7 +1531,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải thu
             BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.RECEIPT
+                    transactionReceiptTypes
             );
 
             //Tìm số tiền công ty đã chi
@@ -1540,7 +1547,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải chi
             BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.PAYMENT
+                    transactionPaymentTypes
             );
 
             //Tìm số tiền ước tính phải chi cho cả tour
@@ -1554,10 +1561,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             //Tìm số tiền ước tính thu được cả tour
-            List<TransactionType> transactionTypes = new ArrayList<>();
-            transactionTypes.add(TransactionType.RECEIPT);
-            transactionTypes.add(TransactionType.COLLECTION);
-            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionTypes);
+            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);
 //            BigDecimal estimateReceiptAmount = bookings.stream()
 //                    .map(result -> {
 //                        return BigDecimal.valueOf(result.getTotalAmount());
