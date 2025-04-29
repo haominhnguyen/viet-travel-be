@@ -64,4 +64,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
         AND t.category = :transactionType
     """)
     BigDecimal findTotalAmountByTransactionCategoryIn(List<Transaction> transactions, TransactionType transactionType);
+
+    @Query("""
+        SELECT CAST(COALESCE(SUM(t.amount), 0) AS bigdecimal)
+        FROM Transaction t 
+        JOIN CostAccount ca ON ca.transaction.id = t.id
+        WHERE t IN :transactions
+        AND t.category In :transactionTypes
+    """)
+    BigDecimal findEstimateReceiptAmount(List<Transaction> transactions, List<TransactionType> transactionTypes);
 }

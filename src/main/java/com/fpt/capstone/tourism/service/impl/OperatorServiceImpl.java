@@ -1554,11 +1554,15 @@ public class OperatorServiceImpl implements OperatorService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             //Tìm số tiền ước tính thu được cả tour
-            BigDecimal estimateReceiptAmount = bookings.stream()
-                    .map(result -> {
-                        return BigDecimal.valueOf(result.getTotalAmount());
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            List<TransactionType> transactionTypes = new ArrayList<>();
+            transactionTypes.add(TransactionType.RECEIPT);
+            transactionTypes.add(TransactionType.COLLECTION);
+            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionTypes);
+//            BigDecimal estimateReceiptAmount = bookings.stream()
+//                    .map(result -> {
+//                        return BigDecimal.valueOf(result.getTotalAmount());
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             //Tìm lợi nhuận ước tính
             BigDecimal estimateProfitAmount = estimateReceiptAmount.subtract(estimatedPaymentAmount);
