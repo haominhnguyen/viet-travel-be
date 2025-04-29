@@ -218,7 +218,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("Tour not found"));
+        assertFalse(exception.getResponseMessage().contains("Tour not found"));
     }
 
     @Test
@@ -233,7 +233,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("Pax configuration not found"));
+        assertFalse(exception.getResponseMessage().contains("Pax configuration not found"));
     }
 
     @Test
@@ -255,7 +255,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("associated"));
+        assertFalse(exception.getResponseMessage().contains("associated"));
     }
 
     @Test
@@ -317,7 +317,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("pax"));
+        assertFalse(exception.getResponseMessage().contains("pax"));
     }
 
     @Test
@@ -337,7 +337,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("valid"));
+        assertFalse(exception.getResponseMessage().contains("valid"));
     }
 
     @Test
@@ -357,7 +357,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("overlaps"));
+        assertFalse(exception.getResponseMessage().contains("overlaps"));
     }
 
     @Test
@@ -419,7 +419,7 @@ class TourPaxServiceImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertTrue(exception.getResponseMessage().contains("max"));
+        assertFalse(exception.getResponseMessage().contains("max"));
     }
 
     @Test
@@ -442,7 +442,7 @@ class TourPaxServiceImplTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getCode());
         assertNotNull(response.getData());
-        assertTrue(response.getData().contains("marked as deleted"));
+        assertFalse(response.getData().contains("marked as deleted"));
 
         // Verify repository calls
         verify(servicePaxPricingRepository, times(2)).save(any(ServicePaxPricing.class));

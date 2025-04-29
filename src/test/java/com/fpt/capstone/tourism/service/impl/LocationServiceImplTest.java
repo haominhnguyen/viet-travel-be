@@ -87,7 +87,7 @@ class LocationServiceImplTest {
         GeneralResponse<LocationDTO> response = locationService.saveLocation(locationRequestDTO);
 
         assertNotNull(response);
-        assertEquals("Create location successfully", response.getMessage());
+        assertEquals("Tạo địa điểm thành công", response.getMessage());
         assertEquals(1L, response.getData().getId());
     }
 
@@ -99,7 +99,7 @@ class LocationServiceImplTest {
             locationService.saveLocation(locationRequestDTO);
         });
 
-        assertEquals("Location is existed", thrown.getMessage());
+        assertEquals("Địa điểm đã tồn tại", thrown.getMessage());
     }
 
     @Test
@@ -110,7 +110,7 @@ class LocationServiceImplTest {
         GeneralResponse<LocationDTO> response = locationService.getLocationById(1L);
 
         assertNotNull(response);
-        assertEquals("Successfully", response.getMessage());
+        assertEquals("Thành công", response.getMessage());
         assertEquals("Hanoi", response.getData().getName());
     }
 
@@ -142,7 +142,7 @@ class LocationServiceImplTest {
         GeneralResponse<LocationDTO> response = locationService.updateLocation(1L, locationRequestDTO);
 
         assertNotNull(response);
-        assertEquals("Successfully", response.getMessage());
+        assertEquals("Thành công", response.getMessage());
         assertEquals("Hanoi", response.getData().getName());
     }
 
