@@ -781,6 +781,17 @@ public class OperatorServiceImpl implements OperatorService {
                         .transactionStatus(TransactionStatus.PENDING)
                         .build();
 
+                CostAccount.builder()
+                        .transaction(transaction)
+                        .amount(service.getSellingPrice())
+                        .discount(0)
+                        .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                                + " - dịch vụ: " + bookingService.getService().getName())
+                        .quantity(bookingService.getCurrentQuantity())
+                        .finalAmount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                        .status(CostAccountStatus.PENDING)
+                        .build();
+
                 transactionRepository.save(transaction);
             }
 
