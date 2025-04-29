@@ -298,7 +298,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
                 List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
-                        .findByTourBookingId(booking.getId())
+                        .findByTourBooking_IdAndBookedPersonFalse(booking.getId())
                         .stream()
                         .map(customerFullMapper::toDto)
                         .collect(Collectors.toList());
@@ -759,7 +759,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
 
                 //Kiểm tra loại tour
-                TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(bookingService.getId());
+                TourType tourType = tourRepository.findTourTypeByTourBookingId(requestDTO.getBookingId());
 
                 //Kiểm tra loại tour phải tour Private hay không
                 if (tourType.equals(TourType.PRIVATE)) {
