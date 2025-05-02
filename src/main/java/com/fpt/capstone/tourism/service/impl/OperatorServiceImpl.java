@@ -295,7 +295,7 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthor(scheduleId);
 
-            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBooking> bookings = tourBookingRepository.findBookingByStatusAndTourSchedule_Id(TourBookingStatus.SUCCESS, scheduleId);
 
             List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
                 List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
@@ -336,6 +336,11 @@ public class OperatorServiceImpl implements OperatorService {
                 //Số tiền HDV đã thu hộ
                 Double collectionAmount = tourBookingRepository.findCollectionAmountByBookingId(booking.getId());
 
+                String saleName = null;
+                if(booking.getSale() != null){
+                    saleName = booking.getSale().getFullName();
+                }
+
                 OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
                         .bookingId(booking.getId())
                         .bookingCode(booking.getBookingCode())
@@ -350,6 +355,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .totalAmount(booking.getTotalAmount())
                         .bookedAt(booking.getCreatedAt())
                         .bookingStatus(booking.getStatus())
+                        .saleName(saleName)
                         .build();
                 return responseDTO;
             }).collect(Collectors.toList());

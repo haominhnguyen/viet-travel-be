@@ -104,7 +104,7 @@ public class WishlistServiceImpl implements WishlistService {
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), "Lấy wishlist thành công", wishlistDTO);
         } catch (Exception ex) {
-            throw BusinessException.of("Lấy wishlist thất bại", ex);
+            throw BusinessException.of("Thêm wishlist thất bại", ex);
         }
     }
 
