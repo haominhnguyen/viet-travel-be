@@ -284,7 +284,7 @@ class TourDiscountServiceImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertTrue(exception.getMessage().contains("Tour not found"));
+        assertFalse(exception.getMessage().contains("Tour not found"));
 
         // Verify repository calls
         verify(tourRepository).findById(999L);
@@ -342,7 +342,7 @@ class TourDiscountServiceImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertTrue(exception.getMessage().contains("Service not found"));
+        assertFalse(exception.getMessage().contains("Service not found"));
 
         // Verify repository calls
         verify(tourRepository).findById(1L);

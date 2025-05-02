@@ -259,6 +259,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
                     .scheduleId(scheduleId)
+                    .scheduleStatus(tourSchedule.getStatus())
                     .tourName(tour.getName())
                     .tourType(tour.getTourType())
                     .tags(tagMapper.toDtoList(tour.getTags()))
@@ -298,7 +299,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
                 List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
-                        .findByTourBookingId(booking.getId())
+                        .findByTourBooking_IdAndBookedPersonFalse(booking.getId())
                         .stream()
                         .map(customerFullMapper::toDto)
                         .collect(Collectors.toList());
@@ -759,7 +760,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
 
                 //Kiểm tra loại tour
-                TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(bookingService.getId());
+                TourType tourType = tourRepository.findTourTypeByTourBookingId(requestDTO.getBookingId());
 
                 //Kiểm tra loại tour phải tour Private hay không
                 if (tourType.equals(TourType.PRIVATE)) {
@@ -778,6 +779,17 @@ public class OperatorServiceImpl implements OperatorService {
                         .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
                                 + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
                         .transactionStatus(TransactionStatus.PENDING)
+                        .build();
+
+                CostAccount.builder()
+                        .transaction(transaction)
+                        .amount(service.getSellingPrice())
+                        .discount(0)
+                        .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                                + " - dịch vụ: " + bookingService.getService().getName())
+                        .quantity(bookingService.getCurrentQuantity())
+                        .finalAmount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                        .status(CostAccountStatus.PENDING)
                         .build();
 
                 transactionRepository.save(transaction);
@@ -1493,6 +1505,13 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getTourSummary(Long scheduleId) {
         try {
             checkAuthor(scheduleId);
+            List<TransactionType> transactionReceiptTypes = new ArrayList<>();
+            transactionReceiptTypes.add(TransactionType.RECEIPT);
+            transactionReceiptTypes.add(TransactionType.COLLECTION);
+
+            List<TransactionType> transactionPaymentTypes = new ArrayList<>();
+            transactionPaymentTypes.add(TransactionType.PAYMENT);
+            transactionPaymentTypes.add(TransactionType.ADVANCED);
             //Tìm tất cả các booking thuộc schedule
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
@@ -1512,7 +1531,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải thu
             BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.RECEIPT
+                    transactionReceiptTypes
             );
 
             //Tìm số tiền công ty đã chi
@@ -1528,7 +1547,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải chi
             BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.PAYMENT
+                    transactionPaymentTypes
             );
 
             //Tìm số tiền ước tính phải chi cho cả tour
@@ -1542,11 +1561,12 @@ public class OperatorServiceImpl implements OperatorService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             //Tìm số tiền ước tính thu được cả tour
-            BigDecimal estimateReceiptAmount = bookings.stream()
-                    .map(result -> {
-                        return BigDecimal.valueOf(result.getTotalAmount());
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);
+//            BigDecimal estimateReceiptAmount = bookings.stream()
+//                    .map(result -> {
+//                        return BigDecimal.valueOf(result.getTotalAmount());
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             //Tìm lợi nhuận ước tính
             BigDecimal estimateProfitAmount = estimateReceiptAmount.subtract(estimatedPaymentAmount);

@@ -88,7 +88,7 @@ class EmailConfirmationServiceImplTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 emailConfirmationService.validateConfirmationToken(token.getToken()));
-        assertEquals("Invalid or expired confirmation link.", exception.getResponseMessage());
+        assertEquals("Liên kết xác nhận không hợp lệ hoặc đã hết hạn", exception.getResponseMessage());
     }
 
     @Test
@@ -98,7 +98,7 @@ class EmailConfirmationServiceImplTest {
 
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 emailConfirmationService.validateConfirmationToken(token.getToken()));
-        assertEquals("Email had already been confirmed before. Do not need to confirm again", exception.getResponseMessage());
+        assertEquals("Email này đã được xác nhận trước đó. Không cần xác nhận lại", exception.getResponseMessage());
     }
 
     @Test
