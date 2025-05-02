@@ -47,7 +47,8 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
     @Query(value = """
     SELECT COALESCE(count(tb.id), 0) FROM TourBooking tb
     JOIN TourBookingCustomer tbc ON tb.id = tbc.tourBooking.id
-    AND tbc.ageType = 'ADULT'
+    AND tbc.ageType = 'ADULT' 
+    AND tbc.bookedPerson = false 
     WHERE tbc.tourBooking.id = :id
 """)
     Integer countAdultNumberByBookingId(@Param("id") Long id);
@@ -194,5 +195,12 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
 
 
     List<TourBooking> findByStatusAndExpiredAtBeforeAndDeletedFalse(TourBookingStatus status, LocalDateTime now);
+
+    @Query("""
+    SELECT tb FROM TourBooking tb
+    WHERE tb.tourSchedule.id = :scheduleId
+    AND tb.status = :tourBookingStatus
+""")
+    List<TourBooking> findBookingByStatusAndTourSchedule_Id(TourBookingStatus tourBookingStatus, Long scheduleId);
 }
 
