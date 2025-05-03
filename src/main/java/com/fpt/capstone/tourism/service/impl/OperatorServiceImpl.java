@@ -1564,7 +1564,12 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Tìm số tiền ước tính phải chi cho cả tour
-            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId);
+            List<TourBookingServiceStatus> tourBookingServiceStatusList = new ArrayList<>();
+            tourBookingServiceStatusList.add(TourBookingServiceStatus.NOT_AVAILABLE);
+            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED);
+            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+            tourBookingServiceStatusList.add(TourBookingServiceStatus.CANCELLED);
+            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId, tourBookingServiceStatusList);
             BigDecimal estimatedPaymentAmount = services.stream()
                     .map(result -> {
                         Service service = (Service) result[0];

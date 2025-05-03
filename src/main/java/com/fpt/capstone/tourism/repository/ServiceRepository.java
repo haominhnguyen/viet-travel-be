@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.response.PublicServiceDTO;
 import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -100,8 +101,9 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     SELECT s, tbs.currentQuantity FROM Service s
     JOIN FETCH TourBookingService tbs ON s.id = tbs.service.id
     WHERE tbs.booking.tourSchedule.id = :scheduleId
+    AND tbs.status NOT IN :tourBookingServiceStatusList
 """)
-    List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId);
+    List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId, List<TourBookingServiceStatus> tourBookingServiceStatusList);
 
     @Query("SELECT s FROM Service s " +
             "WHERE s.serviceCategory.categoryName = :categoryName " +
