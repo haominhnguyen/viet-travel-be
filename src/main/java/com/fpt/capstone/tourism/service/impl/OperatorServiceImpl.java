@@ -919,9 +919,9 @@ public class OperatorServiceImpl implements OperatorService {
 
             bookingServiceRepository.save(bookingService);
 
-            TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
+//            TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), CANCEL_SERVICE_SUCCESS, resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CANCEL_SERVICE_SUCCESS, tourBookingServiceId);
         } catch (Exception ex) {
             throw BusinessException.of(CANCEL_SERVICE_FAIL, ex);
         }
