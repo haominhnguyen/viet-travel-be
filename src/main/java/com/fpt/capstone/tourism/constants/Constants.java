@@ -915,7 +915,7 @@ public class Constants {
                     - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
                     - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
-                    - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động miễn phí
+                    - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động liên quan tới sở thích
                     - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
                     - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
                         *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
