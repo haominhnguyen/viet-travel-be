@@ -337,7 +337,7 @@ public class OperatorServiceImpl implements OperatorService {
                 Double collectionAmount = tourBookingRepository.findCollectionAmountByBookingId(booking.getId());
 
                 String saleName = null;
-                if(booking.getSale() != null){
+                if (booking.getSale() != null) {
                     saleName = booking.getSale().getFullName();
                 }
 
@@ -516,7 +516,14 @@ public class OperatorServiceImpl implements OperatorService {
                 }
 
                 // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
-                double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                double amountToPayForBooking = 0;
+                if (!(bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.NOT_AVAILABLE)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED_BY_OPERATOR)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.CANCELLED))){
+                    amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                }
+
 
                 // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
                 totalPaid += paidForBooking;
@@ -555,7 +562,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build());
             }
             serviceDTOList.sort(Comparator.comparing(
-                    OperatorServiceDTO::getUsingDate,
+                    OperatorServiceDTO::getBookingStatus,
                     Comparator.nullsLast(Comparator.naturalOrder()))
             );
 
