@@ -917,6 +917,11 @@ public class Constants {
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
                     - Ngoài dữ liệu hoạt động được cung cấp có thể tìm thêm các hoạt động miễn phí
                     - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
+                    - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
+                        *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
+                        *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
+                        *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
+                    - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
 
                     Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
                     Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
