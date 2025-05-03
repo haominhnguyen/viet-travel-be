@@ -513,9 +513,15 @@ public class OperatorServiceImpl implements OperatorService {
 //
                 // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
 //            double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
+                //Kiểm tra có phải là dịch vụ biến đổi không (ví dụ xe đi chung)
+                String serviceCategory = serviceRepository.findCategoryById(bookingService.getService().getId());
                 double paidForBooking = 0;
                 if (bookingService.getStatus().equals(TourBookingServiceStatus.PAID)) {
-                    paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    if (serviceCategory.equals("Transport")) {
+                        paidForBooking = transactionHelper.calculateTransportFeePerPerson(scheduleId, bookingService.getService().getId());
+                    } else {
+                        paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    }
                 }
 
                 // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
@@ -523,11 +529,8 @@ public class OperatorServiceImpl implements OperatorService {
                 if (!(bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED)
                         || bookingService.getStatus().equals(TourBookingServiceStatus.NOT_AVAILABLE)
                         || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED_BY_OPERATOR)
-                        || bookingService.getStatus().equals(TourBookingServiceStatus.CANCELLED))){
-
-                    //Kiểm tra có phải là dịch vụ biến đổi không (ví dụ xe đi chung)
-                    String serviceCategory = serviceRepository.findCategoryById(bookingService.getService().getId());
-                    if(serviceCategory.equals("Transport")){
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.CANCELLED))) {
+                    if (serviceCategory.equals("Transport")) {
                         amountToPayForBooking = transactionHelper.calculateTransportFeePerPerson(scheduleId, bookingService.getService().getId());
                     } else {
                         amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
@@ -768,9 +771,9 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
-            if (bookingService != null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
-            } else {
+//            if (bookingService != null) {
+//                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
+//            } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)
                         .service(service)
@@ -816,7 +819,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
 
                 transactionRepository.save(transaction);
-            }
+//            }
 
             return new GeneralResponse<>(HttpStatus.OK.value(), ADD_SERVICE_SUCCESS, requestDTO);
         } catch (Exception ex) {
@@ -952,6 +955,10 @@ public class OperatorServiceImpl implements OperatorService {
             TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
+            //Kiểm tra trạng thái (đã thanh toán không thể update)
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.PAID)){
+                throw BusinessException.of("Không thể cập nhật số lượng");
+            }
 
             if (requestDTO.getNewQuantity() <= 0 ||
                     requestDTO.getNewQuantity() == bookingService.getCurrentQuantity()) {
