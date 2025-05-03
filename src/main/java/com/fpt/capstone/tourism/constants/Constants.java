@@ -938,6 +938,11 @@ public class Constants {
                     Các lưu ý quan trọng:
                     - Hoạt động cần phải phù hợp với sở thích mà khách hàng đã cung cấp
                     - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
+                    - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
+                        *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
+                        *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
+                        *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
+                    - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
 .
                     Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
 
