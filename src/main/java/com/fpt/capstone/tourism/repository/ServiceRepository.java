@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.List;
 
@@ -131,5 +132,14 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findRandomActivities(String categoryName, PageRequest of);
 
     List<Service> findByServiceProviderIdAndServiceCategoryIdAndDeletedFalse(Long serviceProviderId, Long serviceCategoryId);
+
+    @Query(value = """
+            SELECT distinct s.nett_price as bigdecimal FROM service s
+            JOIN public.tour_booking_service tbs ON s.id = tbs.service_id
+            JOIN public.tour_booking tb ON tbs.tour_booking_id = tb.id
+            WHERE tb.schedule_id = :scheduleId
+            AND s.category_id = 3
+            """, nativeQuery = true)
+    BigDecimal findTransportFeeByScheduleId(Long scheduleId);
 }
 
