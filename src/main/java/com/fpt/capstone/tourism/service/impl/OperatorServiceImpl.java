@@ -771,9 +771,9 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
-//            if (bookingService != null) {
-//                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
-//            } else {
+            if (bookingService != null && !(bookingService.getStatus().equals(TourBookingServiceStatus.PAID))) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
+            } else {
                 bookingService = TourBookingService.builder()
                         .booking(booking)
                         .service(service)
@@ -819,7 +819,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build();
 
                 transactionRepository.save(transaction);
-//            }
+            }
 
             return new GeneralResponse<>(HttpStatus.OK.value(), ADD_SERVICE_SUCCESS, requestDTO);
         } catch (Exception ex) {
