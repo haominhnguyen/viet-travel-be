@@ -148,7 +148,7 @@ public class PlanServiceImpl implements PlanService {
                         .append(dateFormat.format(dto.getEndDate()))
                         .append("\n");
             } else {
-                contextBuilder.append("- Thời gian: Không xác định rõ ràng\n");
+                contextBuilder.append("- Thời gian: Không xác định rõ ràng - hãy tạo kế hoạch 3 ngày cho thời gian tùy chọn trong tương lai gần\n");
             }
 
             if (dto.getPlanType() != null && !dto.getPlanType().isEmpty()) {
