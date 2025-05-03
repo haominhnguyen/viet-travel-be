@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
@@ -69,6 +70,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingServiceMapper bookingServiceMapper;
     private final TourDayMapper tourDayMapper;
     private final EmailConfirmationService emailService;
+    private final TransactionHelper transactionHelper;
 
 
     final String emailOrderServiceContent = "Kính gửi: {0},\n\n"
@@ -271,6 +273,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .createdAt(tour.getCreatedAt())
                     .createdBy(tour.getCreatedBy().getFullName())
                     .maxPax(tourSchedule.getTourPax().getMaxPax())
+                    .minPax(tourSchedule.getTourPax().getMinPax())
                     .soldSeats(tourScheduleRepository.findSoldSeatsByScheduleId(scheduleId))
                     .pendingSeats(tourScheduleRepository.findPendingSeatsByScheduleId(scheduleId))
                     .remainingSeats(availableSeatsMap.getOrDefault(scheduleId, 0))
@@ -521,7 +524,14 @@ public class OperatorServiceImpl implements OperatorService {
                         || bookingService.getStatus().equals(TourBookingServiceStatus.NOT_AVAILABLE)
                         || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED_BY_OPERATOR)
                         || bookingService.getStatus().equals(TourBookingServiceStatus.CANCELLED))){
-                    amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+
+                    //Kiểm tra có phải là dịch vụ biến đổi không (ví dụ xe đi chung)
+                    String serviceCategory = serviceRepository.findCategoryById(bookingService.getService().getId());
+                    if(serviceCategory.equals("Transport")){
+                        amountToPayForBooking = transactionHelper.calculateTransportFeePerPerson(scheduleId, bookingService.getService().getId());
+                    } else {
+                        amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    }
                 }
 
 
@@ -1578,9 +1588,9 @@ public class OperatorServiceImpl implements OperatorService {
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
-            BigDecimal transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
-            estimatedPaymentAmount.add(transportFee);
+//            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
+//            BigDecimal transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
+//            estimatedPaymentAmount.add(transportFee);
 
             //Tìm số tiền ước tính thu được cả tour
 //            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);

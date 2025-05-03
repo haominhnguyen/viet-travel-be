@@ -141,5 +141,13 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
             AND s.category_id = 3
             """, nativeQuery = true)
     BigDecimal findTransportFeeByScheduleId(Long scheduleId);
+
+
+    @Query(value = """
+            SELECT sc.categoryName FROM Service s
+            JOIN s.serviceCategory sc
+            WHERE s.id = :id
+            """)
+    String findCategoryById(Long id);
 }
 
