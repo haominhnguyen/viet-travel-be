@@ -807,7 +807,7 @@ public class Constants {
     }
 
     public static final class FilePath {
-        public static final String PRICE_EMAIL_PATH= "src/main/resources/templates/pricing.html";
+        public static final String PRICE_EMAIL_PATH= "templates/pricing.html";
         public static final String TOUR_IMAGE_FALL_BACK_URL = "https://media.travel.com.vn/TourFiles/4967/Hoi%20An%20Ve%20Dem%20(4).jpg";
     }
 

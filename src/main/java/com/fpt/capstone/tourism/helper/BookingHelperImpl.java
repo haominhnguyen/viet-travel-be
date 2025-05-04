@@ -20,7 +20,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -269,6 +271,11 @@ public class BookingHelperImpl implements BookingHelper {
 
     @Override
     public String loadTemplate(String path) throws IOException {
-        return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
+            if (inputStream == null) {
+                throw new FileNotFoundException("Template file not found: " + path);
+            }
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 }
