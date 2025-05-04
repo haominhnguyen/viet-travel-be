@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -227,7 +228,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
 """)
     Optional<TourSchedule> findScheduleWithBookings(@Param("id") Long id);
 @Query("""
-        SELECT ts.tourPax.id FROM TourSchedule ts
+        SELECT ts.tourPax.id FROM TourSchedule ts WHERE  ts.id = :id
         """)
-    int findTourPaxIdByScheduleId(Long id);
+    int findTourPaxIdByScheduleId(@Param("id") Long id);
 }
