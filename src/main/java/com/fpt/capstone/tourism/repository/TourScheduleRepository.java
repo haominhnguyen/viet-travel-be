@@ -226,4 +226,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     WHERE ts.id = :id
 """)
     Optional<TourSchedule> findScheduleWithBookings(@Param("id") Long id);
+@Query("""
+        SELECT ts.tourPax.id FROM TourSchedule ts
+        """)
+    int findTourPaxIdByScheduleId(Long id);
 }

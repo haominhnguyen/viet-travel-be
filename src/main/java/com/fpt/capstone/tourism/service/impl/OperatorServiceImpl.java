@@ -47,6 +47,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourOperationLogRepository logRepository;
     private final TransactionRepository transactionRepository;
     private final TourScheduleServiceRepository scheduleServiceRepository;
+    private final ServicePaxPricingRepository servicePaxPricingRepository;
     private final CostAccountRepository costAccountRepository;
     private final ServiceRepository serviceRepository;
     private final ServiceProviderRepository providerRepository;
@@ -56,6 +57,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransportRepository transportRepository;
     private final TourBookingServiceRepository bookingServiceRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
     private final TourDayRepository tourDayRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
@@ -619,16 +621,19 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_NOT_FOUND)
             );
 
-            TourBookingService tourBookingService =
+            List<TourBookingService> tourBookingService =
                     bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(
                             requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId()
                     );
 
-            if (!tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+            List<TourBookingService> bookingServiceNeedToPay = tourBookingService.stream().filter(tourBookingService1 ->
+                    tourBookingService1.getStatus().equals(TourBookingServiceStatus.AVAILABLE)).toList();
+
+            if (bookingServiceNeedToPay.isEmpty()) {
                 throw BusinessException.of(SERVICE_REQUEST_NOT_APPROVED);
             }
-            tourBookingService.setStatus(TourBookingServiceStatus.PAID);
-            bookingServiceRepository.save(tourBookingService);
+            bookingServiceNeedToPay.forEach(tourBookingService1 -> tourBookingService1.setStatus(TourBookingServiceStatus.PAID));
+            bookingServiceRepository.saveAll(bookingServiceNeedToPay);
 
             Transaction transaction = Transaction.builder()
                     .booking(tourBooking)
@@ -764,17 +769,20 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             checkAuthor(booking.getTourSchedule().getId());
-            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
+            List<TourBookingService> bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
 
             TourDay tourDay = tourDayRepository.findById(requestDTO.getTourDayId()).orElseThrow(
                     () -> BusinessException.of(TOUR_DAY_NOT_FOUND)
             );
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
-            if (bookingService != null && !(bookingService.getStatus().equals(TourBookingServiceStatus.PAID))) {
+            List<TourBookingService> availableBookingService = bookingService.stream().filter(tourBookingService ->
+                 tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+            ).toList();
+            if (!availableBookingService.isEmpty()) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
             } else {
-                bookingService = TourBookingService.builder()
+                TourBookingService newBookingService = TourBookingService.builder()
                         .booking(booking)
                         .service(service)
                         .currentQuantity(requestDTO.getAddQuantity())
@@ -790,31 +798,34 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Kiểm tra loại tour phải tour Private hay không
                 if (tourType.equals(TourType.PRIVATE)) {
-                    bookingService.setStatus(TourBookingServiceStatus.CHECKING);
+                    newBookingService.setStatus(TourBookingServiceStatus.CHECKING);
                 }
-                bookingServiceRepository.save(bookingService);
+                bookingServiceRepository.save(newBookingService);
 
                 //Create transaction for new service
+                int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
+                TourDayService tourDayService = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId()).orElseThrow();
+                Double sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
                 Transaction transaction = Transaction.builder()
                         .booking(booking)
-                        .amount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                        .amount(sellingPriceByPax * newBookingService.getCurrentQuantity())
                         .category(TransactionType.RECEIPT)
                         .paidBy(booking.getUser().getFullName())
                         .receivedBy("Viet Travel")
                         .paymentMethod(PaymentMethod.BANKING)
                         .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                                + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
+                                + " - dịch vụ: " + newBookingService.getService().getName() + ", số lượng: " + newBookingService.getCurrentQuantity())
                         .transactionStatus(TransactionStatus.PENDING)
                         .build();
 
                 CostAccount.builder()
                         .transaction(transaction)
-                        .amount(service.getSellingPrice())
+                        .amount(sellingPriceByPax)
                         .discount(0)
                         .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                                + " - dịch vụ: " + bookingService.getService().getName())
-                        .quantity(bookingService.getCurrentQuantity())
-                        .finalAmount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                                + " - dịch vụ: " + newBookingService.getService().getName())
+                        .quantity(newBookingService.getCurrentQuantity())
+                        .finalAmount(sellingPriceByPax * newBookingService.getCurrentQuantity())
                         .status(CostAccountStatus.PENDING)
                         .build();
 
@@ -1120,6 +1131,13 @@ public class OperatorServiceImpl implements OperatorService {
             //Check status of tour schedule
             if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
                 throw BusinessException.of(TOUR_SCHEDULE_NOT_ONGOING);
+            }
+
+            List<TourBookingService> tourBookingServiceStatusList = bookingServiceRepository.findByScheduleId(tourSchedule.getId());
+            for(TourBookingService item : tourBookingServiceStatusList){
+                if(!item.getStatus().equals(TourBookingServiceStatus.PAID)){
+                    throw BusinessException.of("Không thể chuyển quyết toán");
+                }
             }
             tourSchedule.setStatus(TourScheduleStatus.SETTLEMENT);
             tourScheduleRepository.save(tourSchedule);
@@ -1596,8 +1614,11 @@ public class OperatorServiceImpl implements OperatorService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
 //            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
-//            BigDecimal transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
-//            estimatedPaymentAmount.add(transportFee);
+            List<BigDecimal> transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
+            for(BigDecimal bigDecimal :transportFee){
+                estimatedPaymentAmount = estimatedPaymentAmount.add(bigDecimal);
+            }
+
 
             //Tìm số tiền ước tính thu được cả tour
 //            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);

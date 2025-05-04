@@ -25,4 +25,10 @@ public interface ServicePaxPricingRepository extends JpaRepository<ServicePaxPri
     List<ServicePaxPricing> findByTourDayServiceIdInAndDeletedFalse(@Param("tourDayServiceIds") List<Long> tourDayServiceIds);
 
     List<ServicePaxPricing> findByTourDayServiceIdAndDeletedFalse(Long id);
+    @Query(value = """
+            SELECT spp.selling_price FROM service_pax_pricing spp
+            WHERE spp.tour_day_service_id = :id 
+            AND spp.tour_pax_id = :tourPaxId
+            """, nativeQuery = true)
+    Double findSellingPriceByTourDayServiceIdAndTourPaxId(Long id, int tourPaxId);
 }

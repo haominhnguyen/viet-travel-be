@@ -103,6 +103,7 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     JOIN FETCH TourBookingService tbs ON s.id = tbs.service.id
     WHERE tbs.booking.tourSchedule.id = :scheduleId
     AND tbs.status NOT IN :tourBookingServiceStatusList
+    AND s.serviceCategory.categoryName != 'Transport'
 """)
     List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId, List<TourBookingServiceStatus> tourBookingServiceStatusList);
 
@@ -140,7 +141,7 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
             WHERE tb.schedule_id = :scheduleId
             AND s.category_id = 3
             """, nativeQuery = true)
-    BigDecimal findTransportFeeByScheduleId(Long scheduleId);
+    List<BigDecimal> findTransportFeeByScheduleId(Long scheduleId);
 
 
     @Query(value = """
