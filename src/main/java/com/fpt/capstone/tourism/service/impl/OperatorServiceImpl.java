@@ -804,8 +804,15 @@ public class OperatorServiceImpl implements OperatorService {
 
                 //Create transaction for new service
                 int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
-                TourDayService tourDayService = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId()).orElseThrow();
-                Double sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
+                Optional<TourDayService> tourDayServiceOptional = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId());
+                double sellingPriceByPax;
+                if(tourDayServiceOptional.isPresent()) {
+                    TourDayService tourDayService = tourDayServiceOptional.get();
+                    sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
+                } else {
+                    sellingPriceByPax = service.getSellingPrice();
+                }
+
                 Transaction transaction = Transaction.builder()
                         .booking(booking)
                         .amount(sellingPriceByPax * newBookingService.getCurrentQuantity())

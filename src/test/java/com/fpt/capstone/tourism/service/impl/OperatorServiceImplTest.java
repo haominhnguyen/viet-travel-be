@@ -1593,7 +1593,7 @@ public class OperatorServiceImplTest {
             lenient().when(serviceRepository.findById(2L)).thenReturn(Optional.of(service));
             lenient().when(tourBookingRepository.findById(1L)).thenReturn(Optional.of(booking));
             lenient().when(tourDayRepository.findById(1L)).thenReturn(Optional.of(tourDay));
-            lenient().when(bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(1L, 2L, 1L)).thenReturn(existingBookingService);
+            lenient().when(bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(1L, 2L, 1L)).thenReturn((List<TourBookingService>) existingBookingService);
 
             // Act & Assert
             BusinessException exception = assertThrows(BusinessException.class, () -> {
