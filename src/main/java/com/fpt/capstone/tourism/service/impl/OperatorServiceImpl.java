@@ -1599,25 +1599,36 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Tìm số tiền ước tính phải chi cho cả tour
-            List<TourBookingServiceStatus> tourBookingServiceStatusList = new ArrayList<>();
-            tourBookingServiceStatusList.add(TourBookingServiceStatus.NOT_AVAILABLE);
-            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED);
-            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
-            tourBookingServiceStatusList.add(TourBookingServiceStatus.CANCELLED);
-            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId, tourBookingServiceStatusList);
-            BigDecimal estimatedPaymentAmount = services.stream()
-                    .map(result -> {
-                        Service service = (Service) result[0];
-                        Integer quantity = (Integer) result[1];
-                        return BigDecimal.valueOf(service.getNettPrice() * quantity);
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-//            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
-            List<BigDecimal> transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
-            for(BigDecimal bigDecimal :transportFee){
-                estimatedPaymentAmount = estimatedPaymentAmount.add(bigDecimal);
-            }
+            //tìm danh sahcs ngày của tour
+            List<TourDay> tourDayList = tourDayRepository.findListTourDayByScheduleId(scheduleId);
+            List<Long> tourDayIds = tourDayList.stream().map(TourDay::getId).toList();
+            List<TourDayService> tourDayServices = tourDayServiceRepository.findByTourDayIdIn(tourDayIds);
+            List<Long> tourDayServiceIds = tourDayServices.stream().map(TourDayService::getId).toList();
+            List<ServicePaxPricing> servicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdIn(tourDayServiceIds);
+            BigDecimal estimatedPaymentAmount = servicePaxPricings.stream().map(result ->{
+                return BigDecimal.valueOf(result.getSellingPrice());
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+//            List<TourBookingServiceStatus> tourBookingServiceStatusList = new ArrayList<>();
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.NOT_AVAILABLE);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.CANCELLED);
+//            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId, tourBookingServiceStatusList);
+//            BigDecimal estimatedPaymentAmount = services.stream()
+//                    .map(result -> {
+//                        Service service = (Service) result[0];
+//                        Integer quantity = (Integer) result[1];
+//                        return BigDecimal.valueOf(service.getNettPrice() * quantity);
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+////            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
+//            List<BigDecimal> transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
+//            for(BigDecimal bigDecimal :transportFee){
+//                estimatedPaymentAmount = estimatedPaymentAmount.add(bigDecimal);
+//            }
 
 
             //Tìm số tiền ước tính thu được cả tour
