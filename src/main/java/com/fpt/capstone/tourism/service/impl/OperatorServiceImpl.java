@@ -29,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1610,12 +1611,55 @@ public class OperatorServiceImpl implements OperatorService {
             //tìm danh sahcs ngày của tour
             List<TourDay> tourDayList = tourDayRepository.findListTourDayByScheduleId(scheduleId);
             List<Long> tourDayIds = tourDayList.stream().map(TourDay::getId).toList();
-            List<TourDayService> tourDayServices = tourDayServiceRepository.findByTourDayIdIn(tourDayIds);
-            List<Long> tourDayServiceIds = tourDayServices.stream().map(TourDayService::getId).toList();
-            List<ServicePaxPricing> servicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdIn(tourDayServiceIds);
-            BigDecimal estimatedPaymentAmount = servicePaxPricings.stream().map(result ->{
-                return BigDecimal.valueOf(result.getSellingPrice());
+            List<TourDayService> tourDayServices = tourDayServiceRepository.findByTourDayIdInExceptTransportAndHotel(tourDayIds);
+            List<Service> tourServices = tourDayServices.stream().map(TourDayService::getService).toList();
+            BigDecimal estimatedPaymentAmountUnit = tourServices.stream()
+                    .map(ts -> {
+                        return BigDecimal.valueOf(ts.getNettPrice());
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal passengerNumber = BigDecimal.valueOf(bookings.stream().map(TourBooking::getSeats).reduce(0, Integer::sum));
+            BigDecimal estimatedPaymentAmount = estimatedPaymentAmountUnit.multiply(passengerNumber);
+
+            //tinh tien hotel
+            List<TourDayService> tourDayServicesHotel = tourDayServiceRepository.findByTourDayIdInHotel(tourDayIds);
+            BigDecimal estimatedPaymentAmountHotelUnit = tourDayServicesHotel.stream().map(result ->{
+                return BigDecimal.valueOf(result.getService().getNettPrice());
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal estimatedPaymentAmountHotel = estimatedPaymentAmountHotelUnit.multiply(passengerNumber.divide(BigDecimal.valueOf(2), RoundingMode.CEILING));
+            estimatedPaymentAmount = estimatedPaymentAmount.add(estimatedPaymentAmountHotel);
+
+
+//            List<Long> tourServiceIds = tourServices.stream().map(Service::getId).toList();
+//            List<TourBookingService> tourBookingServices = bookingServiceRepository.findByScheduleId(scheduleId);
+//            BigDecimal estimatedPaymentAmount = tourBookingServices.stream()
+//                    .filter(tbs -> tourServiceIds.contains(tbs.getService().getId()))
+//                    .map(tbs -> {
+//                        Double nettPrice = tbs.getService().getNettPrice();
+//                        return BigDecimal.valueOf(nettPrice).multiply(BigDecimal.valueOf(tbs.getCurrentQuantity()));
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+//            int paxId = tourScheduleRepository.findTourPaxIdByScheduleId(scheduleId);
+//            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
+//            int minPax = tourSchedule.getTourPax().getMinPax();
+//            List<ServicePaxPricing> servicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndTourPaxId(tourDayServiceIds, paxId);
+//            BigDecimal estimatedPaymentAmount = tourDayServices.stream().map(result ->{
+//                return BigDecimal.valueOf(result.getService().getNettPrice());
+//            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            //tim tien xe
+            List<TourDayService> tourDayServicesTransport = tourDayServiceRepository.findByTourDayIdInTransport(tourDayIds);
+//            List<Long> tourDayServiceTransportIds = tourDayServicesTransport.stream().map(TourDayService::getId).toList();
+//            List<ServicePaxPricing> serviceTransportPaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndTourPaxId(tourDayServiceTransportIds, paxId);
+            BigDecimal estimatedPaymentAmountTransport = tourDayServicesTransport.stream().map(result ->{
+                return BigDecimal.valueOf(result.getService().getNettPrice());
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            estimatedPaymentAmount = estimatedPaymentAmount.add(estimatedPaymentAmountTransport);
+
 
 //            List<TourBookingServiceStatus> tourBookingServiceStatusList = new ArrayList<>();
 //            tourBookingServiceStatusList.add(TourBookingServiceStatus.NOT_AVAILABLE);

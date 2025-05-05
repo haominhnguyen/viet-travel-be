@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface TourDayServiceRepository extends JpaRepository<TourDayService, Long> {
     @Query("SELECT tds.service.id FROM TourDayService tds WHERE tds.tourDay.id = :tourDayId")
     List<Long> findServiceIdsByTourDayId(@Param("tourDayId") Long tourDayId);
+
     List<TourDayService> findByTourDayId(Long tourDayId);
 
     Optional<TourDayService> findByTourDayIdAndServiceId(Long tourDayId, Long serviceId);
@@ -43,5 +44,29 @@ public interface TourDayServiceRepository extends JpaRepository<TourDayService, 
     Optional<TourDayService> findFirstByServiceIdAndTourId(
             @Param("serviceId") Long serviceId,
             @Param("tourId") Long tourId);
+
+    @Query("""
+            SELECT tds FROM TourDayService tds
+            JOIN Service sc ON tds.service.id = sc.id
+            WHERE tds.tourDay.id IN :tourDayIds
+            AND sc.serviceCategory.id != 3
+            AND sc.serviceCategory.id != 1
+            """)
+    List<TourDayService> findByTourDayIdInExceptTransportAndHotel(List<Long> tourDayIds);
+
+    @Query("""
+            SELECT tds FROM TourDayService tds
+            JOIN Service sc ON tds.service.id = sc.id
+            WHERE tds.tourDay.id IN :tourDayIds
+            AND sc.serviceCategory.id = 3
+            """)
+    List<TourDayService> findByTourDayIdInTransport(List<Long> tourDayIds);
+    @Query("""
+            SELECT tds FROM TourDayService tds
+            JOIN Service sc ON tds.service.id = sc.id
+            WHERE tds.tourDay.id IN :tourDayIds
+            AND sc.serviceCategory.id = 1
+            """)
+    List<TourDayService> findByTourDayIdInHotel(List<Long> tourDayIds);
 }
 
