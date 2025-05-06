@@ -8,6 +8,8 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.MealType;
 import com.fpt.capstone.tourism.model.enums.ServiceCategoryEnum;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceProviderService;
 import com.fpt.capstone.tourism.service.TourDiscountService;
@@ -40,6 +42,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     private final LocationRepository locationRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final ServicePaxPricingRepository servicePaxPricingRepository;
+    private final TourBookingRepository tourBookingRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -524,6 +527,18 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể tạo dịch vụ của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
+
             // 2. Validate service exists
             if (request.getServiceId() == null) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
@@ -653,7 +668,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 9. Handle creating tour day service and pax associations
             TourDayService mainTourDayService = null;
 
-            // First, create a main TourDayService without specific pax association
             TourDayService tourDayService = new TourDayService();
             tourDayService.setTourDay(tourDay);
             tourDayService.setService(service);
@@ -731,23 +745,32 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     @Transactional
     public GeneralResponse<ServiceByCategoryDTO> updateServiceDetail(Long tourId, Long serviceId, ServiceUpdateRequestDTO request) {
         try {
-            // 1. Validate tour exists
+            //Validate tour exists
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
 
-            // 2. Get current service if we're updating an existing one
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể cập nhật dịch vụ của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
+
             Service currentService = null;
             if (serviceId != null) {
                 currentService = serviceRepository.findById(serviceId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " with id: " + serviceId));
             }
 
-            // 3. Find or create the TourDayService entry
             TourDayService tourDayService;
             TourDay tourDay;
             Service service;
 
-            // If we're updating an existing service
             if (currentService != null) {
                 // Use EntityManager to find all tourDayServices for this service and tour
                 List<TourDayService> allTourDayServices = entityManager.createQuery(
@@ -833,7 +856,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                     }
                 }
             }
-            // If we're creating a new service
             else if (request.getServiceId() != null) {
                 // Get the new service
                 service = serviceRepository.findById(request.getServiceId())
@@ -908,7 +930,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ID_REQUIRED);
             }
 
-            // 4. If service provider or location changed, updating an existing service
+            //If service provider or location changed, updating an existing service
             if (currentService != null &&
                     ((request.getServiceProviderId() != null && !request.getServiceProviderId().equals(service.getServiceProvider().getId())) ||
                             (request.getLocationId() != null && tourDay.getLocation() != null &&
@@ -979,14 +1001,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 transportRepository.save(transport);
             }
 
-
-            // 6. Save the tour day service entry
+            //Save the tour day service entry
             tourDayService = tourDayServiceRepository.save(tourDayService);
-
-            // 7. Flush all changes to ensure they're committed to the database
             entityManager.flush();
-
-            // 8. Return updated service details
             return getServiceDetail(tourId, tourDayService.getService().getId());
         } catch (BusinessException ex) {
             throw ex;
@@ -1001,6 +1018,19 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         try {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " với id: " + tourId));
+
+
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể tạo dịch vụ của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
 
             Service service = serviceRepository.findById(serviceId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, SERVICE_NOT_FOUND + " với id: " + serviceId));
@@ -1137,6 +1167,18 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // 1. Validate tour exists
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " with id: " + tourId));
+
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể xóa dịch vụ của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
 
             // 2. Validate service exists
             Service service = serviceRepository.findById(serviceId)

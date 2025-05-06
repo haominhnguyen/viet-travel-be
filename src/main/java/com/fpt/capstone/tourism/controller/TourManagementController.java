@@ -93,6 +93,15 @@ public class TourManagementController {
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
+    @PostMapping("/change-to-pending-pricing/{tourId}")
+    public ResponseEntity<GeneralResponse<TourResponseDTO>> changeToPendingPricing(
+            @PathVariable Long tourId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getLoggedInUser(userDetails);
+        GeneralResponse<TourResponseDTO> response = tourService.changeToPendingPricing(tourId, user);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
     private User getLoggedInUser(UserDetails userDetails) {
         if (userDetails == null) {
             throw BusinessException.of(HttpStatus.UNAUTHORIZED, USER_NOT_AUTHENTICATED);

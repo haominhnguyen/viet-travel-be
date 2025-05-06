@@ -202,5 +202,7 @@ public interface TourBookingRepository extends JpaRepository<TourBooking, Long>,
     AND tb.status = :tourBookingStatus
 """)
     List<TourBooking> findBookingByStatusAndTourSchedule_Id(TourBookingStatus tourBookingStatus, Long scheduleId);
+
+    boolean existsByTourIdAndStatusIn(Long tourId, List<TourBookingStatus> statuses);
 }
 

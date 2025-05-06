@@ -9,7 +9,10 @@ import com.fpt.capstone.tourism.model.ServicePaxPricing;
 import com.fpt.capstone.tourism.model.Tour;
 import com.fpt.capstone.tourism.model.TourPax;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.ServicePaxPricingRepository;
+import com.fpt.capstone.tourism.repository.TourBookingRepository;
 import com.fpt.capstone.tourism.repository.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.TourRepository;
 import com.fpt.capstone.tourism.service.TourPriceService;
@@ -30,7 +33,7 @@ public class TourPriceServiceImpl implements TourPriceService {
     private final TourRepository tourRepository;
     private final TourPaxRepository tourPaxRepository;
     private final ServicePaxPricingRepository servicePaxPricingRepository;
-
+    private final TourBookingRepository tourBookingRepository;
 
     @Override
     public GeneralResponse<TourPriceListResponseDTO> getTourPriceConfigurations(Long tourId) {
@@ -131,29 +134,76 @@ public class TourPriceServiceImpl implements TourPriceService {
     }
 
 
+//    @Override
+//    @Transactional
+//    public GeneralResponse<TourPriceConfigResponseDTO> updateTourPrice(TourPriceConfigRequestDTO requestDTO, User user) {
+//        try {
+//            // Validate Tour exists
+//            Tour tour = tourRepository.findById(requestDTO.getTourId())
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+//
+//            // Get existing configuration
+//            TourPax tourPax = tourPaxRepository.findById(requestDTO.getId())
+//                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND));
+//
+//            // Verify it belongs to the specified tour
+//            if (!tourPax.getTour().getId().equals(requestDTO.getTourId())) {
+//                throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
+//            }
+//
+//            // Validate date range
+//            if (requestDTO.getValidTo().before(requestDTO.getValidFrom())) {
+//                throw BusinessException.of(HttpStatus.BAD_REQUEST, DATE_RANGE_INVALID);
+//            }
+//
+//            // Update all price-related fields
+//            tourPax.setSellingPrice(requestDTO.getSellingPrice());
+//            tourPax.setFixedCost(requestDTO.getFixedCost());
+//            tourPax.setExtraHotelCost(requestDTO.getExtraHotelCost());
+//            tourPax.setNettPricePerPax(requestDTO.getNettPricePerPax());
+//            tourPax.setValidFrom(requestDTO.getValidFrom());
+//            tourPax.setValidTo(requestDTO.getValidTo());
+//
+//            // Save updated configuration
+//            tourPax = tourPaxRepository.save(tourPax);
+//            TourPriceConfigResponseDTO responseDTO = buildResponseDTO(tourPax);
+//            return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_UPDATED, responseDTO);
+//        } catch (BusinessException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
+//                    "Không thể cập nhật giá tour: " + ex.getMessage(), ex);
+//        }
+//    }
+
     @Override
     @Transactional
     public GeneralResponse<TourPriceConfigResponseDTO> updateTourPrice(TourPriceConfigRequestDTO requestDTO, User user) {
         try {
-            // Validate Tour exists
             Tour tour = tourRepository.findById(requestDTO.getTourId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
-            // Get existing configuration
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể cập nhật giá tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
             TourPax tourPax = tourPaxRepository.findById(requestDTO.getId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND));
 
-            // Verify it belongs to the specified tour
             if (!tourPax.getTour().getId().equals(requestDTO.getTourId())) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_NOT_ASSOCIATED);
             }
 
-            // Validate date range
             if (requestDTO.getValidTo().before(requestDTO.getValidFrom())) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, DATE_RANGE_INVALID);
             }
-
-            // Update all price-related fields
             tourPax.setSellingPrice(requestDTO.getSellingPrice());
             tourPax.setFixedCost(requestDTO.getFixedCost());
             tourPax.setExtraHotelCost(requestDTO.getExtraHotelCost());
@@ -161,7 +211,6 @@ public class TourPriceServiceImpl implements TourPriceService {
             tourPax.setValidFrom(requestDTO.getValidFrom());
             tourPax.setValidTo(requestDTO.getValidTo());
 
-            // Save updated configuration
             tourPax = tourPaxRepository.save(tourPax);
             TourPriceConfigResponseDTO responseDTO = buildResponseDTO(tourPax);
             return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_UPDATED, responseDTO);
@@ -172,6 +221,7 @@ public class TourPriceServiceImpl implements TourPriceService {
                     "Không thể cập nhật giá tour: " + ex.getMessage(), ex);
         }
     }
+
     private TourPriceConfigResponseDTO buildResponseDTO(TourPax tourPax) {
         return TourPriceConfigResponseDTO.builder()
                 .id(tourPax.getId())

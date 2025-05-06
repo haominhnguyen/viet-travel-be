@@ -77,10 +77,10 @@ public class TourScheduleController {
 
     private User getLoggedInUser(UserDetails userDetails) {
         if (userDetails == null) {
-            throw BusinessException.of(HttpStatus.UNAUTHORIZED, "User not authenticated");
+            throw BusinessException.of(HttpStatus.UNAUTHORIZED, "Người dùng không có quyền truy cập");
         }
 
         return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
     }
 }

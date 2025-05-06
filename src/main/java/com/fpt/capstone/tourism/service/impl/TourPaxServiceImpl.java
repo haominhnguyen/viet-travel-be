@@ -6,6 +6,8 @@ import com.fpt.capstone.tourism.dto.common.TourPaxFullDTO;
 import com.fpt.capstone.tourism.dto.request.ServicePricingRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourPaxService;
 
@@ -32,6 +34,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     private final TourDayRepository tourDayRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
     private final ServicePaxPricingRepository servicePaxPricingRepository;
+    private final TourBookingRepository tourBookingRepository;
 
     @Override
     public GeneralResponse<TourPaxFullDTO> getTourPaxConfiguration(Long tourId, Long paxId) {
@@ -223,6 +226,18 @@ public class TourPaxServiceImpl implements TourPaxService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể cập nhật giá pax của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
+
             TourPax pax = tourPaxRepository.findById(paxId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " id: " + paxId));
 
@@ -257,7 +272,6 @@ public class TourPaxServiceImpl implements TourPaxService {
                 }
             }
 
-            // Update the pax configuration
             pax.setMinPax(minPax);
             pax.setMaxPax(maxPax);
 
@@ -283,17 +297,14 @@ public class TourPaxServiceImpl implements TourPaxService {
 
             pax = tourPaxRepository.save(pax);
 
-            // Get all tour days for this tour
             List<TourDay> tourDays = tourDayRepository.findByTourIdAndDeletedFalseOrderByDayNumber(tourId);
 
-            // Get all tour day services
             List<Long> tourDayIds = tourDays.stream()
                     .map(TourDay::getId)
                     .collect(Collectors.toList());
 
             List<TourDayService> allTourDayServices = tourDayServiceRepository.findByTourDayIdIn(tourDayIds);
 
-            // Get existing service-pax associations
             List<ServicePaxPricing> existingPricings = servicePaxPricingRepository.findByTourPaxId(paxId);
 
             // Create a map for quick lookup
@@ -322,19 +333,16 @@ public class TourPaxServiceImpl implements TourPaxService {
                 ServicePaxPricing pricing = existingPricingsMap.get(tdsId);
 
                 if (pricing == null) {
-                    // Create new association if it doesn't exist
                     pricing = ServicePaxPricing.builder()
                             .tourDayService(tds)
                             .tourPax(pax)
                             .deleted(false)
                             .build();
                 } else {
-                    // Make sure it's not marked as deleted
                     pricing.setDeleted(false);
                 }
                 pricing = servicePaxPricingRepository.save(pricing);
 
-                // Create DTO for response
                 serviceAssociations.add(TourDayServicePricingDTO.builder()
                         .tourDayServiceId(tdsId)
                         .serviceId(service.getId())
@@ -379,6 +387,18 @@ public class TourPaxServiceImpl implements TourPaxService {
         try {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
+
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể xóa giá pax của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
+            }
 
             TourPax pax = tourPaxRepository.findById(paxId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, PAX_CONFIG_NOT_FOUND + " id: " + paxId));

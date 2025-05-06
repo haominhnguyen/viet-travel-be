@@ -155,7 +155,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
     public GeneralResponse<TourDayFullDTO> updateTourDay(Long id, Long tourId, TourDayUpdateRequestDTO request) {
         try {
             validateServiceCategories(request.getServiceCategories());
-
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
 
@@ -168,7 +167,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, LOCATION_NOT_FOUND));
                 verifyServiceCategoriesAvailableInLocation(request.getServiceCategories(), location.getId());
             }
-
             if (request.getDayNumber() != null && !request.getDayNumber().equals(tourDay.getDayNumber())) {
                 boolean dayNumberExists = tourDayRepository.existsByTourIdAndDayNumberAndIdNot(
                         tourId, request.getDayNumber(), id);
@@ -176,14 +174,12 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST,
                             TOUR_DAY_NUMBER_ALREADY_EXISTS + request.getDayNumber());
                 }
-
                 Integer maxDays = Math.max(tour.getNumberDays(), tour.getNumberNights());
                 if (request.getDayNumber() > maxDays) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST,
                             TOUR_DAY_EXCEEDS_MAX_LIMIT + maxDays + " ngày/đêm");
                 }
             }
-
             tourDay.setDayNumber(request.getDayNumber());
             tourDay.setTitle(request.getTitle());
             tourDay.setContent(request.getContent());
@@ -221,7 +217,6 @@ public class TourDayServiceIImpl implements TourDayServiceI {
                     .createdAt(tourDay.getCreatedAt())
                     .updatedAt(tourDay.getUpdatedAt())
                     .build();
-
             return new GeneralResponse<>(HttpStatus.OK.value(), TOUR_DAY_UPDATED_SUCCESS, tourDayDTO);
         } catch (BusinessException ex) {
             throw ex;

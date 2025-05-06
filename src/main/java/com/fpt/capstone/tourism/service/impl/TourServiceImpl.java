@@ -841,6 +841,28 @@ public class TourServiceImpl implements TourService {
         }
     }
 
+    @Override
+    public GeneralResponse<TourResponseDTO> changeToPendingPricing(Long tourId, User currentUser) {
+        try {
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
+            if (tour.getTourStatus() != TourStatus.OPENED) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour không ở trạng thái đang mở bán");
+            }
+            tour.setTourStatus(TourStatus.PENDING_PRICING);
+            Tour updatedTour = tourRepository.save(tour);
+
+            TourResponseDTO tourResponseDTO = mapToTourResponseDTO(updatedTour);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Đã chuyển tour sang trạng thái chờ chiết tính giá", tourResponseDTO);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Chuyển trạng thái tour thất bại: " + ex.getMessage(), ex);
+        }
+    }
+
     private void validateTourForApproval(Tour tour) {
         List<String> missingFields = new ArrayList<>();
 
