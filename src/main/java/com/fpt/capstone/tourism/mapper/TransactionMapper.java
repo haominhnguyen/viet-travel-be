@@ -20,27 +20,28 @@ public interface TransactionMapper extends EntityMapper<OperatorTransactionDTO, 
     OperatorTransactionDTO toDTO(Transaction transaction);
 
     default String getPaymentStatus(Transaction transaction) {
-        // Lấy danh sách CostAccount có status == PAID
-        List<CostAccount> paidCostAccounts = transaction.getCostAccount().stream()
-                .filter(cost -> cost.getStatus() == CostAccountStatus.PAID)
-                .toList();
-
-        double totalPaid = 0.0;
-        if(!paidCostAccounts.isEmpty()){
-            // Tính tổng tiền đã trả
-            totalPaid = paidCostAccounts.stream()
-                    .mapToDouble(CostAccount::getFinalAmount)
-                    .sum();
-        }
-
-        // Xác định trạng thái thanh toán
-        if (totalPaid >= transaction.getAmount()) {
-            return "PAID";
-        } else if (totalPaid > 0) {
-            return "PARTIALLY_PAID";
-        } else {
-            return "UNPAID";
-        }
+        return transaction.getTransactionStatus().toString();
+//        // Lấy danh sách CostAccount có status == PAID
+//        List<CostAccount> paidCostAccounts = transaction.getCostAccount().stream()
+//                .filter(cost -> cost.getStatus() == CostAccountStatus.PAID)
+//                .toList();
+//
+//        double totalPaid = 0.0;
+//        if(!paidCostAccounts.isEmpty()){
+//            // Tính tổng tiền đã trả
+//            totalPaid = paidCostAccounts.stream()
+//                    .mapToDouble(CostAccount::getFinalAmount)
+//                    .sum();
+//        }
+//
+//        // Xác định trạng thái thanh toán
+//        if (totalPaid >= transaction.getAmount()) {
+//            return "PAID";
+//        } else if (totalPaid > 0) {
+//            return "PARTIALLY_PAID";
+//        } else {
+//            return "UNPAID";
+//        }
     }
 
     ServiceProviderSimpleDTO toServiceProviderSimpleDTO(ServiceProvider serviceProvider);
