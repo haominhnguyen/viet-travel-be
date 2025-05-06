@@ -1062,7 +1062,7 @@ public class OperatorServiceImpl implements OperatorService {
                     emailService.sendMailServiceProvider(mailServiceDTO);
 
                 } else if(requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)){
-                    bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
+                    bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
                 }
 
                 else {
