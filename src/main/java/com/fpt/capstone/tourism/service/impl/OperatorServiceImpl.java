@@ -145,7 +145,7 @@ public class OperatorServiceImpl implements OperatorService {
             Long currentOperatorId = getCurrentUserOperatorId();
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, null)
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, TourType.SIC)
                     .and((root, query, criteriaBuilder) -> {
                         Join<TourSchedule, User> userJoin = root.join("operator");
                         return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
