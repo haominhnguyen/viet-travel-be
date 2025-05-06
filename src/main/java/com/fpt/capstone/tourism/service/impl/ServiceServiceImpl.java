@@ -9,7 +9,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
+import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.ServiceService;
 import jakarta.persistence.criteria.Expression;
@@ -45,6 +45,8 @@ public class ServiceServiceImpl implements ServiceService {
     private final TourDayServiceMapper tourDayServiceMapper;
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
     private final RoomRepository roomRepository;
     private final MealRepository mealRepository;
     private final TransportRepository transportRepository;

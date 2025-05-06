@@ -804,41 +804,43 @@ public class OperatorServiceImpl implements OperatorService {
                 }
                 bookingServiceRepository.save(newBookingService);
 
-                //Create transaction for new service
-                int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
-                Optional<TourDayService> tourDayServiceOptional = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId());
-                double sellingPriceByPax;
-                if (tourDayServiceOptional.isPresent()) {
-                    TourDayService tourDayService = tourDayServiceOptional.get();
-                    sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
-                } else {
-                    sellingPriceByPax = service.getSellingPrice();
+                if (tourType.equals(TourType.SIC)) {
+                    //Create transaction for new service
+                    int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
+                    Optional<TourDayService> tourDayServiceOptional = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId());
+                    double sellingPriceByPax;
+                    if (tourDayServiceOptional.isPresent()) {
+                        TourDayService tourDayService = tourDayServiceOptional.get();
+                        sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
+                    } else {
+                        sellingPriceByPax = service.getSellingPrice();
+                    }
+
+                    Transaction transaction = Transaction.builder()
+                            .booking(booking)
+                            .amount(sellingPriceByPax * newBookingService.getCurrentQuantity())
+                            .category(TransactionType.RECEIPT)
+                            .paidBy(booking.getUser().getFullName())
+                            .receivedBy("Viet Travel")
+                            .paymentMethod(PaymentMethod.BANKING)
+                            .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                                    + " - dịch vụ: " + newBookingService.getService().getName() + ", số lượng: " + newBookingService.getCurrentQuantity())
+                            .transactionStatus(TransactionStatus.PENDING)
+                            .build();
+
+                    CostAccount.builder()
+                            .transaction(transaction)
+                            .amount(sellingPriceByPax)
+                            .discount(0)
+                            .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                                    + " - dịch vụ: " + newBookingService.getService().getName())
+                            .quantity(newBookingService.getCurrentQuantity())
+                            .finalAmount(sellingPriceByPax * newBookingService.getCurrentQuantity())
+                            .status(CostAccountStatus.PENDING)
+                            .build();
+
+                    transactionRepository.save(transaction);
                 }
-
-                Transaction transaction = Transaction.builder()
-                        .booking(booking)
-                        .amount(sellingPriceByPax * newBookingService.getCurrentQuantity())
-                        .category(TransactionType.RECEIPT)
-                        .paidBy(booking.getUser().getFullName())
-                        .receivedBy("Viet Travel")
-                        .paymentMethod(PaymentMethod.BANKING)
-                        .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                                + " - dịch vụ: " + newBookingService.getService().getName() + ", số lượng: " + newBookingService.getCurrentQuantity())
-                        .transactionStatus(TransactionStatus.PENDING)
-                        .build();
-
-                CostAccount.builder()
-                        .transaction(transaction)
-                        .amount(sellingPriceByPax)
-                        .discount(0)
-                        .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                                + " - dịch vụ: " + newBookingService.getService().getName())
-                        .quantity(newBookingService.getCurrentQuantity())
-                        .finalAmount(sellingPriceByPax * newBookingService.getCurrentQuantity())
-                        .status(CostAccountStatus.PENDING)
-                        .build();
-
-                transactionRepository.save(transaction);
             }
 
             return new GeneralResponse<>(HttpStatus.OK.value(), ADD_SERVICE_SUCCESS, requestDTO);
@@ -1061,11 +1063,9 @@ public class OperatorServiceImpl implements OperatorService {
                             .build();
                     emailService.sendMailServiceProvider(mailServiceDTO);
 
-                } else if(requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)){
+                } else if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
                     bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
-                }
-
-                else {
+                } else {
                     throw BusinessException.of("Không được cập nhật dịch vụ");
                 }
             } else {
