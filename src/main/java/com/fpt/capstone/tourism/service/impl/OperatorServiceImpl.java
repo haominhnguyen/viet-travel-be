@@ -60,6 +60,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final ServiceCategoryRepository serviceCategoryRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
     private final TourDayRepository tourDayRepository;
+    private final TourPaxRepository tourPaxRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -1684,11 +1685,15 @@ public class OperatorServiceImpl implements OperatorService {
 
             //Tìm số tiền ước tính thu được cả tour
 //            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);
-            BigDecimal estimateReceiptAmount = bookings.stream()
-                    .map(result -> {
-                        return BigDecimal.valueOf(result.getTotalAmount());
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//            BigDecimal estimateReceiptAmount = bookings.stream()
+//                    .map(result -> {
+//                        return BigDecimal.valueOf(result.getTotalAmount());
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            int paxId = tourScheduleRepository.findTourPaxIdByScheduleId(scheduleId);
+            BigDecimal tourSellingPricePerPerson = tourPaxRepository.findSellingPriceByTourPaxIdAndScheduleId(scheduleId, paxId);
+            BigDecimal estimateReceiptAmount = tourSellingPricePerPerson.multiply(passengerNumber);
 
             //Tìm lợi nhuận ước tính
             BigDecimal estimateProfitAmount = estimateReceiptAmount.subtract(estimatedPaymentAmount);
