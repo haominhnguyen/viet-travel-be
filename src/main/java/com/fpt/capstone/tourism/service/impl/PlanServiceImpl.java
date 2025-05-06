@@ -85,7 +85,6 @@ public class PlanServiceImpl implements PlanService {
         try {
             List<ServiceProvider> hotels = serviceProviderRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, 1L);
             List<ServiceProvider> restaurants = serviceProviderRepository.findByLocationIdAndServiceCategoryIdAndDeletedFalse(locationId, 2L);
-            List<com.fpt.capstone.tourism.model.Service> activities = serviceRepository.findByServiceCategoryIdAndLocationId(4L, locationId);
 
             StringBuilder promptBuilder = new StringBuilder("Hãy đề xuất các nhà cung cấp dịch vụ (khách sạn và nhà hàng) phù hợp cho khách hàng dựa trên dữ liệu sau:\n\n");
 
@@ -108,22 +107,8 @@ public class PlanServiceImpl implements PlanService {
                         .append(", Link Ảnh: ").append(provider.getImageUrl())
                         .append("\n");
             }
-
-            // Append restaurant data
-            promptBuilder.append("\n🍽️ Hoạt động:\n");
-            for (com.fpt.capstone.tourism.model.Service service : activities) {
-                promptBuilder.append("- ").append(service.getName().replace("Vé", ""))
-                        .append(", Giá vé: ").append(service.getSellingPrice())
-                        .append(", Link Ảnh: ").append(service.getImageUrl())
-                        .append("\n");
-            }
-
-
-
             Location location = locationRepository.findById(locationId).orElseThrow();
             promptBuilder.append("🏨 Link Thumbnail Image: ").append(location.getImage()).append("\n");
-
-
 
             return promptBuilder.toString();
         } catch (Exception ex) {
