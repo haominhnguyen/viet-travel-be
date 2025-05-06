@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.common.TourPaxFullDTO;
 import com.fpt.capstone.tourism.dto.request.ServicePricingRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.*;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.repository.*;
 import com.fpt.capstone.tourism.service.TourPaxService;
@@ -34,6 +34,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     private final TourDayRepository tourDayRepository;
     private final TourDayServiceRepository tourDayServiceRepository;
     private final ServicePaxPricingRepository servicePaxPricingRepository;
+    private final TourBookingRepository tourBookingRepository;
 
     @Override
     public GeneralResponse<TourPaxFullDTO> getTourPaxConfiguration(Long tourId, Long paxId) {
@@ -225,10 +226,16 @@ public class TourPaxServiceImpl implements TourPaxService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
-            if (TourType.SIC.equals(tour.getTourType()) &&
-                    (TourStatus.OPENED.equals(tour.getTourStatus()) || TourStatus.PENDING_PRICING.equals(tour.getTourStatus()))) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                        "Không thể cập nhật cấu hình pax cho tour SIC khi tour đang ở trạng thái mở bán hoặc chờ chiết tính giá");
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể cập nhật giá pax của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
             }
 
             TourPax pax = tourPaxRepository.findById(paxId)
@@ -381,10 +388,16 @@ public class TourPaxServiceImpl implements TourPaxService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND + " id: " + tourId));
 
-            if (TourType.SIC.equals(tour.getTourType()) &&
-                    (TourStatus.OPENED.equals(tour.getTourStatus()) || TourStatus.PENDING_PRICING.equals(tour.getTourStatus()))) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST,
-                        "Không thể xóa cấu hình pax cho tour SIC khi tour đang ở trạng thái mở bán hoặc chờ chiết tính giá");
+            if (TourType.SIC.equals(tour.getTourType())) {
+                boolean hasActiveBookings = tourBookingRepository.existsByTourIdAndStatusIn(
+                        tour.getId(),
+                        List.of(TourBookingStatus.SUCCESS, TourBookingStatus.PENDING)
+                );
+
+                if (hasActiveBookings) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                            "Không thể xóa giá pax của tour SIC khi đã có đơn đặt tour với trạng thái Đang Chờ hoặc Đã Thành Công");
+                }
             }
 
             TourPax pax = tourPaxRepository.findById(paxId)
