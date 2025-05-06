@@ -779,7 +779,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
             List<TourBookingService> availableBookingService = bookingService.stream().filter(tourBookingService ->
-                 tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+                    tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
             ).toList();
             if (!availableBookingService.isEmpty()) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
@@ -808,7 +808,7 @@ public class OperatorServiceImpl implements OperatorService {
                 int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
                 Optional<TourDayService> tourDayServiceOptional = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId());
                 double sellingPriceByPax;
-                if(tourDayServiceOptional.isPresent()) {
+                if (tourDayServiceOptional.isPresent()) {
                     TourDayService tourDayService = tourDayServiceOptional.get();
                     sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
                 } else {
@@ -976,7 +976,7 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
             //Kiểm tra trạng thái (đã thanh toán không thể update)
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.PAID)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.PAID)) {
                 throw BusinessException.of("Không thể cập nhật số lượng");
             }
 
@@ -989,10 +989,10 @@ public class OperatorServiceImpl implements OperatorService {
             TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(requestDTO.getTourBookingServiceId());
             if (!tourType.equals(TourType.SIC)) {
 
-//            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE (old)
-//            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
-//                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
-//            }
+                //Trường hợp thay đổi số lượng ở trạng thái NOT_ORDERED
+                if (bookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)) {
+                    throw BusinessException.of("Không được cập nhật dịch vụ");
+                }
 
                 //Trường hợp thay đổi số lượng ở trạng thái PENDING
                 if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
@@ -1143,8 +1143,8 @@ public class OperatorServiceImpl implements OperatorService {
             }
 
             List<TourBookingService> tourBookingServiceStatusList = bookingServiceRepository.findByScheduleId(tourSchedule.getId());
-            for(TourBookingService item : tourBookingServiceStatusList){
-                if(!item.getStatus().equals(TourBookingServiceStatus.PAID)){
+            for (TourBookingService item : tourBookingServiceStatusList) {
+                if (!item.getStatus().equals(TourBookingServiceStatus.PAID)) {
                     throw BusinessException.of("Không thể chuyển quyết toán");
                 }
             }
@@ -1625,7 +1625,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             //tinh tien hotel
             List<TourDayService> tourDayServicesHotel = tourDayServiceRepository.findByTourDayIdInHotel(tourDayIds);
-            BigDecimal estimatedPaymentAmountHotelUnit = tourDayServicesHotel.stream().map(result ->{
+            BigDecimal estimatedPaymentAmountHotelUnit = tourDayServicesHotel.stream().map(result -> {
                 return BigDecimal.valueOf(result.getService().getNettPrice());
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -1655,7 +1655,7 @@ public class OperatorServiceImpl implements OperatorService {
             List<TourDayService> tourDayServicesTransport = tourDayServiceRepository.findByTourDayIdInTransport(tourDayIds);
 //            List<Long> tourDayServiceTransportIds = tourDayServicesTransport.stream().map(TourDayService::getId).toList();
 //            List<ServicePaxPricing> serviceTransportPaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndTourPaxId(tourDayServiceTransportIds, paxId);
-            BigDecimal estimatedPaymentAmountTransport = tourDayServicesTransport.stream().map(result ->{
+            BigDecimal estimatedPaymentAmountTransport = tourDayServicesTransport.stream().map(result -> {
                 return BigDecimal.valueOf(result.getService().getNettPrice());
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
