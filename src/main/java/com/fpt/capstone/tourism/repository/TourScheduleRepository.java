@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -57,7 +58,7 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     JOIN ts.tour t
     JOIN ts.tourPax tp
     LEFT JOIN TourBooking tb ON tb.tourSchedule.id = ts.id AND tb.status = "SUCCESS"
-    WHERE t.id = :tourId and ts.id != :tourScheduleId
+    WHERE t.id = :tourId and ts.id != :tourScheduleId AND ts.status = 'OPEN'
     GROUP BY ts.id, ts.startDate, ts.endDate, tp.sellingPrice, tp.minPax, tp.maxPax,
      ts.meetingLocation, ts.departureTime, tp.extraHotelCost
      HAVING (tp.maxPax - COALESCE(CAST(SUM(tb.seats) AS integer), 0)) >= :seats
@@ -226,4 +227,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     WHERE ts.id = :id
 """)
     Optional<TourSchedule> findScheduleWithBookings(@Param("id") Long id);
+@Query("""
+        SELECT ts.tourPax.id FROM TourSchedule ts WHERE  ts.id = :id
+        """)
+    int findTourPaxIdByScheduleId(@Param("id") Long id);
 }

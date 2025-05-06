@@ -294,7 +294,7 @@ public class BookingServiceImpl implements BookingService {
                     .seats(bookingRequestDTO.getCustomers().size())
                     .note(bookingRequestDTO.getNote())
                     .deleted(false)
-                    .bookingCode(bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId()))
+                    .bookingCode(bookingCode)
                     .user(User.builder().id(bookingRequestDTO.getUserId()).build())
                     .status(TourBookingStatus.PENDING)
                     .sellingPrice(bookingRequestDTO.getSellingPrice())
@@ -1374,7 +1374,7 @@ public class BookingServiceImpl implements BookingService {
             }
             GeneralResponse.of(dto);
         } catch (Exception ex) {
-            throw BusinessException.of("Gửi email báo giá thất bại", ex);
+            throw BusinessException.of("Thanh toán booking thất bại", ex);
         }
     }
 

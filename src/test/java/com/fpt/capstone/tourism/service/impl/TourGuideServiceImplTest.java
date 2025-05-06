@@ -127,7 +127,7 @@ class TourGuideServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         BusinessException exception = assertThrows(BusinessException.class, () -> tourGuideService.update(1L, mockRequestDTO));
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("Không tìm thấy người dùng", exception.getMessage());
     }
 
     @Test
@@ -146,6 +146,6 @@ class TourGuideServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         BusinessException exception = assertThrows(BusinessException.class, () -> tourGuideService.delete(1L, true));
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("Không tìm thấy người dùng", exception.getMessage());
     }
 }

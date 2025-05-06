@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.*;
 import com.fpt.capstone.tourism.dto.request.*;
 import com.fpt.capstone.tourism.dto.response.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.*;
 import com.fpt.capstone.tourism.model.*;
@@ -28,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,6 +48,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourOperationLogRepository logRepository;
     private final TransactionRepository transactionRepository;
     private final TourScheduleServiceRepository scheduleServiceRepository;
+    private final ServicePaxPricingRepository servicePaxPricingRepository;
     private final CostAccountRepository costAccountRepository;
     private final ServiceRepository serviceRepository;
     private final ServiceProviderRepository providerRepository;
@@ -55,7 +58,9 @@ public class OperatorServiceImpl implements OperatorService {
     private final TransportRepository transportRepository;
     private final TourBookingServiceRepository bookingServiceRepository;
     private final ServiceCategoryRepository serviceCategoryRepository;
+    private final TourDayServiceRepository tourDayServiceRepository;
     private final TourDayRepository tourDayRepository;
+    private final TourPaxRepository tourPaxRepository;
     private final TourBookingCustomerFullMapper customerFullMapper;
     private final TourOperationLogMapper logMapper;
     private final TransactionMapper transactionMapper;
@@ -69,6 +74,7 @@ public class OperatorServiceImpl implements OperatorService {
     private final TourBookingServiceMapper bookingServiceMapper;
     private final TourDayMapper tourDayMapper;
     private final EmailConfirmationService emailService;
+    private final TransactionHelper transactionHelper;
 
 
     final String emailOrderServiceContent = "Kính gửi: {0},\n\n"
@@ -139,7 +145,7 @@ public class OperatorServiceImpl implements OperatorService {
             Long currentOperatorId = getCurrentUserOperatorId();
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, null)
                     .and((root, query, criteriaBuilder) -> {
                         Join<TourSchedule, User> userJoin = root.join("operator");
                         return criteriaBuilder.equal(userJoin.get("id"), currentOperatorId);
@@ -191,9 +197,9 @@ public class OperatorServiceImpl implements OperatorService {
                 throw BusinessException.of("Đã có người điều hành lịch tour này");
             }
 
-            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
-                throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
-            }
+//            if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
+//                throw BusinessException.of(("Lịch tour này chưa thể nhận điều hành"));
+//            }
 
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -259,6 +265,7 @@ public class OperatorServiceImpl implements OperatorService {
 
             OperatorTourDetailDTO operatorTourDetailDTO = OperatorTourDetailDTO.builder()
                     .scheduleId(scheduleId)
+                    .scheduleStatus(tourSchedule.getStatus())
                     .tourName(tour.getName())
                     .tourType(tour.getTourType())
                     .tags(tagMapper.toDtoList(tour.getTags()))
@@ -270,6 +277,7 @@ public class OperatorServiceImpl implements OperatorService {
                     .createdAt(tour.getCreatedAt())
                     .createdBy(tour.getCreatedBy().getFullName())
                     .maxPax(tourSchedule.getTourPax().getMaxPax())
+                    .minPax(tourSchedule.getTourPax().getMinPax())
                     .soldSeats(tourScheduleRepository.findSoldSeatsByScheduleId(scheduleId))
                     .pendingSeats(tourScheduleRepository.findPendingSeatsByScheduleId(scheduleId))
                     .remainingSeats(availableSeatsMap.getOrDefault(scheduleId, 0))
@@ -294,11 +302,11 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             checkAuthor(scheduleId);
 
-            List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
+            List<TourBooking> bookings = tourBookingRepository.findBookingByStatusAndTourSchedule_Id(TourBookingStatus.SUCCESS, scheduleId);
 
             List<OperatorTourCustomerDTO> responseList = bookings.stream().map(booking -> {
                 List<TourBookingCustomerDTO> customers = tourBookingCustomerRepository
-                        .findByTourBookingId(booking.getId())
+                        .findByTourBooking_IdAndBookedPersonFalse(booking.getId())
                         .stream()
                         .map(customerFullMapper::toDto)
                         .collect(Collectors.toList());
@@ -335,6 +343,11 @@ public class OperatorServiceImpl implements OperatorService {
                 //Số tiền HDV đã thu hộ
                 Double collectionAmount = tourBookingRepository.findCollectionAmountByBookingId(booking.getId());
 
+                String saleName = null;
+                if (booking.getSale() != null) {
+                    saleName = booking.getSale().getFullName();
+                }
+
                 OperatorTourBookingDTO responseDTO = OperatorTourBookingDTO.builder()
                         .bookingId(booking.getId())
                         .bookingCode(booking.getBookingCode())
@@ -349,6 +362,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .totalAmount(booking.getTotalAmount())
                         .bookedAt(booking.getCreatedAt())
                         .bookingStatus(booking.getStatus())
+                        .saleName(saleName)
                         .build();
                 return responseDTO;
             }).collect(Collectors.toList());
@@ -503,13 +517,30 @@ public class OperatorServiceImpl implements OperatorService {
 //
                 // Tính tổng số tiền đã chi cho nahf cung cấp theo dịch vụ và booking
 //            double paidForBooking = transactionRepository.getTotalPaidForBooking(bookingService.getId(), bookingService.getService().getId());
+                //Kiểm tra có phải là dịch vụ biến đổi không (ví dụ xe đi chung)
+                String serviceCategory = serviceRepository.findCategoryById(bookingService.getService().getId());
                 double paidForBooking = 0;
                 if (bookingService.getStatus().equals(TourBookingServiceStatus.PAID)) {
-                    paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    if (serviceCategory.equals("Transport")) {
+                        paidForBooking = transactionHelper.calculateTransportFeePerPerson(scheduleId, bookingService.getService().getId());
+                    } else {
+                        paidForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    }
                 }
 
                 // Tính tổng số tiền phải trả cho nhà cung cấp theo booking
-                double amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                double amountToPayForBooking = 0;
+                if (!(bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.NOT_AVAILABLE)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.REJECTED_BY_OPERATOR)
+                        || bookingService.getStatus().equals(TourBookingServiceStatus.CANCELLED))) {
+                    if (serviceCategory.equals("Transport")) {
+                        amountToPayForBooking = transactionHelper.calculateTransportFeePerPerson(scheduleId, bookingService.getService().getId());
+                    } else {
+                        amountToPayForBooking = bookingService.getCurrentQuantity() * bookingService.getService().getNettPrice();
+                    }
+                }
+
 
                 // Cập nhật tổng tiền đã trả & tổng số tiền cần trả
                 totalPaid += paidForBooking;
@@ -548,7 +579,7 @@ public class OperatorServiceImpl implements OperatorService {
                         .build());
             }
             serviceDTOList.sort(Comparator.comparing(
-                    OperatorServiceDTO::getUsingDate,
+                    OperatorServiceDTO::getBookingStatus,
                     Comparator.nullsLast(Comparator.naturalOrder()))
             );
 
@@ -583,6 +614,7 @@ public class OperatorServiceImpl implements OperatorService {
             throw BusinessException.of(CHOOSE_SERVICE_FAIL, ex);
         }
     }
+
     @Transactional
     @Override
     public GeneralResponse<OperatorTransactionDTO> payService(PayServiceRequestDTO requestDTO) {
@@ -591,16 +623,19 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_NOT_FOUND)
             );
 
-            TourBookingService tourBookingService =
+            List<TourBookingService> tourBookingService =
                     bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(
                             requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId()
                     );
 
-            if (!tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+            List<TourBookingService> bookingServiceNeedToPay = tourBookingService.stream().filter(tourBookingService1 ->
+                    tourBookingService1.getStatus().equals(TourBookingServiceStatus.AVAILABLE)).toList();
+
+            if (bookingServiceNeedToPay.isEmpty()) {
                 throw BusinessException.of(SERVICE_REQUEST_NOT_APPROVED);
             }
-            tourBookingService.setStatus(TourBookingServiceStatus.PAID);
-            bookingServiceRepository.save(tourBookingService);
+            bookingServiceNeedToPay.forEach(tourBookingService1 -> tourBookingService1.setStatus(TourBookingServiceStatus.PAID));
+            bookingServiceRepository.saveAll(bookingServiceNeedToPay);
 
             Transaction transaction = Transaction.builder()
                     .booking(tourBooking)
@@ -736,17 +771,20 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             checkAuthor(booking.getTourSchedule().getId());
-            TourBookingService bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
+            List<TourBookingService> bookingService = bookingServiceRepository.findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(requestDTO.getBookingId(), requestDTO.getServiceId(), requestDTO.getTourDayId());
 
             TourDay tourDay = tourDayRepository.findById(requestDTO.getTourDayId()).orElseThrow(
                     () -> BusinessException.of(TOUR_DAY_NOT_FOUND)
             );
 
             //kiểm tra xem dịch vụ đã có trong tour booking chưa
-            if (bookingService != null) {
+            List<TourBookingService> availableBookingService = bookingService.stream().filter(tourBookingService ->
+                 tourBookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+            ).toList();
+            if (!availableBookingService.isEmpty()) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, SERVICE_ALREADY_EXISTS, requestDTO);
             } else {
-                bookingService = TourBookingService.builder()
+                TourBookingService newBookingService = TourBookingService.builder()
                         .booking(booking)
                         .service(service)
                         .currentQuantity(requestDTO.getAddQuantity())
@@ -756,19 +794,48 @@ public class OperatorServiceImpl implements OperatorService {
                         .status(TourBookingServiceStatus.AVAILABLE)
                         .tourDay(tourDay)
                         .build();
-                bookingServiceRepository.save(bookingService);
+
+                //Kiểm tra loại tour
+                TourType tourType = tourRepository.findTourTypeByTourBookingId(requestDTO.getBookingId());
+
+                //Kiểm tra loại tour phải tour Private hay không
+                if (tourType.equals(TourType.PRIVATE)) {
+                    newBookingService.setStatus(TourBookingServiceStatus.CHECKING);
+                }
+                bookingServiceRepository.save(newBookingService);
 
                 //Create transaction for new service
+                int tourPaxId = tourScheduleRepository.findTourPaxIdByScheduleId(booking.getTourSchedule().getId());
+                Optional<TourDayService> tourDayServiceOptional = tourDayServiceRepository.findByTourDayIdAndServiceId(requestDTO.getTourDayId(), requestDTO.getServiceId());
+                double sellingPriceByPax;
+                if(tourDayServiceOptional.isPresent()) {
+                    TourDayService tourDayService = tourDayServiceOptional.get();
+                    sellingPriceByPax = servicePaxPricingRepository.findSellingPriceByTourDayServiceIdAndTourPaxId(tourDayService.getId(), tourPaxId);
+                } else {
+                    sellingPriceByPax = service.getSellingPrice();
+                }
+
                 Transaction transaction = Transaction.builder()
                         .booking(booking)
-                        .amount(service.getSellingPrice() * bookingService.getCurrentQuantity())
+                        .amount(sellingPriceByPax * newBookingService.getCurrentQuantity())
                         .category(TransactionType.RECEIPT)
                         .paidBy(booking.getUser().getFullName())
                         .receivedBy("Viet Travel")
                         .paymentMethod(PaymentMethod.BANKING)
                         .notes("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
-                                + " - dịch vụ: " + bookingService.getService().getName() + ", số lượng: " + bookingService.getCurrentQuantity())
+                                + " - dịch vụ: " + newBookingService.getService().getName() + ", số lượng: " + newBookingService.getCurrentQuantity())
                         .transactionStatus(TransactionStatus.PENDING)
+                        .build();
+
+                CostAccount.builder()
+                        .transaction(transaction)
+                        .amount(sellingPriceByPax)
+                        .discount(0)
+                        .content("Thu phí dịch vụ phát sinh của khách " + booking.getBookingCode()
+                                + " - dịch vụ: " + newBookingService.getService().getName())
+                        .quantity(newBookingService.getCurrentQuantity())
+                        .finalAmount(sellingPriceByPax * newBookingService.getCurrentQuantity())
+                        .status(CostAccountStatus.PENDING)
                         .build();
 
                 transactionRepository.save(transaction);
@@ -892,9 +959,9 @@ public class OperatorServiceImpl implements OperatorService {
 
             bookingServiceRepository.save(bookingService);
 
-            TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
+//            TourBookingServiceCommonDTO resultDTO = bookingServiceMapper.toCommonDTO(bookingService);
 
-            return new GeneralResponse<>(HttpStatus.OK.value(), CANCEL_SERVICE_SUCCESS, resultDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CANCEL_SERVICE_SUCCESS, tourBookingServiceId);
         } catch (Exception ex) {
             throw BusinessException.of(CANCEL_SERVICE_FAIL, ex);
         }
@@ -908,19 +975,96 @@ public class OperatorServiceImpl implements OperatorService {
             TourBookingService bookingService = bookingServiceRepository.findById(requestDTO.getTourBookingServiceId()).orElseThrow(
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
+            //Kiểm tra trạng thái (đã thanh toán không thể update)
+            if(bookingService.getStatus().equals(TourBookingServiceStatus.PAID)){
+                throw BusinessException.of("Không thể cập nhật số lượng");
+            }
 
             if (requestDTO.getNewQuantity() <= 0 ||
                     requestDTO.getNewQuantity() == bookingService.getCurrentQuantity()) {
                 throw BusinessException.of(INVALID_SERVICE_QUANTITY);
             }
 
-            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
-            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
-                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
-            }
+            //check tour type
+            TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(requestDTO.getTourBookingServiceId());
+            if (!tourType.equals(TourType.SIC)) {
 
-            //Trường hợp thay đổi số lượng ở trạng thái PENDING
-            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+//            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE (old)
+//            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+//                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+//            }
+
+                //Trường hợp thay đổi số lượng ở trạng thái PENDING
+                if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+
+                    //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                    Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_NOT_FOUND)
+                    );
+
+                    ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                    );
+                    String content = MessageFormat.format(emailChangeServiceContent,
+                            serviceProvider.getName(),
+                            service.getName(),
+                            bookingService.getCurrentQuantity(),
+                            requestDTO.getNewQuantity(),
+                            bookingService.getRequestDate(),
+                            requestDTO.getNewQuantity() * service.getNettPrice());
+
+                    String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                    MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                            .bookingServiceId(requestDTO.getTourBookingServiceId())
+                            .providerId(serviceProvider.getId())
+                            .providerName(serviceProvider.getName())
+                            .providerEmail(serviceProvider.getEmail())
+                            .emailSubject(subject)
+                            .emailContent(content)
+                            .build();
+                    emailService.sendMailServiceProvider(mailServiceDTO);
+
+                    bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+                }
+
+                //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE (new)
+                if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                    bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
+
+                    //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+                    Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_NOT_FOUND)
+                    );
+
+                    ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                    );
+                    String content = MessageFormat.format(emailUpdateServiceContent,
+                            serviceProvider.getName(),
+                            service.getName(),
+                            bookingService.getCurrentQuantity(),
+                            requestDTO.getNewQuantity(),
+                            bookingService.getRequestDate(),
+                            requestDTO.getNewQuantity() * service.getNettPrice());
+
+                    String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
+
+                    MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                            .bookingServiceId(requestDTO.getTourBookingServiceId())
+                            .providerId(serviceProvider.getId())
+                            .providerName(serviceProvider.getName())
+                            .providerEmail(serviceProvider.getEmail())
+                            .emailSubject(subject)
+                            .emailContent(content)
+                            .build();
+                    emailService.sendMailServiceProvider(mailServiceDTO);
+
+                }
+            } else {
+                //đổi số lượng đối với tour SIC
+                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
@@ -934,14 +1078,14 @@ public class OperatorServiceImpl implements OperatorService {
                         serviceProvider.getName(),
                         service.getName(),
                         bookingService.getCurrentQuantity(),
-                        requestDTO.getNewQuantity(),
+                        bookingService.getRequestedQuantity(),
                         bookingService.getRequestDate(),
-                        requestDTO.getNewQuantity() * service.getNettPrice());
+                        bookingService.getRequestedQuantity() * service.getNettPrice());
 
                 String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
 
                 MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .bookingServiceId(requestDTO.getTourBookingServiceId())
+                        .bookingServiceId(bookingService.getId())
                         .providerId(serviceProvider.getId())
                         .providerName(serviceProvider.getName())
                         .providerEmail(serviceProvider.getEmail())
@@ -949,43 +1093,6 @@ public class OperatorServiceImpl implements OperatorService {
                         .emailContent(content)
                         .build();
                 emailService.sendMailServiceProvider(mailServiceDTO);
-
-                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
-            }
-
-            //Trường hợp thay đổi số lượng ở trạng thái APPROVED
-            if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.APPROVED)) {
-                bookingService.setStatus(TourBookingServiceStatus.PENDING);
-                bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
-
-                //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
-                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_NOT_FOUND)
-                );
-
-                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
-                );
-                String content = MessageFormat.format(emailUpdateServiceContent,
-                        serviceProvider.getName(),
-                        service.getName(),
-                        bookingService.getCurrentQuantity(),
-                        requestDTO.getNewQuantity(),
-                        bookingService.getRequestDate(),
-                        requestDTO.getNewQuantity() * service.getNettPrice());
-
-                String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
-
-                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .bookingServiceId(requestDTO.getTourBookingServiceId())
-                        .providerId(serviceProvider.getId())
-                        .providerName(serviceProvider.getName())
-                        .providerEmail(serviceProvider.getEmail())
-                        .emailSubject(subject)
-                        .emailContent(content)
-                        .build();
-                emailService.sendMailServiceProvider(mailServiceDTO);
-
             }
             bookingServiceRepository.save(bookingService);
 
@@ -1034,6 +1141,13 @@ public class OperatorServiceImpl implements OperatorService {
             if (!tourSchedule.getStatus().equals(TourScheduleStatus.ONGOING)) {
                 throw BusinessException.of(TOUR_SCHEDULE_NOT_ONGOING);
             }
+
+            List<TourBookingService> tourBookingServiceStatusList = bookingServiceRepository.findByScheduleId(tourSchedule.getId());
+            for(TourBookingService item : tourBookingServiceStatusList){
+                if(!item.getStatus().equals(TourBookingServiceStatus.PAID)){
+                    throw BusinessException.of("Không thể chuyển quyết toán");
+                }
+            }
             tourSchedule.setStatus(TourScheduleStatus.SETTLEMENT);
             tourScheduleRepository.save(tourSchedule);
             return GeneralResponse.of(tourScheduleId);
@@ -1047,11 +1161,11 @@ public class OperatorServiceImpl implements OperatorService {
         try {
             Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page, size, sort);
-            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status)
-                    .and((root, query, criteriaBuilder) -> {
-                        Join<TourSchedule, Tour> tourJoin = root.join("tour");
-                        return criteriaBuilder.equal(tourJoin.get("tourType"), TourType.PRIVATE);
-                    });
+            Specification<TourSchedule> spec = buildSearchSpecification(keyword, status, TourType.PRIVATE);
+//                    .and((root, query, criteriaBuilder) -> {
+//                        Join<TourSchedule, Tour> tourJoin = root.join("tour");
+//                        return criteriaBuilder.equal(tourJoin.get("tourType"), TourType.PRIVATE);
+//                    });
 
             Page<TourSchedule> tourPage = tourScheduleRepository.findAll(spec, pageable);
 
@@ -1181,7 +1295,7 @@ public class OperatorServiceImpl implements OperatorService {
             );
 
             //Trường hợp yêu cầu hủy dịch vụ
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
             }
 
@@ -1260,53 +1374,18 @@ public class OperatorServiceImpl implements OperatorService {
                     () -> BusinessException.of(BOOKING_SERVICE_NOT_FOUND)
             );
 
+            TourType tourType = tourRepository.findTourTypeByTourBookingServiceId(tourBookingServiceId);
+
             //Trường hợp yêu cầu hủy dịch vụ
-            if(bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)){
+            if (bookingService.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                 bookingService.setStatus(TourBookingServiceStatus.CANCELLED);
             }
 
-            //Trường hợp kiểm tra khả dụng của dịch vụ
-            if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
-
-//                //Gửi mail đặt hàng với nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
-//                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-//                        () -> BusinessException.of(SERVICE_NOT_FOUND)
-//                );
-//
-//                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-//                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
-//                );
-//                String content = MessageFormat.format(emailOrderServiceContent,
-//                        serviceProvider.getName(),
-//                        service.getName(),
-//                        bookingService.getCurrentQuantity(),
-//                        bookingService.getRequestDate(),
-//                        bookingService.getCurrentQuantity() * service.getNettPrice());
-//
-//                String subject = MessageFormat.format(emailOrderServiceSubject, serviceProvider.getId());
-//
-//                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-//                        .bookingServiceId(tourBookingServiceId)
-//                        .providerId(serviceProvider.getId())
-//                        .providerName(serviceProvider.getName())
-//                        .providerEmail(serviceProvider.getEmail())
-//                        .emailSubject(subject)
-//                        .emailContent(content)
-//                        .build();
-//                emailService.sendMailServiceProvider(mailServiceDTO);
-//                bookingService.setStatus(TourBookingServiceStatus.PENDING);
-            }
-
-//            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
-//            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
-//                bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
-//                bookingService.setRequestedQuantity(0);
-//            }
-
-            //Trường hợp thay đổi số lượng ở trạng thái PENDING
-            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+            //Kiểm tra loại tour phải tour SIC hay không
+            if (tourType.equals(TourType.SIC)) {
                 bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
                 bookingService.setRequestedQuantity(0);
+                bookingService.setStatus(TourBookingServiceStatus.AVAILABLE);
 
                 //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
                 Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
@@ -1337,37 +1416,112 @@ public class OperatorServiceImpl implements OperatorService {
                 emailService.sendMailServiceProvider(mailServiceDTO);
             }
 
-            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
-            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
-                bookingService.setStatus(TourBookingServiceStatus.PENDING);
+            if (!tourType.equals(TourType.SIC)) {
 
-                //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
-                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_NOT_FOUND)
-                );
+                //Trường hợp kiểm tra khả dụng của dịch vụ
+                if (bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)) {
 
-                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
-                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
-                );
-                String content = MessageFormat.format(emailUpdateServiceContent,
-                        serviceProvider.getName(),
-                        service.getName(),
-                        bookingService.getCurrentQuantity(),
-                        bookingService.getRequestedQuantity(),
-                        bookingService.getRequestDate(),
-                        bookingService.getRequestedQuantity() * service.getNettPrice());
+//                //Gửi mail đặt hàng với nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+//                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+//                        () -> BusinessException.of(SERVICE_NOT_FOUND)
+//                );
+//
+//                ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+//                        () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+//                );
+//                String content = MessageFormat.format(emailOrderServiceContent,
+//                        serviceProvider.getName(),
+//                        service.getName(),
+//                        bookingService.getCurrentQuantity(),
+//                        bookingService.getRequestDate(),
+//                        bookingService.getCurrentQuantity() * service.getNettPrice());
+//
+//                String subject = MessageFormat.format(emailOrderServiceSubject, serviceProvider.getId());
+//
+//                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+//                        .bookingServiceId(tourBookingServiceId)
+//                        .providerId(serviceProvider.getId())
+//                        .providerName(serviceProvider.getName())
+//                        .providerEmail(serviceProvider.getEmail())
+//                        .emailSubject(subject)
+//                        .emailContent(content)
+//                        .build();
+//                emailService.sendMailServiceProvider(mailServiceDTO);
+                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+                }
 
-                String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
+//            //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
+//            if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+//                bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
+//                bookingService.setRequestedQuantity(0);
+//            }
 
-                MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
-                        .bookingServiceId(tourBookingServiceId)
-                        .providerId(serviceProvider.getId())
-                        .providerName(serviceProvider.getName())
-                        .providerEmail(serviceProvider.getEmail())
-                        .emailSubject(subject)
-                        .emailContent(content)
-                        .build();
-                emailService.sendMailServiceProvider(mailServiceDTO);
+                //Trường hợp thay đổi số lượng ở trạng thái PENDING
+                if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
+                    bookingService.setCurrentQuantity(bookingService.getRequestedQuantity());
+                    bookingService.setRequestedQuantity(0);
+
+                    //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
+                    Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_NOT_FOUND)
+                    );
+
+                    ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                    );
+                    String content = MessageFormat.format(emailChangeServiceContent,
+                            serviceProvider.getName(),
+                            service.getName(),
+                            bookingService.getCurrentQuantity(),
+                            bookingService.getRequestedQuantity(),
+                            bookingService.getRequestDate(),
+                            bookingService.getRequestedQuantity() * service.getNettPrice());
+
+                    String subject = MessageFormat.format(emailChangeServiceSubject, serviceProvider.getId());
+
+                    MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                            .bookingServiceId(tourBookingServiceId)
+                            .providerId(serviceProvider.getId())
+                            .providerName(serviceProvider.getName())
+                            .providerEmail(serviceProvider.getEmail())
+                            .emailSubject(subject)
+                            .emailContent(content)
+                            .build();
+                    emailService.sendMailServiceProvider(mailServiceDTO);
+                }
+
+                //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE
+                if (bookingService.getRequestedQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                    bookingService.setStatus(TourBookingServiceStatus.PENDING);
+
+                    //Gửi mail thông báo thay đổi cho nhà cung cấp (yêu cầu nhà cung cấp xác nhận)
+                    Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_NOT_FOUND)
+                    );
+
+                    ServiceProvider serviceProvider = providerRepository.findById(service.getServiceProvider().getId()).orElseThrow(
+                            () -> BusinessException.of(SERVICE_PROVIDER_NOT_FOUND)
+                    );
+                    String content = MessageFormat.format(emailUpdateServiceContent,
+                            serviceProvider.getName(),
+                            service.getName(),
+                            bookingService.getCurrentQuantity(),
+                            bookingService.getRequestedQuantity(),
+                            bookingService.getRequestDate(),
+                            bookingService.getRequestedQuantity() * service.getNettPrice());
+
+                    String subject = MessageFormat.format(emailUpdateServiceSubject, serviceProvider.getId());
+
+                    MailServiceDTO mailServiceDTO = MailServiceDTO.builder()
+                            .bookingServiceId(tourBookingServiceId)
+                            .providerId(serviceProvider.getId())
+                            .providerName(serviceProvider.getName())
+                            .providerEmail(serviceProvider.getEmail())
+                            .emailSubject(subject)
+                            .emailContent(content)
+                            .build();
+                    emailService.sendMailServiceProvider(mailServiceDTO);
+                }
             }
             bookingServiceRepository.save(bookingService);
 
@@ -1408,6 +1562,13 @@ public class OperatorServiceImpl implements OperatorService {
     public GeneralResponse<?> getTourSummary(Long scheduleId) {
         try {
             checkAuthor(scheduleId);
+            List<TransactionType> transactionReceiptTypes = new ArrayList<>();
+            transactionReceiptTypes.add(TransactionType.RECEIPT);
+            transactionReceiptTypes.add(TransactionType.COLLECTION);
+
+            List<TransactionType> transactionPaymentTypes = new ArrayList<>();
+            transactionPaymentTypes.add(TransactionType.PAYMENT);
+            transactionPaymentTypes.add(TransactionType.ADVANCED);
             //Tìm tất cả các booking thuộc schedule
             List<TourBooking> bookings = tourBookingRepository.findByTourSchedule_Id(scheduleId);
 
@@ -1427,7 +1588,7 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải thu
             BigDecimal totalReceiptAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.RECEIPT
+                    transactionReceiptTypes
             );
 
             //Tìm số tiền công ty đã chi
@@ -1443,25 +1604,96 @@ public class OperatorServiceImpl implements OperatorService {
             //Tìm tổng số tiền phải chi
             BigDecimal totalPaymentAmount = transactionRepository.findTotalAmountByTransactionCategoryIn(
                     transactions,
-                    TransactionType.PAYMENT
+                    transactionPaymentTypes
             );
 
             //Tìm số tiền ước tính phải chi cho cả tour
-            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId);
-            BigDecimal estimatedPaymentAmount = services.stream()
-                    .map(result -> {
-                        Service service = (Service) result[0];
-                        Integer quantity = (Integer) result[1];
-                        return BigDecimal.valueOf(service.getNettPrice() * quantity);
+
+            //tìm danh sahcs ngày của tour
+            List<TourDay> tourDayList = tourDayRepository.findListTourDayByScheduleId(scheduleId);
+            List<Long> tourDayIds = tourDayList.stream().map(TourDay::getId).toList();
+            List<TourDayService> tourDayServices = tourDayServiceRepository.findByTourDayIdInExceptTransportAndHotel(tourDayIds);
+            List<Service> tourServices = tourDayServices.stream().map(TourDayService::getService).toList();
+            BigDecimal estimatedPaymentAmountUnit = tourServices.stream()
+                    .map(ts -> {
+                        return BigDecimal.valueOf(ts.getNettPrice());
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+            BigDecimal passengerNumber = BigDecimal.valueOf(bookings.stream().map(TourBooking::getSeats).reduce(0, Integer::sum));
+            BigDecimal estimatedPaymentAmount = estimatedPaymentAmountUnit.multiply(passengerNumber);
+
+            //tinh tien hotel
+            List<TourDayService> tourDayServicesHotel = tourDayServiceRepository.findByTourDayIdInHotel(tourDayIds);
+            BigDecimal estimatedPaymentAmountHotelUnit = tourDayServicesHotel.stream().map(result ->{
+                return BigDecimal.valueOf(result.getService().getNettPrice());
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal estimatedPaymentAmountHotel = estimatedPaymentAmountHotelUnit.multiply(passengerNumber.divide(BigDecimal.valueOf(2), RoundingMode.CEILING));
+            estimatedPaymentAmount = estimatedPaymentAmount.add(estimatedPaymentAmountHotel);
+
+
+//            List<Long> tourServiceIds = tourServices.stream().map(Service::getId).toList();
+//            List<TourBookingService> tourBookingServices = bookingServiceRepository.findByScheduleId(scheduleId);
+//            BigDecimal estimatedPaymentAmount = tourBookingServices.stream()
+//                    .filter(tbs -> tourServiceIds.contains(tbs.getService().getId()))
+//                    .map(tbs -> {
+//                        Double nettPrice = tbs.getService().getNettPrice();
+//                        return BigDecimal.valueOf(nettPrice).multiply(BigDecimal.valueOf(tbs.getCurrentQuantity()));
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+//            int paxId = tourScheduleRepository.findTourPaxIdByScheduleId(scheduleId);
+//            TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow();
+//            int minPax = tourSchedule.getTourPax().getMinPax();
+//            List<ServicePaxPricing> servicePaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndTourPaxId(tourDayServiceIds, paxId);
+//            BigDecimal estimatedPaymentAmount = tourDayServices.stream().map(result ->{
+//                return BigDecimal.valueOf(result.getService().getNettPrice());
+//            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            //tim tien xe
+            List<TourDayService> tourDayServicesTransport = tourDayServiceRepository.findByTourDayIdInTransport(tourDayIds);
+//            List<Long> tourDayServiceTransportIds = tourDayServicesTransport.stream().map(TourDayService::getId).toList();
+//            List<ServicePaxPricing> serviceTransportPaxPricings = servicePaxPricingRepository.findByTourDayServiceIdInAndTourPaxId(tourDayServiceTransportIds, paxId);
+            BigDecimal estimatedPaymentAmountTransport = tourDayServicesTransport.stream().map(result ->{
+                return BigDecimal.valueOf(result.getService().getNettPrice());
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            estimatedPaymentAmount = estimatedPaymentAmount.add(estimatedPaymentAmountTransport);
+
+
+//            List<TourBookingServiceStatus> tourBookingServiceStatusList = new ArrayList<>();
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.NOT_AVAILABLE);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.REJECTED_BY_OPERATOR);
+//            tourBookingServiceStatusList.add(TourBookingServiceStatus.CANCELLED);
+//            List<Object[]> services = serviceRepository.findAllServicesWithQuantityInTourSchedule(scheduleId, tourBookingServiceStatusList);
+//            BigDecimal estimatedPaymentAmount = services.stream()
+//                    .map(result -> {
+//                        Service service = (Service) result[0];
+//                        Integer quantity = (Integer) result[1];
+//                        return BigDecimal.valueOf(service.getNettPrice() * quantity);
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+////            //Tìm tiền xe => thêm vào ước tính chi để ra cuối cùng
+//            List<BigDecimal> transportFee = serviceRepository.findTransportFeeByScheduleId(scheduleId);
+//            for(BigDecimal bigDecimal :transportFee){
+//                estimatedPaymentAmount = estimatedPaymentAmount.add(bigDecimal);
+//            }
+
+
             //Tìm số tiền ước tính thu được cả tour
-            BigDecimal estimateReceiptAmount = bookings.stream()
-                    .map(result -> {
-                        return BigDecimal.valueOf(result.getTotalAmount());
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//            BigDecimal estimateReceiptAmount = transactionRepository.findEstimateReceiptAmount(transactions, transactionReceiptTypes);
+//            BigDecimal estimateReceiptAmount = bookings.stream()
+//                    .map(result -> {
+//                        return BigDecimal.valueOf(result.getTotalAmount());
+//                    })
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            int paxId = tourScheduleRepository.findTourPaxIdByScheduleId(scheduleId);
+            BigDecimal tourSellingPricePerPerson = tourPaxRepository.findSellingPriceByTourPaxIdAndScheduleId(scheduleId, paxId);
+            BigDecimal estimateReceiptAmount = tourSellingPricePerPerson.multiply(passengerNumber);
 
             //Tìm lợi nhuận ước tính
             BigDecimal estimateProfitAmount = estimateReceiptAmount.subtract(estimatedPaymentAmount);
@@ -1494,7 +1726,7 @@ public class OperatorServiceImpl implements OperatorService {
     }
 
 
-    public Specification<TourSchedule> buildSearchSpecification(String keyword, String status) {
+    public Specification<TourSchedule> buildSearchSpecification(String keyword, String status, TourType tourType) {
         return (root, query, cb) -> {
             query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
@@ -1526,9 +1758,10 @@ public class OperatorServiceImpl implements OperatorService {
                     throw BusinessException.of(INVALID_STATUS_VALUE + status, e);
                 }
             }
-            Join<Object, Object> tourJoin = root.join("tour", JoinType.LEFT);
-            predicates.add(cb.equal(tourJoin.get("tourType"), TourType.SIC));
-
+            if (tourType != null) {
+                Join<TourSchedule, Tour> tourJoin = root.join("tour", JoinType.LEFT);
+                predicates.add(cb.equal(tourJoin.get("tourType"), tourType));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

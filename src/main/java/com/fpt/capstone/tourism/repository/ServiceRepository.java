@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.dto.response.PublicServiceDTO;
 import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.enums.TourBookingServiceStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.List;
 
@@ -100,8 +102,10 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     SELECT s, tbs.currentQuantity FROM Service s
     JOIN FETCH TourBookingService tbs ON s.id = tbs.service.id
     WHERE tbs.booking.tourSchedule.id = :scheduleId
+    AND tbs.status NOT IN :tourBookingServiceStatusList
+    AND s.serviceCategory.categoryName != 'Transport'
 """)
-    List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId);
+    List<Object[]> findAllServicesWithQuantityInTourSchedule(Long scheduleId, List<TourBookingServiceStatus> tourBookingServiceStatusList);
 
     @Query("SELECT s FROM Service s " +
             "WHERE s.serviceCategory.categoryName = :categoryName " +
@@ -129,5 +133,22 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findRandomActivities(String categoryName, PageRequest of);
 
     List<Service> findByServiceProviderIdAndServiceCategoryIdAndDeletedFalse(Long serviceProviderId, Long serviceCategoryId);
+
+    @Query(value = """
+            SELECT distinct s.nett_price as bigdecimal FROM service s
+            JOIN public.tour_booking_service tbs ON s.id = tbs.service_id
+            JOIN public.tour_booking tb ON tbs.tour_booking_id = tb.id
+            WHERE tb.schedule_id = :scheduleId
+            AND s.category_id = 3
+            """, nativeQuery = true)
+    List<BigDecimal> findTransportFeeByScheduleId(Long scheduleId);
+
+
+    @Query(value = """
+            SELECT sc.categoryName FROM Service s
+            JOIN s.serviceCategory sc
+            WHERE s.id = :id
+            """)
+    String findCategoryById(Long id);
 }
 

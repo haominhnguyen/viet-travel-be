@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,12 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
     List<TourPax> findByTourIdAndIdNotAndDeletedFalseOrderByMinPax(Long tourId, Long paxIdToExclude);
 
     List<TourPax> findByTourIdAndDeletedFalse(Long id);
+
+    @Query("""
+            SELECT tp.sellingPrice as bigdecimal FROM TourPax tp
+            JOIN tp.tourSchedule ts
+            WHERE tp.id = :paxId
+            AND ts.id = :scheduleId
+            """)
+    BigDecimal findSellingPriceByTourPaxIdAndScheduleId(Long scheduleId, int paxId);
 }

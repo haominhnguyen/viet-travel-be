@@ -147,7 +147,7 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getCode());
-        assertEquals("Tour detail loaded successfully", response.getMessage());
+        assertEquals("Tải chi tiết ngày tour thành công", response.getMessage());
         assertEquals(1, response.getData().size());
         assertEquals(1L, response.getData().get(0).getId());
         assertEquals("Day 1 - Welcome", response.getData().get(0).getTitle());
@@ -176,7 +176,7 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getCode());
-        assertEquals("Tour detail loaded successfully", response.getMessage());
+        assertEquals("Tải chi tiết ngày tour thành công", response.getMessage());
         assertEquals(1, response.getData().size());
 
         verify(tourRepository).findById(1L);
@@ -195,7 +195,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertEquals("Tour not found", exception.getMessage());
+        assertEquals("Không tìm thấy tour", exception.getMessage());
 
         verify(tourRepository).findById(999L);
         verify(tourDayRepository, never()).findByTourIdOrderByDayNumber(anyLong());
@@ -212,7 +212,7 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getCode());
-        assertEquals("No tour days found for this tour", response.getMessage());
+        assertEquals("Không tìm thấy ngày tour nào cho tour này", response.getMessage());
         assertTrue(response.getData().isEmpty());
 
         verify(tourRepository).findById(1L);
@@ -254,7 +254,7 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.CREATED.value(), response.getCode());
-        assertEquals("Tour day created successfully", response.getMessage());
+        assertEquals("Tạo ngày tour thành công", response.getMessage());
         assertEquals(2L, response.getData().getId());
         assertEquals("Day 2 - Exploration", response.getData().getTitle());
         assertEquals(2, response.getData().getDayNumber());
@@ -282,7 +282,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertEquals("Tour not found", exception.getMessage());
+        assertEquals("Không tìm thấy tour", exception.getMessage());
 
         verify(tourRepository).findById(999L);
         verify(tourDayRepository, never()).save(any(TourDay.class));
@@ -301,7 +301,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertEquals("Location not found", exception.getMessage());
+        assertEquals("Không tìm thấy địa điểm", exception.getMessage());
 
         verify(tourRepository).findById(1L);
         verify(locationRepository).findById(999L);
@@ -322,7 +322,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertEquals("No service provider available for category Transport in the selected location", exception.getMessage());
+        assertEquals("Không có nhà cung cấp dịch vụ cho danh mục tại địa điểm đã chọn.", exception.getMessage());
 
         verify(tourRepository).findById(1L);
         verify(locationRepository).findById(1L);
@@ -346,7 +346,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getHttpCode());
-        assertEquals("Cannot create more days than the maximum defined in the tour (3 days/nights)", exception.getMessage());
+        assertEquals("Không thể tạo thêm ngày vì đã vượt quá số ngày/đêm tối đa được định nghĩa trong tour: 3 ngày/đêm", exception.getMessage());
 
         verify(tourRepository).findById(1L);
         verify(locationRepository).findById(1L);
@@ -385,7 +385,7 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getCode());
-        assertEquals("Tour day updated successfully", response.getMessage());
+        assertEquals("Cập nhật ngày tour thành công", response.getMessage());
         assertEquals(1L, response.getData().getId());
         assertEquals("Day 1 - Updated", response.getData().getTitle());
         assertEquals("Updated content", response.getData().getContent());
@@ -412,7 +412,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertEquals("Tour day not found", exception.getMessage());
+        assertEquals("Không tìm thấy ngày tour", exception.getMessage());
 
         verify(tourRepository).findById(1L);
         verify(tourDayRepository).findByIdAndTourId(999L, 1L);
@@ -431,8 +431,8 @@ class TourDayServiceIImplTest {
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getCode());
-        assertEquals("Tour day deleted successfully", response.getMessage());
-        assertEquals("Tour day with ID 1 has been deleted successfully", response.getData());
+        assertEquals("Xóa ngày tour thành công", response.getMessage());
+        assertEquals("Ngày tour có ID 1 đã được xoá thành công.", response.getData());
         assertTrue(tourDay.getDeleted());
 
         verify(tourRepository).findById(1L);
@@ -452,7 +452,7 @@ class TourDayServiceIImplTest {
         });
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
-        assertEquals("Tour day not found", exception.getMessage());
+        assertEquals("Không tìm thấy ngày tour", exception.getMessage());
 
         verify(tourRepository).findById(1L);
         verify(tourDayRepository).findByIdAndTourId(999L, 1L);

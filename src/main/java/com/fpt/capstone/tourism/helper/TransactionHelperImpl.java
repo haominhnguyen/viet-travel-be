@@ -3,11 +3,17 @@ package com.fpt.capstone.tourism.helper;
 import com.fpt.capstone.tourism.dto.common.GeneralResponse;
 import com.fpt.capstone.tourism.dto.response.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.TransactionAccountantResponseDTO;
+import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TransactionHelper;
 import com.fpt.capstone.tourism.mapper.TransactionMapper;
+import com.fpt.capstone.tourism.model.Service;
+import com.fpt.capstone.tourism.model.Tour;
+import com.fpt.capstone.tourism.model.TourSchedule;
 import com.fpt.capstone.tourism.model.Transaction;
 import com.fpt.capstone.tourism.model.enums.TransactionStatus;
 import com.fpt.capstone.tourism.model.enums.TransactionType;
+import com.fpt.capstone.tourism.repository.ServiceRepository;
+import com.fpt.capstone.tourism.repository.TourScheduleRepository;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +21,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.fpt.capstone.tourism.constants.Constants.Message.SERVICE_NOT_FOUND;
+import static com.fpt.capstone.tourism.constants.Constants.Message.TOUR_SCHEDULE_NOT_FOUND;
 
 @Component
 @RequiredArgsConstructor
 public class TransactionHelperImpl implements TransactionHelper {
 
     private final TransactionMapper transactionMapper;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final ServiceRepository serviceRepository;
 
     @Override
     public Specification<Transaction> buildTransactionPublicSearchSpecification(String keyword, List<TransactionType> transactionTypes, String transactionStatus) {
@@ -45,7 +57,7 @@ public class TransactionHelperImpl implements TransactionHelper {
                 predicates.add(receivedByPredicate);
             }
 
-            if(transactionStatus != null && !transactionStatus.isEmpty()) {
+            if (transactionStatus != null && !transactionStatus.isEmpty()) {
                 TransactionStatus status = TransactionStatus.valueOf(transactionStatus.trim());
                 predicates.add(root.get("transactionStatus").in(status));
             }
@@ -69,5 +81,22 @@ public class TransactionHelperImpl implements TransactionHelper {
                 .build();
 
         return GeneralResponse.of(pagingDTO);
+    }
+
+    @Override
+    public Double calculateTransportFeePerPerson(Long scheduleId, Long serviceId) {
+        TourSchedule tourSchedule = tourScheduleRepository.findById(scheduleId).orElseThrow(
+                () ->BusinessException.of(TOUR_SCHEDULE_NOT_FOUND)
+        );
+
+        int minPax = tourSchedule.getTourPax().getMinPax();
+
+        Service service = serviceRepository.findById(serviceId).orElseThrow(
+                () ->BusinessException.of(SERVICE_NOT_FOUND)
+        );
+
+        Double result = service.getNettPrice()/minPax;
+
+        return result;
     }
 }

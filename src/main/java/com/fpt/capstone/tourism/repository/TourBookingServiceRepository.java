@@ -58,6 +58,11 @@ public interface TourBookingServiceRepository extends JpaRepository<TourBookingS
             WHERE b.id = :bookingId""")
     List<TourBookingService> findByTourBookingId(@Param("bookingId") Long bookingId);
 
-    TourBookingService findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(Long bookingId, Long serviceId, Long tourDayId);
+    List<TourBookingService> findByBookingIdAndServiceIdAndTourDayIdAndDeletedFalse(Long bookingId, Long serviceId, Long tourDayId);
 
+    @Query("""
+            SELECT tbs FROM TourBookingService tbs 
+            JOIN FETCH tbs.booking b
+            WHERE b.tourSchedule.id = :id""")
+    List<TourBookingService> findByScheduleId(Long id);
 }

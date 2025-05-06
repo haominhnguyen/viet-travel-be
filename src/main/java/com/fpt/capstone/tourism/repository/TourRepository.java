@@ -71,7 +71,7 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
 
     @Query("""
-                SELECT ts.tour.id, MIN(ts.tourPax.sellingPrice)
+                SELECT MIN(ts.tourPax.sellingPrice)
                 FROM TourSchedule ts
                 WHERE ts.tour.id = :tourId
                 GROUP BY ts.tour.id
@@ -168,4 +168,18 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 """, nativeQuery = true)
     List<Object[]> findToursByIds(@Param("ids") List<Long> ids);
 
+    @Query(value = """
+            SELECT tour_type FROM tour t 
+            JOIN tour_booking tb on t.id = tb.tour_id
+            JOIN tour_booking_service tbs on tbs.tour_booking_id = tb.id
+            WHERE tbs.id = :tourBookingServiceId
+            """, nativeQuery = true)
+    TourType findTourTypeByTourBookingServiceId(Long tourBookingServiceId);
+
+    @Query(value = """
+            SELECT tour_type FROM tour t 
+            JOIN tour_booking tb on t.id = tb.tour_id
+            WHERE tb.id = :bookingId
+            """, nativeQuery = true)
+    TourType findTourTypeByTourBookingId(Long bookingId);
 }

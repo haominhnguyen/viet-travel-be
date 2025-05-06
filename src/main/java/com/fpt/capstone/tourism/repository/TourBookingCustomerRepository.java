@@ -19,6 +19,7 @@ public interface TourBookingCustomerRepository extends JpaRepository<TourBooking
     TourBookingCustomer findByTourBookingAndBookedPerson(TourBooking tourBooking, boolean bookedPerson);
 
     List<TourBookingCustomer> findByTourBookingId(Long id);
+    List<TourBookingCustomer> findByTourBooking_IdAndBookedPersonFalse(Long id);
 
     List<TourBookingCustomer> findByBookedPersonAndTourBooking(boolean booked, TourBooking tourBooking);
 

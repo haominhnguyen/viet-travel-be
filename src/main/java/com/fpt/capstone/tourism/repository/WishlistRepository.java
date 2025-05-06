@@ -23,6 +23,11 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
             """, nativeQuery = true)
     List<WishlistDTO> findByUserId(Long id);
 
+    @Query("""
+    SELECT wl FROM Wishlist wl
+    WHERE wl.itemId = :itemId
+    AND wl.user.id = :userId
+""")
     Wishlist findByItemIdAndUserId(Long userId, Long itemId);
 
     @Query(value = """

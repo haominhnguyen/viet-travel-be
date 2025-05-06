@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.dto.common;
 
 
 import com.fpt.capstone.tourism.model.Tag;
+import com.fpt.capstone.tourism.model.enums.TourScheduleStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.List;
 @Builder
 public class OperatorTourDetailDTO {
     private Long scheduleId;
+    private TourScheduleStatus scheduleStatus;
     private String tourName;
     private TourType tourType;
     private List<TagDTO> tags;
@@ -25,6 +27,7 @@ public class OperatorTourDetailDTO {
     private LocalDateTime createdAt;
     private String createdBy;
     private Integer maxPax;
+    private Integer minPax;
     private Integer soldSeats;
     private Integer pendingSeats;
     private Integer remainingSeats;

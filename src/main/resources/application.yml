@@ -95,3 +95,7 @@ frontend:
   base-url: https://traveltoday.cloud
 backend:
   base-url: https://traveltoday.cloud/api/v1
+
+serpapi:
+  api:
+    key: ccdd0523de94440f9a47eb414bc7fc42242d7d82d169a250d57116d608eca4b9

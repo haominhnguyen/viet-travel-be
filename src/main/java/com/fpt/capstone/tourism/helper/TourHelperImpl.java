@@ -73,6 +73,7 @@ public class TourHelperImpl implements TourHelper {
 
         List<TourBookingStatus> tourBookingStatuses = new ArrayList<>();
         tourBookingStatuses.add(TourBookingStatus.PENDING);
+        tourBookingStatuses.add(TourBookingStatus.SUCCESS);
 
         for (Tour tour : tourPage.getContent()) {
             long numberBooking = tourBookingRepository.countByTourAndStatusIn(tour, tourBookingStatuses);
