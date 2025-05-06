@@ -39,6 +39,7 @@ public interface TourBookingServiceRepository extends JpaRepository<TourBookingS
                 LEFT JOIN FETCH tb.tourDay td
                 WHERE tb.requestedQuantity > 0 OR tb.status in :statuses
                 AND u.id = :userId
+                ORDER BY tb.updatedAt desc 
             """)
     Page<TourBookingService> findByRequestedQuantityGreaterThanOrStatus(Long userId,
             @Param("statuses") List<TourBookingServiceStatus> statuses, Pageable pageable);
