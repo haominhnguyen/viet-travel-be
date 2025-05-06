@@ -53,4 +53,6 @@ public interface TourService {
     GeneralResponse<TourResponseDTO> sendTourForApproval(Long tourId, User user);
 
     GeneralResponse<TourResponseDTO> openTour(Long tourId, User user);
+
+    GeneralResponse<TourResponseDTO> changeToPendingPricing(Long tourId, User user);
 }

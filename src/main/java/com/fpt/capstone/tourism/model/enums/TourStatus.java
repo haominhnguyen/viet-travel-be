@@ -7,6 +7,5 @@ public enum TourStatus {
     PENDING_PRICING, // chưa chiết tính giá
     APPROVED, //CEO chấp nhận
     REJECTED, //CEO từ chối
-
     PENDING,
 }
