@@ -560,10 +560,10 @@ public class ServiceServiceImpl implements ServiceService {
             }
 
             //Kiểm tra xem đã quá hạn ngày yêu cầu chưa
-            LocalDateTime currentDateTime = LocalDateTime.now();
-            if (currentDateTime.isAfter(bookingService.getRequestDate())) {
-                throw BusinessException.of("Đơn hàng đã hết hạn");
-            }
+//            LocalDateTime currentDateTime = LocalDateTime.now();
+//            if (bookingService.getRequestDate() != null && currentDateTime.isAfter(bookingService.getRequestDate())) {
+//                throw BusinessException.of("Đơn hàng đã hết hạn");
+//            }
 
             //Chỉ có thể reject khi đơn hàng là pending
             if (bookingService.getStatus().equals(TourBookingServiceStatus.PENDING)) {
