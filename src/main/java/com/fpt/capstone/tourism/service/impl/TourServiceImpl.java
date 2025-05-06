@@ -48,6 +48,7 @@ public class TourServiceImpl implements TourService {
     private final UserRepository userRepository;
     private final TourDayRepository tourDayRepository;
     private final TourPaxRepository tourPaxRepository;
+
     @Override
     public PublicTourDTO findTopTourOfYear() {
         try {
@@ -183,7 +184,7 @@ public class TourServiceImpl implements TourService {
                 List<Tag> tagEntities = tagRepository.findTagsByTourId(tourId);
                 List<TagDTO> tags = new ArrayList<>();
 
-                if(!tagEntities.isEmpty()) {
+                if (!tagEntities.isEmpty()) {
                     tags = tagEntities.stream().map(tagMapper::toDTO).toList();
                 }
 
@@ -271,6 +272,7 @@ public class TourServiceImpl implements TourService {
             throw BusinessException.of(TOUR_DETAIL_LOAD_FAIL, ex);
         }
     }
+
     @Override
     @Transactional
     public GeneralResponse<TourResponseDTO> createTour(TourRequestDTO tourRequestDTO, User currentUser) {
@@ -693,15 +695,14 @@ public class TourServiceImpl implements TourService {
             //Phần riêng cho tính doanh thu
             LocalDate revenueStartDate;
             LocalDate revenueEndDate;
-            if (fromDate == null && toDate == null){
+            if (fromDate == null && toDate == null) {
                 revenueStartDate = startDate;
                 revenueEndDate = endDate;
-            }
-            else{
-                revenueStartDate = (fromDate != null)? fromDate
+            } else {
+                revenueStartDate = (fromDate != null) ? fromDate
                         : toDate.minusMonths(11).withDayOfMonth(1);
 
-                revenueEndDate = (toDate != null)? toDate :endDate;
+                revenueEndDate = (toDate != null) ? toDate : endDate;
             }
 
             //Tính doanh thu từng tháng (12 tháng gần nhất)
@@ -790,7 +791,7 @@ public class TourServiceImpl implements TourService {
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, TOUR_NOT_FOUND));
             // Check if the tour is in DRAFT status
             if (tour.getTourStatus() != TourStatus.DRAFT &&
-            tour.getTourStatus() != TourStatus.REJECTED) {
+                    tour.getTourStatus() != TourStatus.REJECTED) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST,
                         ONLY_DRAFT_CAN_BE_SENT + tour.getTourStatus());
             }
@@ -1067,17 +1068,36 @@ public class TourServiceImpl implements TourService {
             LocalDate currentDate = LocalDate.now();
 
             // Filter by tour schedule date
-            Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
-            predicates.add(cb.equal(scheduleJoin.get("status"), TourScheduleStatus.OPEN));
-            predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), currentDate.plusDays(1)));
-            if (fromDate != null) {
-                predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), fromDate));
-            }
+//            Join<Tour, TourSchedule> scheduleJoin = root.join("tourSchedules", JoinType.LEFT);
+//            predicates.add(cb.equal(scheduleJoin.get("status"), TourScheduleStatus.OPEN));
+//            predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), currentDate.plusDays(1)));
+//            if (fromDate != null) {
+//                predicates.add(cb.greaterThan(scheduleJoin.get("startDate"), fromDate));
+//            }
 
             //Filter by price of tour
-            Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.LEFT);
-            Predicate validToPredicate = cb.greaterThan(paxJoin.get("validTo"), currentDate);
-            predicates.add(validToPredicate);
+//            Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.INNER);
+//            Predicate validToPredicate = cb.greaterThan(paxJoin.get("validTo"), currentDate);
+//            predicates.add(validToPredicate);
+            // Join with TourPax
+            Join<Tour, TourPax> paxJoin = root.join("tourPax", JoinType.INNER);
+
+            // Join with TourSchedule through TourPax
+            Join<TourPax, TourSchedule> schedulePaxJoin = paxJoin.join("tourSchedule", JoinType.INNER);
+
+            // Filter by TourSchedule status and date
+            predicates.add(cb.equal(schedulePaxJoin.get("status"), TourScheduleStatus.OPEN));
+            predicates.add(cb.greaterThan(schedulePaxJoin.get("startDate"), currentDate.plusDays(1)));
+            predicates.add(cb.isFalse(schedulePaxJoin.get("deleted"))); // Ensure TourSchedule is not deleted
+
+            // Apply fromDate filter if provided
+            if (fromDate != null) {
+                predicates.add(cb.greaterThan(schedulePaxJoin.get("startDate"), fromDate));
+            }
+
+            // Filter by TourPax validity and price
+            predicates.add(cb.greaterThan(paxJoin.get("validTo"), currentDate));
+            predicates.add(cb.isFalse(paxJoin.get("deleted"))); // Ensure TourPax is not deleted
 
             if (budgetFrom != null) {
                 predicates.add(cb.greaterThanOrEqualTo(paxJoin.get("sellingPrice"), budgetFrom));

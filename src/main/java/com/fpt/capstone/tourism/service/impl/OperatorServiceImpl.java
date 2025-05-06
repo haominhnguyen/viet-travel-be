@@ -1029,7 +1029,7 @@ public class OperatorServiceImpl implements OperatorService {
                 }
 
                 //Trường hợp thay đổi số lượng ở trạng thái AVAILABLE (new)
-                 else if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                else if (requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
                     bookingService.setStatus(TourBookingServiceStatus.PENDING);
                     bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
 
@@ -1061,12 +1061,21 @@ public class OperatorServiceImpl implements OperatorService {
                             .build();
                     emailService.sendMailServiceProvider(mailServiceDTO);
 
-                } else {
+                } else if(requestDTO.getNewQuantity() > 0 && bookingService.getStatus().equals(TourBookingServiceStatus.CHECKING)){
+                    bookingService.setRequestedQuantity(requestDTO.getNewQuantity());
+                }
+
+                else {
                     throw BusinessException.of("Không được cập nhật dịch vụ");
                 }
             } else {
                 //đổi số lượng đối với tour SIC
-                bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+                if (bookingService.getStatus().equals(TourBookingServiceStatus.AVAILABLE)) {
+                    bookingService.setCurrentQuantity(requestDTO.getNewQuantity());
+                } else {
+                    throw BusinessException.of("Không được cập nhật dịch vụ");
+                }
+
 
 //                //Gửi mail thông báo thay đổi cho nhà cung cấp (chỉ là thông báo)
 //                Service service = serviceRepository.findById(bookingService.getService().getId()).orElseThrow(
