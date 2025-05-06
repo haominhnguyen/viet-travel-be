@@ -573,6 +573,8 @@ public class BookingServiceImpl implements BookingService {
                     tourBookingService.setCurrentQuantity(customers.size());
                 } else if (service.getServiceCategory().getCategoryName().equals("Flight Ticket")) {
                     tourBookingService.setCurrentQuantity(customers.size());
+                }else if (service.getServiceCategory().getCategoryName().equals("Transport")) {
+                    tourBookingService.setCurrentQuantity(customers.size());
                 }
                 tourBookingServiceRepository.save(tourBookingService);
             }
