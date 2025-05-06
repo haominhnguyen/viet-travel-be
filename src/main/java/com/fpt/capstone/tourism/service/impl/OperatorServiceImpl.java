@@ -1155,7 +1155,12 @@ public class OperatorServiceImpl implements OperatorService {
 
             List<TourBookingService> tourBookingServiceStatusList = bookingServiceRepository.findByScheduleId(tourSchedule.getId());
             for (TourBookingService item : tourBookingServiceStatusList) {
-                if (!item.getStatus().equals(TourBookingServiceStatus.PAID)) {
+                if (item.getStatus().equals(TourBookingServiceStatus.AVAILABLE)
+                ||item.getStatus().equals(TourBookingServiceStatus.PENDING)
+                ||item.getStatus().equals(TourBookingServiceStatus.APPROVED)
+                ||item.getStatus().equals(TourBookingServiceStatus.CHECKING)
+                ||item.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)
+                ||item.getStatus().equals(TourBookingServiceStatus.CANCEL_REQUEST)) {
                     throw BusinessException.of("Không thể chuyển quyết toán");
                 }
             }
