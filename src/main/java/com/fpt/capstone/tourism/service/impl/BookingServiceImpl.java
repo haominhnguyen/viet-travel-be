@@ -512,6 +512,7 @@ public class BookingServiceImpl implements BookingService {
         Transaction transaction = Transaction.builder()
                 .booking(tourBooking)
                 .amount(total)
+                .notes("Customer pay for Booking Code: " + tourBooking.getBookingCode())
                 .paymentMethod(paymentMethod)
                 .category(TransactionType.RECEIPT)
                 .paidBy(fullName)
@@ -647,7 +648,12 @@ public class BookingServiceImpl implements BookingService {
     public GeneralResponse<?> cancelService(Long tourBookingServiceId) {
         try {
             TourBookingService tourBookingService = tourBookingServiceRepository.findById(tourBookingServiceId).orElseThrow();
-            tourBookingService.setStatus(TourBookingServiceStatus.CANCEL_REQUEST);
+
+            if(tourBookingService.getStatus().equals(TourBookingServiceStatus.NOT_ORDERED)) {
+                tourBookingService.setStatus(TourBookingServiceStatus.CANCELLED);
+            } else {
+                tourBookingService.setStatus(TourBookingServiceStatus.CANCEL_REQUEST);
+            }
             TourBookingService updatedTourBookingService = tourBookingServiceRepository.save(tourBookingService);
             return GeneralResponse.of(bookingMapper.toTourBookingServiceDTO(updatedTourBookingService));
         } catch (Exception ex) {
