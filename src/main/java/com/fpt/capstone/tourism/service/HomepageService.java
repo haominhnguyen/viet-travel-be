@@ -13,6 +13,8 @@ public interface HomepageService {
 
     GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> viewAllHotel(int page, int size, String keyword, Integer star);
 
+    GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword, Integer star);
+
 //    GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> viewAllRestaurant(int page, int size, String keyword);
 
     GeneralResponse<PagingDTO<List<PublicTourDTO>>> viewAllTour(int page, int size, String keyword, Double budgetFrom, Double budgetTo, Integer duration, LocalDate fromDate, Long departLocationId, String sortByPrice);

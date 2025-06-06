@@ -394,9 +394,47 @@ public class ServiceProviderServiceImpl implements ServiceProviderService {
         }
     }
 
+    @Override
+    public GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> getAllRestaurant(int page, int size, String keyword, Integer star) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+            Specification<ServiceProvider> spec = buildSearchSpecification(keyword, "Restaurant", star);
+
+            Page<ServiceProvider> serviceProviderPage = serviceProviderRepository.findAll(spec, pageable);
+
+            //Find min room price of each hotel
+            Map<Long, Double> minPriceMap = serviceProviderRepository.findMinRoomPricesByHotelIds(serviceProviderPage.getContent().stream().map(ServiceProvider::getId).toList())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],  // tourId
+                            row -> (Double) row[1] // priceFrom
+                    ));;
+
+            List<PublicServiceProviderDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
+                    .map(serviceProvider -> new PublicServiceProviderDTO(
+                            serviceProvider.getId(),
+                            serviceProvider.getImageUrl(),
+                            serviceProvider.getName(),
+                            serviceProvider.getAbbreviation(),
+                            serviceProvider.getWebsite(),
+                            serviceProvider.getEmail(),
+                            serviceProvider.getStar(),
+                            serviceProvider.getPhone(),
+                            serviceProvider.getAddress(),
+                            locationMapper.toPublicLocationDTO(serviceProvider.getLocation()),
+                            geoPositionMapper.toDTO(serviceProvider.getGeoPosition()),
+                            minPriceMap.getOrDefault(serviceProvider.getId(), 0.0)
+                    ))
+                    .collect(Collectors.toList());
+
+            return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
+        } catch (Exception ex) {
+            throw BusinessException.of("Tải các Khách sạn thất bại", ex);
+        }
+    }
 
 
-        @Override
+    @Override
     public GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllRestaurant(int page, int size, String keyword) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());

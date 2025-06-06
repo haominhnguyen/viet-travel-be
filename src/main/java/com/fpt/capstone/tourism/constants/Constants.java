@@ -837,6 +837,8 @@ public class Constants {
                                                                         {
                                                                           "id": 1,
                                                                           "title": "Activity 1 Title",
+                                                                          "startTime": "7:30",
+                                                                          "endTime": "8:30",
                                                                           "content": "Description of activity 1.",
                                                                           "category": "Category of activity",
                                                                           duration: "2-3 giờ",
@@ -867,6 +869,8 @@ public class Constants {
                                                                         {
                                                                           "id": 2,
                                                                           "title": "Activity 2 Title",
+                                                                          "startTime": "13:30",
+                                                                          "endTime": "15:30",
                                                                           "content": "Description of activity 2.",
                                                                           "category": "Category of activity",
                                                                           duration: "2-3 giờ",
@@ -890,6 +894,8 @@ public class Constants {
                                                                 {
                                                                   "id": 1,
                                                                   "title": "Activity 1 Title",
+                                                                  "startTime": "7:30 AM",
+                                                                  "endTime": "8:30 AM",
                                                                   "content": "Description of activity 1.",
                                                                   "category": "Category of activity",
                                                                   duration: "2-3 giờ",
@@ -913,13 +919,16 @@ public class Constants {
                     - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
                     - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
                     - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
-                    - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
+                    - Phải có duy nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
                     - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
                     - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
                     - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
                         *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
                         *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
                         *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
+                    - Các hoạt động cần phải cụ thể nhất có thể, ví dụ:
+                        *) "Tham quan một làng nghề truyền thống" -> "Tham quan một làng nghề Bát Tràng"
+                        *) "Thưởng thức cà phê tại một quán cà phê lâu đời" -> "Thưởng thức cà phê quán cà phê CAFE YÊN"
                     - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
 
                     Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.

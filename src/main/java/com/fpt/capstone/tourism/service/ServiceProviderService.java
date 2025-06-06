@@ -22,6 +22,8 @@ public interface ServiceProviderService {
 
     GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> getAllHotel(int page, int size, String keyword, Integer star);
 
+    GeneralResponse<PagingDTO<List<PublicServiceProviderDTO>>> getAllRestaurant(int page, int size, String keyword, Integer star);
+
     GeneralResponse<PagingDTO<List<ServiceProviderDTO>>> getAllRestaurant(int page, int size, String keyword);
 
     GeneralResponse<ServiceProviderDTO> updateServiceProvider(Long id, ServiceProviderDTO serviceProviderDTO);

@@ -58,6 +58,20 @@ public class HomepageController {
         return ResponseEntity.ok(homepageService.viewAllHotel(page, size, keyword, star));
     }
 
+    @GetMapping("/list-restaurant")
+    public ResponseEntity<?> viewAllRestaurant(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size,
+                                          @RequestParam(required = false) String keyword,
+                                          @RequestParam(value = "star", required = false) Integer star,
+                                          @RequestParam(value = "budgetTo", required = false) Double budgetTo,
+                                          @RequestParam(value = "budgetFrom", required = false) Double budgetFrom
+    ) {
+        return ResponseEntity.ok(homepageService.viewAllRestaurant(page, size, keyword, star));
+    }
+
+
+
+
     @GetMapping("/tour-detail/{id}")
     public ResponseEntity<GeneralResponse<PublicTourDetailDTO>> viewTourDetail(@PathVariable Long id) {
         return ResponseEntity.ok(homepageService.viewTourDetail(id));
